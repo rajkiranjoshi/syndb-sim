@@ -8,7 +8,7 @@
 #include "traffic/trafficGenerator.hpp"
 
 /* Host struct */
-typedef struct
+struct Host
 {
     host_id_t id;
     link_p torLink;
@@ -19,8 +19,9 @@ typedef struct
 
     trafficGenerator trafficGen;
 
-} Host;
+};
 
+typedef struct Host Host;
 typedef std::shared_ptr<Host> host_p;
 
 

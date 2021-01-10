@@ -5,10 +5,13 @@
 #include "traffic/packet.hpp"
 
 
-typedef struct
+typedef struct nextPacketInfo
 {
     pkt_size_t size;
     time_t delay;
+
+    inline nextPacketInfo(pkt_size_t size, time_t delay); // constructor
+
 } nextPacketInfo;
 
 /* trafficGenerator struct */
