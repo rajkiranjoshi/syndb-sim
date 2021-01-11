@@ -6,11 +6,15 @@
 #include "utils/types.hpp"
 
 /* normalPkt Struct */
-typedef struct {
+typedef struct normalPkt {
     pkt_id_t id;
     pkt_size_t size;
     host_id_t srcHost;
     host_id_t dstHost;
+
+    normalPkt() = default;
+    normalPkt(pkt_id_t id, pkt_size_t size);
+    
 } normalPkt;
 
 typedef std::shared_ptr<normalPkt> normalpkt_p;

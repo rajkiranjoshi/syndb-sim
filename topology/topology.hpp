@@ -8,21 +8,20 @@
 
 typedef struct Topology
 {
-    std::vector<Host> hostList;
-    std::vector<Link> linkList;
-    std::vector<Switch> switchList;
+    std::vector<host_p> hostList;
+    std::vector<link_p> linkList;
+    std::vector<switch_p> switchList;
 
-    virtual switch_id_t getTorId(switch_id_t dstHostId) = 0;
+    virtual switch_id_t getTorId(switch_id_t dstHostId);
+    virtual void buildTopo();
   
 } Topology;
 
 
 typedef struct SimpleTopology : Topology
 {
-    switch_id_t getTorId(switch_id_t dstHostId);
+    // switch_id_t getTorId(switch_id_t dstHostId);
 } SimpleTopology;
-
-
 
 
 

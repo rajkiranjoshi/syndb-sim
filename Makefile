@@ -6,7 +6,8 @@ CURR_DIR:=$(shell dirname $(realpath $(firstword $(MAKEFILE_LIST))))
 SOURCES = $(wildcard $(CURR_DIR)/*.cpp) \
 		  $(wildcard $(CURR_DIR)/traffic/*.cpp) \
 		  $(wildcard $(CURR_DIR)/topology/*.cpp) \
-		  $(wildcard $(CURR_DIR)/utils/*.cpp)
+		  $(wildcard $(CURR_DIR)/utils/*.cpp) \
+		  $(wildcard $(CURR_DIR)/simulation/*.cpp)
 
 OUTPUT_BINARY = syndb-sim
 

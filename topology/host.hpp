@@ -19,6 +19,12 @@ struct Host
 
     trafficGenerator trafficGen;
 
+    Host(); // default constructor
+    Host(host_id_t id);
+
+    void init();
+    void sendPkt();
+
 };
 
 typedef struct Host Host;
