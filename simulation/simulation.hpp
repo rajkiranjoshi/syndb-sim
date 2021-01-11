@@ -3,6 +3,7 @@
 
 #include <list>
 #include "topology/topology.hpp"
+#include "simulation/event.hpp"
 
 typedef struct Simulation
 {
@@ -15,8 +16,8 @@ typedef struct Simulation
 
     // packets-related
     pkt_id_t nextPktId;
-    std::list<normalpkt_p> NormalPktList;
-    std::list<triggerpkt_p> TriggerPktList;
+    std::list<normalpktevent_p> NormalPktEventList;
+    std::list<triggerpktevent_p> TriggerPktEventList;
     
     
     Simulation(); // default constructor

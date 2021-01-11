@@ -16,6 +16,8 @@ typedef struct Config
 
     const load_t hostTrafficGenLoadPercent = 100;
 
+    const sim_time_t switchHopDelayNs = 1000;
+
 } Config;
 
 extern Config syndbConfig;
