@@ -18,10 +18,10 @@ Simulation::Simulation(){
     this->nextPktId = 0;
 
 }
-
-pkt_id_t Simulation::getNextPktId(){
+/* 
+inline pkt_id_t Simulation::getNextPktId(){
     return this->nextPktId++;
-}
+} */
 
 Simulation syndbSim;
 

@@ -1,4 +1,5 @@
 #include <algorithm>
+#include <fmt/core.h>
 #include "topology/host.hpp"
 #include "simulation/config.hpp"
 #include "simulation/simulation.hpp"
@@ -39,6 +40,12 @@ void Host::sendPkt(){
     routeInfo rinfo;
 
     this->torSwitch->routeNormalPkt(this->nextPkt, rinfo);
+    if(rinfo.nextHopType == HostNode){
+        std::string msg = fmt::format("Host {} sending intra-rack packet to host {}. Abort!", this->id, this->nextPkt->dstHost);
+        throw std::logic_error(msg);
+    }
+    
+    // Here onward the logic is for inter-rack traffic
     pktNextLink = rinfo.nextLink;
     pktNextSwitch = syndbSim.topo.getSwitchById(rinfo.nextHopId.switch_id);
     // TODO: should this be (i) currTime OR (ii) this->nextPktTime (when the pkt was supposed to be on switch)

@@ -21,7 +21,9 @@ typedef struct Simulation
     
     
     Simulation(); // default constructor
-    pkt_id_t getNextPktId(); // needs to be thread-safe when parallelizing
+    
+    // needs to be thread-safe when parallelizing
+    inline pkt_id_t getNextPktId() {return this->nextPktId++;}; 
 
 } Simulation;
 
