@@ -40,6 +40,7 @@ typedef struct Switch
 
     /* Fills rinfo. Returns Success or Failure */
     status_t routeNormalPkt(normalpkt_p pkt, routeInfo &rinfo);
+    status_t routeTriggerPkt(triggerpkt_p pkt, routeInfo &rinfo);
     status_t routeToDstSwitch(switch_id_t dstSwitchId, routeInfo &rinfo);
 
     Switch() = default; 

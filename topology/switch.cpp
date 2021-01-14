@@ -48,8 +48,12 @@ status_t Switch::routeNormalPkt(normalpkt_p pkt, routeInfo &rinfo){
 
         return s;
     }
-    
-    
+
+}
+
+status_t Switch::routeTriggerPkt(triggerpkt_p pkt, routeInfo &rinfo){
+
+    return this->routeToDstSwitch(pkt->dstSwitchId, rinfo);
 
 }
 
@@ -99,5 +103,14 @@ status_t Switch::routeToDstSwitch(switch_id_t dstSwitchId, routeInfo &rinfo){
         {
             return FAILURE;
         }
+}
+
+void Switch::receiveNormalPkt(normalpkt_p pkt){
+
+}
+
+
+void Switch::receiveTriggerPkt(triggerpkt_p pkt){
+    
 }
 

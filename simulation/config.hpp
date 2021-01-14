@@ -7,7 +7,7 @@
 typedef struct Config 
 {
     const sim_time_t timeIncrementNs = 100;
-    const sim_time_t totalTimeMSecs = 1;
+    const float totalTimeMSecs = 0.1;
 
     const std::string topo = "SimpleTopology";
 

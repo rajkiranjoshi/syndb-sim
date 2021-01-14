@@ -4,16 +4,27 @@
 #include "traffic/packet.hpp"
 #include "topology/switch.hpp"
 
-typedef struct NormalPktEvent
+template<typename T>
+struct PktEvent
 {
-    normalpkt_p pkt;
+    T pkt; // could be normalpkt_p or triggerpkt_p
     sim_time_t pktForwardTime;
     switch_p currSwitch;
-    switch_p nextSwitch;
-} NormalPktEvent;
+    switch_p nextSwitch; // NULL if next hop is dstHost
+ 
+    void doForwarding(const routeInfo &rinfo);
+};
 
-typedef std::shared_ptr<NormalPktEvent> normalpktevent_p;
 
+// Following is called an "alias template". 
+// It is used for typedef equivalent of template structs/classes
+template<typename T>
+using pktevent_p = std::shared_ptr<PktEvent<T>>;
+
+
+// typedef std::shared_ptr<PktEvent> pktevent_p;
+
+/* 
 typedef struct TriggerPktEvent
 {
     triggerpkt_p pkt;
@@ -23,5 +34,6 @@ typedef struct TriggerPktEvent
 } TriggerPktEvent;
 
 typedef std::shared_ptr<TriggerPktEvent> triggerpktevent_p;
+ */
 
 #endif

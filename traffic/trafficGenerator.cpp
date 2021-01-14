@@ -1,5 +1,6 @@
 #include "traffic/trafficGenerator.hpp"
 #include "simulation/simulation.hpp"
+#include "utils/utils.hpp"
 
 
 packetInfo::packetInfo(normalpkt_p pkt, pkt_size_t size, time_t sendDelay, time_t serializeDelay){
@@ -21,12 +22,12 @@ trafficGenerator::trafficGenerator(link_speed_gbps_t linkSpeed, load_t load, swi
 packetInfo trafficGenerator::getNextPacket(){
     
     pkt_size_t size = 1500;
-    pkt_size_t size_on_wire = size + 24;
-    sim_time_t serializeDelay = ((size_on_wire * 8) / this->torLinkSpeed);
+    
+    sim_time_t serializeDelay = getSerializationDelay(size, this->torLinkSpeed);
     sim_time_t sendDelay = 0;
 
     pkt_id_t pktId = syndbSim.getNextPktId();
-    normalpkt_p pkt = normalpkt_p(new normalPkt(pktId, size));
+    normalpkt_p pkt = normalpkt_p(new NormalPkt(pktId, size));
     
     pkt->srcHost = this->parentHostId;
 

@@ -5,25 +5,35 @@
 #include <memory>
 #include "utils/types.hpp"
 
-/* normalPkt Struct */
-typedef struct normalPkt {
+/* Pkt Struct */
+typedef struct Pkt {
     pkt_id_t id;
     pkt_size_t size;
+
+    Pkt() = default;
+    Pkt(pkt_id_t id, pkt_size_t size);
+    
+} Pkt;
+
+typedef struct NormalPkt : Pkt {
     host_id_t srcHost;
     host_id_t dstHost;
 
-    normalPkt() = default;
-    normalPkt(pkt_id_t id, pkt_size_t size);
-    
-} normalPkt;
+    using Pkt::Pkt; // Inheriting constructor of base class Pkt
 
-typedef std::shared_ptr<normalPkt> normalpkt_p;
+} NormalPkt;
+
+typedef std::shared_ptr<NormalPkt> normalpkt_p;
 
 /* triggerPkt Struct */
-typedef struct : normalPkt {
-    switch_id_t triggerSwitchId;
-} triggerPkt;
+typedef struct : Pkt {
+    switch_id_t srcSwitchId;
+    switch_id_t dstSwitchId;
 
-typedef std::shared_ptr<triggerPkt> triggerpkt_p;
+    using Pkt::Pkt; // Inheriting constructor of base class Pkt
+    
+} TriggerPkt;
+
+typedef std::shared_ptr<TriggerPkt> triggerpkt_p;
 
 #endif

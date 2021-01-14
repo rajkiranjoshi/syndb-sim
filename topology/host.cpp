@@ -3,6 +3,7 @@
 #include "topology/host.hpp"
 #include "simulation/config.hpp"
 #include "simulation/simulation.hpp"
+#include "utils/utils.hpp"
 
 Host::Host(){
     
@@ -36,7 +37,7 @@ void Host::generateNextPkt(){
 void Host::sendPkt(){
     link_p pktNextLink;
     switch_p pktNextSwitch;
-    sim_time_t pktNextSendTime, timeAfterSwitchHop;
+    sim_time_t pktNextSendTime, timeAfterSwitchHop, pktNextSerializeStartTime;
     routeInfo rinfo;
 
     this->torSwitch->routeNormalPkt(this->nextPkt, rinfo);
@@ -51,11 +52,15 @@ void Host::sendPkt(){
     // TODO: should this be (i) currTime OR (ii) this->nextPktTime (when the pkt was supposed to be on switch)
     // if the granularity (timeIncrementNs) is too high, using the second "might"
     timeAfterSwitchHop = this->nextPktTime + this->torSwitch->hop_delay;
-    pktNextSendTime = std::max<sim_time_t>(timeAfterSwitchHop, pktNextLink->next_idle_time);
+    
+    // Time when pkt can be serialized on the link after the ToR
+    pktNextSerializeStartTime = std::max<sim_time_t>(timeAfterSwitchHop, pktNextLink->next_idle_time);
+    // Time when serialization would end and pkt can be forwarded to next hop
+    pktNextSendTime = pktNextSerializeStartTime + getSerializationDelay(this->nextPkt->size, this->torLink->speed); 
     pktNextLink->next_idle_time = pktNextSendTime; // pkt scheduled on the next link (FIFO)
 
     // Create, fill and add a new normal pkt event
-    normalpktevent_p newPktEvent = normalpktevent_p(new NormalPktEvent());
+    pktevent_p<normalpkt_p> newPktEvent = pktevent_p<normalpkt_p>(new PktEvent<normalpkt_p>());
     newPktEvent->pkt = this->nextPkt;
     newPktEvent->pktForwardTime = pktNextSendTime;
     newPktEvent->currSwitch = this->torSwitch;

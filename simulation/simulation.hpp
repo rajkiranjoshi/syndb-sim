@@ -16,14 +16,22 @@ typedef struct Simulation
 
     // packets-related
     pkt_id_t nextPktId;
-    std::list<normalpktevent_p> NormalPktEventList;
-    std::list<triggerpktevent_p> TriggerPktEventList;
+     
+    std::list<pktevent_p<normalpkt_p>> NormalPktEventList;
+    std::list<pktevent_p<triggerpkt_p>> TriggerPktEventList;
     
     
     Simulation(); // default constructor
     
     // needs to be thread-safe when parallelizing
-    inline pkt_id_t getNextPktId() {return this->nextPktId++;}; 
+    inline pkt_id_t getNextPktId() { return this->nextPktId++; }; 
+    inline void buildTopo(){ this->topo.buildTopo(); };
+    void initHosts();
+    void processHosts();
+    void processTriggerPktEvents();
+    void processNormalPktEvents();
+
+    void cleanUp();
 
 } Simulation;
 
