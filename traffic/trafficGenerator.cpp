@@ -7,7 +7,7 @@ packetInfo::packetInfo(normalpkt_p pkt, pkt_size_t size, time_t sendDelay, time_
     this->pkt = pkt;
     this->size = size;
     this->sendDelay = sendDelay;
-    this->serializeDelay;
+    this->serializeDelay = serializeDelay;
 }
 
 trafficGenerator::trafficGenerator(link_speed_gbps_t linkSpeed, load_t load, switch_id_t hostId){

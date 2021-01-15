@@ -25,14 +25,9 @@ status_t Switch::routeNormalPkt(normalpkt_p pkt, routeInfo &rinfo){
     if(it != neighborHostTable.end()){ // DstHost is in the neighbor hosts
         log_debug(fmt::format("[Switch: {}, Pkt: {}] DstHost {} is the next hop!", this->id, pkt->id, pkt->dstHost));
         
-        // Indicate that next dst is a host
-        rinfo.nextHopId.host_id = pkt->dstHost;
-        rinfo.nextHopType = NextNodeType::HostNode;
+        std::string msg = fmt::format("routeNormalPkt() [Switch: {}, Pkt: {}] DstHost {} is the next hop! This is being handled by Simulation::processNormalPktEvents().", this->id, pkt->id, pkt->dstHost);
 
-        // Set the next link
-        rinfo.nextLink = it->second; 
-
-        return SUCCESS;
+        throw std::logic_error(msg);
     }
     else{ // DstHost is not directly reachable
 

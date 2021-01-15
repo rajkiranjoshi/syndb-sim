@@ -11,7 +11,9 @@ struct PktEvent
     sim_time_t pktForwardTime;
     switch_p currSwitch;
     switch_p nextSwitch; // NULL if next hop is dstHost
- 
+    
+    PktEvent();
+    ~PktEvent();
     void doForwarding(const routeInfo &rinfo);
 };
 

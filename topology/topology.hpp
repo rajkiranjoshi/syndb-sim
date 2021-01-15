@@ -24,8 +24,8 @@ typedef struct Topology
 
     // Hold all shared_ptrs so that hosts, links, switches don't get destroyed by mistake
     // Keeping two links separate for possible future optimizations
-    std::vector<link_p> networkLinkVector;
-    std::vector<link_p> torLinkVector;
+    std::vector<network_link_p> networkLinkVector;
+    std::vector<host_tor_link_p> torLinkVector;
     host_id_map_t hostIDMap;   
     switch_id_map_t switchIDMap;
     
@@ -40,8 +40,8 @@ typedef struct Topology
     inline link_id_t getNextLinkId() {return this->nextLinkId++;}
     inline switch_id_t getNextSwitchId() {return this->nextSwitchId++;}
 
-    link_p createNewToRLink();
-    link_p createNewNetworLink();
+    host_tor_link_p createNewToRLink();
+    network_link_p createNewNetworLink(switch_id_t sw1, switch_id_t sw2);
     switch_p createNewSwitch();
     host_p createNewHost();
 

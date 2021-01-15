@@ -10,17 +10,17 @@
 
 typedef std::unordered_map<switch_id_t, switch_id_t> routing_table_t;
 typedef std::pair<switch_id_t, switch_id_t> routing_table_pair;
-typedef std::unordered_map<switch_id_t, link_p> neighbor_switch_table_t;
-typedef std::pair<switch_id_t, link_p> neighbor_switch_table_pair; 
-typedef std::unordered_map<host_id_t, link_p> neighbor_host_table_t;
-typedef std::pair<host_id_t, link_p> neighbor_host_table_pair;
+typedef std::unordered_map<switch_id_t, network_link_p> neighbor_switch_table_t;
+typedef std::pair<switch_id_t, network_link_p> neighbor_switch_table_pair; 
+typedef std::unordered_map<host_id_t, host_tor_link_p> neighbor_host_table_t;
+typedef std::pair<host_id_t, host_tor_link_p> neighbor_host_table_pair;
 
 
 typedef struct routeInfo
 {
     next_hop_id nextHopId;
     NextNodeType nextHopType;
-    link_p nextLink;
+    network_link_p nextLink;
 } routeInfo;
 
 

@@ -28,14 +28,14 @@ void Host::generateNextPkt(){
     // TODO: Again whether (i) syndbSim.currTime OR (ii) this->nextPktTime.
     // Ideally delay is between when last pkt was sent + when next pkt should be sent
     sim_time_t pktGenSendTime = this->nextPktTime + pktInfo.sendDelay;
-    sim_time_t nextPktSerializeStart = std::max<sim_time_t>(pktGenSendTime, this->torLink->next_idle_time);
+    sim_time_t nextPktSerializeStart = std::max<sim_time_t>(pktGenSendTime, this->torLink->next_idle_time_to_tor);
     // this->nextPktTime is the last pkt serialize end time
     this->nextPktTime = nextPktSerializeStart + pktInfo.serializeDelay;
-    this->torLink->next_idle_time = this->nextPktTime;
+    this->torLink->next_idle_time_to_tor = this->nextPktTime;
 }
 
 void Host::sendPkt(){
-    link_p pktNextLink;
+    network_link_p pktNextLink;
     switch_p pktNextSwitch;
     sim_time_t pktNextSendTime, timeAfterSwitchHop, pktNextSerializeStartTime;
     routeInfo rinfo;
@@ -54,10 +54,10 @@ void Host::sendPkt(){
     timeAfterSwitchHop = this->nextPktTime + this->torSwitch->hop_delay;
     
     // Time when pkt can be serialized on the link after the ToR
-    pktNextSerializeStartTime = std::max<sim_time_t>(timeAfterSwitchHop, pktNextLink->next_idle_time);
+    pktNextSerializeStartTime = std::max<sim_time_t>(timeAfterSwitchHop, pktNextLink->next_idle_time[rinfo.nextHopId.switch_id]);
     // Time when serialization would end and pkt can be forwarded to next hop
     pktNextSendTime = pktNextSerializeStartTime + getSerializationDelay(this->nextPkt->size, this->torLink->speed); 
-    pktNextLink->next_idle_time = pktNextSendTime; // pkt scheduled on the next link (FIFO)
+    pktNextLink->next_idle_time[rinfo.nextHopId.switch_id] = pktNextSendTime; // pkt scheduled on the next link (FIFO)
 
     // Create, fill and add a new normal pkt event
     pktevent_p<normalpkt_p> newPktEvent = pktevent_p<normalpkt_p>(new PktEvent<normalpkt_p>());

@@ -11,7 +11,7 @@
 typedef struct Host
 {
     host_id_t id;
-    link_p torLink;
+    host_tor_link_p torLink;
     switch_p torSwitch;
 
     normalpkt_p nextPkt;

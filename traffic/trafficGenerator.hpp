@@ -12,7 +12,7 @@ typedef struct packetInfo
     time_t sendDelay;
     time_t serializeDelay;
 
-    inline packetInfo(normalpkt_p pkt, pkt_size_t size, time_t sendDelay, time_t serializeDelay); // constructor
+    packetInfo(normalpkt_p pkt, pkt_size_t size, time_t sendDelay, time_t serializeDelay); // constructor
 
 } packetInfo;
 

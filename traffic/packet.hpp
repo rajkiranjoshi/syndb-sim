@@ -12,6 +12,8 @@ typedef struct Pkt {
 
     Pkt() = default;
     Pkt(pkt_id_t id, pkt_size_t size);
+
+    ~Pkt();
     
 } Pkt;
 
@@ -31,7 +33,7 @@ typedef struct : Pkt {
     switch_id_t dstSwitchId;
 
     using Pkt::Pkt; // Inheriting constructor of base class Pkt
-    
+
 } TriggerPkt;
 
 typedef std::shared_ptr<TriggerPkt> triggerpkt_p;

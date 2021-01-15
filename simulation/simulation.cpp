@@ -35,11 +35,14 @@ void Simulation::initHosts(){
         it++;
     }
 
-    log_print_info(fmt::format("Initialized {} hosts!", this->topo.hostIDMap.size()));
+    debug_print(fmt::format("Initialized {} hosts!", this->topo.hostIDMap.size()));
     
 }
 
 void Simulation::processHosts(){
+
+    debug_print_yellow("Inside process hosts");
+    debug_print("Num hosts: {}", this->topo.hostIDMap.size());
 
     auto it = this->topo.hostIDMap.begin();
 
@@ -108,19 +111,20 @@ void Simulation::processTriggerPktEvents(){
 
     // Now delete the enlisted TriggerPktEvents
 
-    log_print_info(fmt::format("Deleting {} TriggerPktEvents...", toDelete.size()));
+    debug_print(fmt::format("Deleting {} TriggerPktEvents...", toDelete.size()));
     auto it2 = toDelete.begin();
 
     while (it2 != toDelete.end()){
         TriggerPktEventList.erase(*it2);
     }
 
+    it2++;
 }
 
 
 void Simulation::processNormalPktEvents(){
 
-    link_p pktNextLink;
+    host_tor_link_p pktNextLink;
     switch_p pktNextSwitch;
     sim_time_t pktNextSendTime, timeAfterSwitchHop, pktNextSerializeStartTime;
     routeInfo rinfo;
@@ -157,10 +161,13 @@ void Simulation::processNormalPktEvents(){
                 // time when we can start serialization *earliest* on the next switch
                 timeAfterSwitchHop = event->pktForwardTime + event->nextSwitch->hop_delay;
                 // actual time when we can start serialization assuming FIFO queuing on the next link
-                pktNextSerializeStartTime = std::max<sim_time_t>(timeAfterSwitchHop, pktNextLink->next_idle_time);
+                pktNextSerializeStartTime = std::max<sim_time_t>(timeAfterSwitchHop, pktNextLink->next_idle_time_to_host);
 
                 // Time when serialization would end and pkt can be forwarded to dst host
                 pktNextSendTime = pktNextSerializeStartTime + getSerializationDelay(event->pkt->size, pktNextLink->speed);
+
+                // Schedule the packet on the Tor-Host link
+                pktNextLink->next_idle_time_to_host = pktNextSendTime;
 
                 /* Update the event */
                 event->pktForwardTime = pktNextSendTime; 
@@ -192,11 +199,12 @@ void Simulation::processNormalPktEvents(){
 
     // Now delete the enlisted NormalPktEvents
 
-    log_print_info(fmt::format("Deleting {} NormalPktEvents...", toDelete.size()));
+    debug_print(fmt::format("Deleting {} NormalPktEvents...", toDelete.size()));
     auto it2 = toDelete.begin();
 
     while (it2 != toDelete.end()){
         NormalPktEventList.erase(*it2);
+        it2++;
     }
 
 

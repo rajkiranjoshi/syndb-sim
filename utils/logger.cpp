@@ -1,5 +1,7 @@
-#include <boost/log/trivial.hpp>
+#include <iostream>
+#include <fmt/core.h>
 #include <fmt/color.h>
+#include <boost/log/trivial.hpp>
 #include "utils/logger.hpp"
 
 void log_debug(const std::string &msg){
@@ -12,8 +14,4 @@ void log_error(const std::string &msg){
 
 void log_info(const std::string &msg){
     BOOST_LOG_TRIVIAL(info) << msg;
-}
-
-void log_print_info(const std::string &msg){
-    fmt::print(fg(fmt::color::yellow), msg);
 }

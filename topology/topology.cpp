@@ -32,15 +32,16 @@ switch_id_t Topology::getTorId(host_id_t hostId){
 
 void Topology::addHostToTor(host_p host, switch_p tor){
 
-    link_p newLink = createNewToRLink();
+    host_tor_link_p newLink = createNewToRLink();
 
     // Update things on Host
     host->torLink = newLink;
     host->torSwitch = tor;
 
     // Update things on Switch
-    neighbor_switch_table_pair newNeighborHost(host->id, newLink);
-    tor->neighborHostTable.insert(newNeighborHost);
+    // neighbor_switch_table_pair newNeighborHost(host->id, newLink);
+    // tor->neighborHostTable.insert(newNeighborHost);
+    tor->neighborHostTable[host->id] = newLink;
 
     // Update things on Topology
     host_tor_map_pair newHost(host->id, tor->id);
@@ -50,15 +51,17 @@ void Topology::addHostToTor(host_p host, switch_p tor){
 
 void Topology::connectSwitchToSwitch(switch_p s1, switch_p s2){
 
-    link_p newLink = createNewNetworLink();
+    network_link_p newLink = createNewNetworLink(s1->id, s2->id);
 
     // Update things on s1
-    neighbor_switch_table_pair newNeighborSwitch2(s2->id, newLink);
-    s1->neighborSwitchTable.insert(newNeighborSwitch2);
+    s1->neighborSwitchTable[s2->id] = newLink;
+    // neighbor_switch_table_pair newNeighborSwitch2(s2->id, newLink);
+    // s1->neighborSwitchTable.insert(newNeighborSwitch2);
 
     // Update things on s2
-    neighbor_switch_table_pair newNeighborSwitch1(s1->id, newLink);
-    s2->neighborSwitchTable.insert(newNeighborSwitch1);
+    s2->neighborSwitchTable[s1->id] = newLink;
+    // neighbor_switch_table_pair newNeighborSwitch1(s1->id, newLink);
+    // s2->neighborSwitchTable.insert(newNeighborSwitch1);
 
 }
 
@@ -97,17 +100,17 @@ void SimpleTopology::Topology::buildTopo(){
     // NO need since both the other ToRs are neighbors
 }
 
-link_p Topology::createNewToRLink(){
+host_tor_link_p Topology::createNewToRLink(){
 
-    link_p newLink = link_p(new Link(this->getNextLinkId(), syndbConfig.torLinkSpeedGbps));
+    host_tor_link_p newLink = host_tor_link_p(new HostTorLink(this->getNextLinkId(), syndbConfig.torLinkSpeedGbps));
     this->torLinkVector.push_back(newLink);
 
     return newLink;
 }
 
-link_p Topology::createNewNetworLink(){
+network_link_p Topology::createNewNetworLink(switch_id_t sw1, switch_id_t sw2){
 
-    link_p newLink = link_p(new Link(this->getNextLinkId(), syndbConfig.networkLinkSpeedGbps));
+    network_link_p newLink = network_link_p(new NetworkLink(this->getNextLinkId(), syndbConfig.networkLinkSpeedGbps, sw1, sw2));
     this->networkLinkVector.push_back(newLink);
 
     return newLink;
