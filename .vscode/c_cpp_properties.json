@@ -1,17 +1,6 @@
 {
     "configurations": [
         {
-            "name": "Release",
-            "includePath": [
-                "${workspaceFolder}/**"
-            ],
-            "defines": [],
-            "compilerPath": "/usr/bin/gcc",
-            "cStandard": "gnu17",
-            "cppStandard": "gnu++14",
-            "intelliSenseMode": "gcc-x64"
-        },
-        {
             "name": "Debug",
             "includePath": [
                 "${workspaceFolder}/**"
