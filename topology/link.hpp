@@ -19,7 +19,7 @@ typedef struct Link
 /* NetworkLink struct */
 typedef struct NetworkLink : Link
 {
-    std::unordered_map<switch_id_t, switch_id_t> next_idle_time;
+    std::unordered_map<sim_time_t, sim_time_t> next_idle_time;
 
     NetworkLink(link_id_t id, link_speed_gbps_t speed, switch_id_t sw1, switch_id_t sw2);
 
