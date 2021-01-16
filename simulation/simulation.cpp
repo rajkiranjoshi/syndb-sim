@@ -158,7 +158,7 @@ void Simulation::processNormalPktEvents(){
             else if(event->nextSwitch->id == syndbSim.topo.getTorId(event->pkt->dstHost)){
                 
                 // Pass the pkt to the next switch to handle
-                event->nextSwitch->receiveNormalPkt(event->pkt); // can parallelize switch's processing? 
+                event->nextSwitch->receiveNormalPkt(event->pkt); // can parallelize switch's processing?
 
                 /* Calculate the pkt forward time on the ToR --> Host link */
                 pktNextSwitch = event->nextSwitch;
@@ -181,8 +181,11 @@ void Simulation::processNormalPktEvents(){
                 event->nextSwitch = NULL;
 
             }
-            else // forward the event's packet
+            // forward the event's packet (switch-to-switch fowarding)
+            // next switch is NOT a dstTor switch. So need to invoke routing
+            else 
             {
+                event->nextSwitch->receiveNormalPkt(event->pkt); // can parallelize switch's processing? 
                 status_t status = event->nextSwitch->routeNormalPkt(event->pkt, rinfo);
 
                 if(status != SUCCESS){

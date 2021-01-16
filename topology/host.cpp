@@ -51,13 +51,19 @@ void Host::sendPkt(){
     sim_time_t pktNextSendTime, timeAfterSwitchHop, pktNextSerializeStartTime;
     routeInfo rinfo;
 
-    this->torSwitch->routeNormalPkt(this->nextPkt, rinfo);
-    if(rinfo.nextHopType == HostNode){
+    // Step 1: Pass the pkt to ToR for its own processing
+    this->torSwitch->receiveNormalPkt(this->nextPkt); // can parallelize switch's processing?
+
+    // Step 2: Do the routing on the ToR switch. Two cases.
+    // --> Case1: Intra-rack routing: dstHost is on the same rack!
+    if(this->torSwitch->id == syndbSim.topo.getTorId(this->nextPkt->dstHost)){
         std::string msg = fmt::format("Host {} sending intra-rack packet to host {}. Abort!", this->id, this->nextPkt->dstHost);
         throw std::logic_error(msg);
     }
     
+    // --> Case2: Inter-rack routing: dstHost is NOT on the same rack!
     // Here onward the logic is for inter-rack traffic
+    this->torSwitch->routeNormalPkt(this->nextPkt, rinfo);
     pktNextLink = rinfo.nextLink;
     pktNextSwitch = syndbSim.topo.getSwitchById(rinfo.nextHopId.switch_id);
     // TODO: should this be (i) currTime OR (ii) this->nextPktTime (when the pkt was supposed to be on switch)
