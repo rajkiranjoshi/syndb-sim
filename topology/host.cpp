@@ -49,7 +49,7 @@ void Host::sendPkt(){
     network_link_p pktNextLink;
     switch_p pktNextSwitch;
     sim_time_t pktNextSendTime, timeAfterSwitchHop, pktNextSerializeStartTime;
-    routeInfo rinfo;
+    routeScheduleInfo rinfo;
 
     // Step 1: Pass the pkt to ToR for its own processing
     this->torSwitch->receiveNormalPkt(this->nextPkt); // can parallelize switch's processing?

@@ -63,7 +63,7 @@ void Simulation::processHosts(){
 
 void Simulation::processTriggerPktEvents(){
     
-    routeInfo rinfo;
+    routeScheduleInfo rinfo;
 
     // List of iterators that we would delete in the end
     std::list<std::list<pktevent_p<triggerpkt_p>>::iterator> toDelete;
@@ -127,7 +127,7 @@ void Simulation::processNormalPktEvents(){
     host_tor_link_p pktNextLink;
     switch_p pktNextSwitch;
     sim_time_t pktNextSendTime, timeAfterSwitchHop, pktNextSerializeStartTime;
-    routeInfo rinfo;
+    routeScheduleInfo rinfo;
 
     // List of iterators that we would delete in the end
     std::list<std::list<pktevent_p<normalpkt_p>>::iterator> toDelete;

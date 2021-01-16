@@ -16,12 +16,11 @@ typedef std::unordered_map<host_id_t, host_tor_link_p> neighbor_host_table_t;
 typedef std::pair<host_id_t, host_tor_link_p> neighbor_host_table_pair;
 
 
-typedef struct routeInfo
+typedef struct routeScheduleInfo
 {
-    next_hop_id nextHopId;
-    NextNodeType nextHopType;
-    network_link_p nextLink;
-} routeInfo;
+    switch_p nextSwitch;
+    sim_time_t pktNextForwardTime;
+} routeScheduleInfo;
 
 
 
@@ -39,9 +38,9 @@ typedef struct Switch
     void receiveTriggerPkt(triggerpkt_p pkt);
 
     /* Fills rinfo. Returns Success or Failure */
-    status_t routeNormalPkt(normalpkt_p pkt, routeInfo &rinfo);
-    status_t routeTriggerPkt(triggerpkt_p pkt, routeInfo &rinfo);
-    status_t routeToDstSwitch(switch_id_t dstSwitchId, routeInfo &rinfo);
+    status_t routeNormalPkt(normalpkt_p pkt, routeScheduleInfo &rinfo);
+    status_t routeTriggerPkt(triggerpkt_p pkt, routeScheduleInfo &rinfo);
+    status_t routeToDstSwitch(switch_id_t dstSwitchId, routeScheduleInfo &rinfo);
 
     Switch() = default; 
     Switch(switch_id_t id);

@@ -16,7 +16,7 @@ PktEvent<T>::~PktEvent(){
 
 /*  The logic for routing pkts between switches only */
 template<typename T>
-void PktEvent<T>::doForwarding(const routeInfo &rinfo){ 
+void PktEvent<T>::doForwarding(const routeScheduleInfo &rinfo){ 
     
     network_link_p pktNextLink;
     switch_p pktNextSwitch;

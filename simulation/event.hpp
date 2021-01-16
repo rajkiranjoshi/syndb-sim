@@ -14,7 +14,7 @@ struct PktEvent
     
     PktEvent();
     ~PktEvent();
-    void doForwarding(const routeInfo &rinfo);
+    void doForwarding(const routeScheduleInfo &rinfo);
 };
 
 

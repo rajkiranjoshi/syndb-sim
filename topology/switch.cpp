@@ -13,13 +13,33 @@ Switch::Switch(switch_id_t id){
 
 
 
-status_t Switch::routeNormalPkt(normalpkt_p pkt, routeInfo &rinfo){
-    /* 
-        Logic: look for pkt's dest host in neighbor hosts. If yes, get the link.
-               Else, compute dst_tor_id 
-     */
-    switch_id_t dstTorId;
+status_t Switch::routeNormalPkt(normalpkt_p pkt, routeScheduleInfo &rinfo){
     
+    // Step 1: Do the routing: determines nextSwitch, nextLink, nextLink's queue (correct next_idle_time)
+    // Step 2: (common) Do the scheduling: determines the pktNextForwardTime for the correct nextLink's queue
+
+    switch_id_t dstTorId;
+
+    dstTorId = syndbSim.topo.getTorId(pkt->dstHost);
+    
+    if(dstTorId == this->id){ // intra-rack routing
+
+    }
+    else // inter-rack routing
+    {
+        // ToDo: call the routeCommon() routine. Should be shared with routeTriggerPkt
+        status_t s = this->routeToDstSwitch(dstTorId, rinfo); 
+
+        if(s == FAILURE){
+            std::string errMsg = fmt::format("Switch {} found no route for pkt {} to dstHost {}", this->id, pkt->id, pkt->dstHost);
+            throw std::logic_error(errMsg);
+        }
+
+        return s;
+    }
+   
+       
+    /*
     auto it = this->neighborHostTable.find(pkt->dstHost);
     
     if(it != neighborHostTable.end()){ // DstHost is in the neighbor hosts
@@ -33,27 +53,20 @@ status_t Switch::routeNormalPkt(normalpkt_p pkt, routeInfo &rinfo){
 
         // Get the dst ToR ID based on the topology's logic
         dstTorId = syndbSim.topo.getTorId(pkt->dstHost);
-
-        status_t s = this->routeToDstSwitch(dstTorId, rinfo); 
-
-        if(s == FAILURE){
-            std::string errMsg = fmt::format("Switch {} found no route for pkt {} to dstHost {}", this->id, pkt->id, pkt->dstHost);
-            throw std::logic_error(errMsg);
-        }
-
-        return s;
-    }
+    */
+        
+    // }
 
 }
 
-status_t Switch::routeTriggerPkt(triggerpkt_p pkt, routeInfo &rinfo){
+status_t Switch::routeTriggerPkt(triggerpkt_p pkt, routeScheduleInfo &rinfo){
 
     return this->routeToDstSwitch(pkt->dstSwitchId, rinfo);
 
 }
 
 
-status_t Switch::routeToDstSwitch(switch_id_t dstSwitchId, routeInfo &rinfo){
+status_t Switch::routeToDstSwitch(switch_id_t dstSwitchId, routeScheduleInfo &rinfo){
     
     // First, find if the dstSwitchId is in the neighbor switch list
 
