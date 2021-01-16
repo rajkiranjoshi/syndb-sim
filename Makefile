@@ -10,7 +10,8 @@ SOURCES = $(wildcard $(CURR_DIR)/*.cpp) \
 		  $(wildcard $(CURR_DIR)/traffic/*.cpp) \
 		  $(wildcard $(CURR_DIR)/topology/*.cpp) \
 		  $(wildcard $(CURR_DIR)/utils/*.cpp) \
-		  $(wildcard $(CURR_DIR)/simulation/*.cpp)
+		  $(wildcard $(CURR_DIR)/simulation/*.cpp) \
+		  $(wildcard $(CURR_DIR)/devtests/*.cpp)
 
 OBJECTS = $(patsubst $(CURR_DIR)/%,$(BUILDDIR)/%,$(SOURCES:.cpp=.o))
 DEPENDS = $(patsubst $(CURR_DIR)/%,$(BUILDDIR)/%,$(SOURCES:.cpp=.d))

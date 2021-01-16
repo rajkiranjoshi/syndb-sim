@@ -32,6 +32,17 @@ void Host::generateNextPkt(){
     // this->nextPktTime is the last pkt serialize end time
     this->nextPktTime = nextPktSerializeStart + pktInfo.serializeDelay;
     this->torLink->next_idle_time_to_tor = this->nextPktTime;
+
+    // For devtest testNormalPktLatencies()
+    #ifdef DEBUG
+    pktTime pkt_time;
+    pkt_time.srcHost = pktInfo.pkt->srcHost;
+    pkt_time.dstHost = pktInfo.pkt->dstHost;
+    pkt_time.start_time = pktGenSendTime; 
+    pkt_time.end_time = 0; // set to zero
+    syndbSim.pktLatencyMap[pktInfo.pkt->id] = pkt_time;
+    #endif
+
 }
 
 void Host::sendPkt(){

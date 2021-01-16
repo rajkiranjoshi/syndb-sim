@@ -147,6 +147,12 @@ void Simulation::processNormalPktEvents(){
             if(event->nextSwitch == NULL){
                 // Mark the event for deletion
                 toDelete.push_back(it);
+                
+                // For devtest testNormalPktLatencies()
+                #ifdef DEBUG
+                auto it = syndbSim.pktLatencyMap.find(event->pkt->id);
+                (it->second).end_time = event->pktForwardTime;
+                #endif
             }
             // Handling the case that the next hop is the dst ToR switch
             else if(event->nextSwitch->id == syndbSim.topo.getTorId(event->pkt->dstHost)){
