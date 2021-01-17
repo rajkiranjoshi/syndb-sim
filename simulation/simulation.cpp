@@ -90,9 +90,9 @@ void Simulation::processTriggerPktEvents(){
             else // forward the event's packet
             {
                 // Call routing on the next switch
-                status_t status = event->nextSwitch->routeScheduleTriggerPkt(event->pkt, event->pktForwardTime, rsinfo);
+                syndb_status_t status = event->nextSwitch->routeScheduleTriggerPkt(event->pkt, event->pktForwardTime, rsinfo);
 
-                if(status != SUCCESS){
+                if(status != syndb_status_t::success){
                     std::string msg = fmt::format("Simulator failed to route trigger pkt {} of trigger event", event->pkt->id);
                     throw std::logic_error(msg);
                 }
@@ -158,7 +158,7 @@ void Simulation::processNormalPktEvents(){
                 event->nextSwitch->receiveNormalPkt(event->pkt); // can parallelize switch's processing?
 
                 // Call routing on the next switch
-                status_t status = event->nextSwitch->routeScheduleNormalPkt(event->pkt, event->pktForwardTime, rsinfo);
+                syndb_status_t status = event->nextSwitch->routeScheduleNormalPkt(event->pkt, event->pktForwardTime, rsinfo);
                 
                 
                 /* Update the event */

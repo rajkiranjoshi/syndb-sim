@@ -63,9 +63,9 @@ void Host::sendPkt(){
     this->torSwitch->receiveNormalPkt(this->nextPkt); // can parallelize switch's processing?
 
     // Step 2: Call the routing on the ToR switch to get rsinfo
-    status_t s = this->torSwitch->routeScheduleNormalPkt(this->nextPkt, this->nextPktTime, rsinfo); 
+    syndb_status_t s = this->torSwitch->routeScheduleNormalPkt(this->nextPkt, this->nextPktTime, rsinfo); 
 
-    if(s != SUCCESS){
+    if(s != syndb_status_t::success){
         std::string msg = fmt::format("Host {} failed to send Pkt to host {} since routing on the ToR failed!", this->id, this->nextPkt->dstHost);
         throw std::logic_error(msg);
     }

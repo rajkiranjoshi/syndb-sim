@@ -13,7 +13,7 @@ Switch::Switch(switch_id_t id){
 }
 
 
-status_t Switch::routeScheduleNormalPkt(normalpkt_p pkt, const sim_time_t pktArrivalTime, routeScheduleInfo &rsinfo){
+syndb_status_t Switch::routeScheduleNormalPkt(normalpkt_p pkt, const sim_time_t pktArrivalTime, routeScheduleInfo &rsinfo){
     // Two steps for updating the rsinfo struct
     // Step 1: Do the routing: determines nextSwitch, nextLink, nextLink's queue (correct next_idle_time)
     // Step 2: (common) Do the scheduling: determines the pktNextForwardTime for the correct nextLink's queue
@@ -38,7 +38,7 @@ status_t Switch::routeScheduleNormalPkt(normalpkt_p pkt, const sim_time_t pktArr
             rsinfo.nextSwitch = NULL; // next hop is a host
             rsinfo.pktNextForwardTime = hostTorLink->next_idle_time_to_host;
 
-            return SUCCESS;
+            return syndb_status_t::success;
         }
         else
         { // this should never happen
@@ -55,7 +55,7 @@ status_t Switch::routeScheduleNormalPkt(normalpkt_p pkt, const sim_time_t pktArr
 
 }
 
-status_t Switch::routeScheduleTriggerPkt(triggerpkt_p pkt, const sim_time_t pktArrivalTime, routeScheduleInfo &rsinfo){
+syndb_status_t Switch::routeScheduleTriggerPkt(triggerpkt_p pkt, const sim_time_t pktArrivalTime, routeScheduleInfo &rsinfo){
     switch_p nextHopSwitch;
     network_link_p nextLink;
 
@@ -64,7 +64,7 @@ status_t Switch::routeScheduleTriggerPkt(triggerpkt_p pkt, const sim_time_t pktA
 }
 
 
-status_t Switch::routeScheduleToDstSwitch(const pkt_size_t pktsize, const sim_time_t pktArrivalTime, const switch_id_t dstSwitchId, routeScheduleInfo &rsinfo, PacketType ptype){
+syndb_status_t Switch::routeScheduleToDstSwitch(const pkt_size_t pktsize, const sim_time_t pktArrivalTime, const switch_id_t dstSwitchId, routeScheduleInfo &rsinfo, PacketType ptype){
     
     switch_p nextHopSwitch;
     network_link_p nextLink;
@@ -87,7 +87,7 @@ status_t Switch::routeScheduleToDstSwitch(const pkt_size_t pktsize, const sim_ti
         rsinfo.nextSwitch = nextHopSwitch;
         rsinfo.pktNextForwardTime = nextLink->next_idle_time[nextHopSwitch->id];
 
-        return SUCCESS;
+        return syndb_status_t::success;
     }
     else
     { // this should never happen

@@ -28,7 +28,6 @@ typedef union {
     host_id_t host_id;
 } next_hop_id;
 
-enum NextNodeType { SwitchNode, HostNode}; 
-enum status_t {SUCCESS, FAILURE};
+enum class syndb_status_t {success, failure};
 
 #endif
