@@ -11,6 +11,8 @@ NetworkLink::NetworkLink(link_id_t id, link_speed_gbps_t speed, switch_id_t sw1,
 
     this->next_idle_time[sw1] = 0;
     this->next_idle_time[sw2] = 0;
+    this->next_idle_time_priority[sw1] = 0;
+    this->next_idle_time_priority[sw2] = 0;
 
 }
 

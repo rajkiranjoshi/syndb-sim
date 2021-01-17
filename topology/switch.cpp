@@ -77,11 +77,12 @@ syndb_status_t Switch::routeScheduleToDstSwitch(const pkt_size_t pktsize, const 
         
         // Choose different queues on the nextLink based on the packet type
         if(ptype == PacketType::NormalPkt){
+            // Schedule on the normal queue
             schedulePkt(pktsize, pktArrivalTime, nextLink->speed, nextLink->next_idle_time[nextHopSwitch->id]);
         }
         else if (ptype == PacketType::TriggerPkt){
-            // TODO: Choose a different queue when it is added to the links
-            schedulePkt(pktsize, pktArrivalTime, nextLink->speed, nextLink->next_idle_time[nextHopSwitch->id]);
+            // Schedule on the priority queue
+            schedulePkt(pktsize, pktArrivalTime, nextLink->speed, nextLink->next_idle_time_priority[nextHopSwitch->id]);
         }
 
         rsinfo.nextSwitch = nextHopSwitch;
