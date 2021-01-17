@@ -24,6 +24,17 @@ Host::Host(host_id_t id):Host::Host(){
 void Host::generateNextPkt(){
     packetInfo pktInfo = this->trafficGen.getNextPacket();
 
+#ifdef DEBUG
+    // Just for debugging if pktGen is disabled
+    if(pktInfo.size == 0){ // pktGen has not generated any pkt
+        // Set nextPkt as NULL
+        this->nextPkt = NULL;
+        this->nextPktTime = syndbSim.currTime;
+
+        return;
+    }
+#endif
+
     this->nextPkt = pktInfo.pkt;
     
     sim_time_t pktGenSendTime = this->nextPktTime + pktInfo.sendDelay;
