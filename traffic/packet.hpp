@@ -38,4 +38,6 @@ typedef struct : Pkt {
 
 typedef std::shared_ptr<TriggerPkt> triggerpkt_p;
 
+enum class PacketType {NormalPkt, TriggerPkt};
+
 #endif

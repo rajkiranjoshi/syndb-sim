@@ -63,7 +63,7 @@ void Simulation::processHosts(){
 
 void Simulation::processTriggerPktEvents(){
     
-    routeInfo rinfo;
+    routeScheduleInfo rsinfo;
 
     // List of iterators that we would delete in the end
     std::list<std::list<pktevent_p<triggerpkt_p>>::iterator> toDelete;
@@ -78,30 +78,30 @@ void Simulation::processTriggerPktEvents(){
 
         if(this->currTime >= event->pktForwardTime){
 
+            // Pass the pkt to the next switch to handle
+            event->nextSwitch->receiveTriggerPkt(event->pkt); // can parallelize switch's processing? 
+
             // Handling the case that the next hop is the pkt's dstSwitch
             if(event->nextSwitch->id == event->pkt->dstSwitchId){
-                
-                // Pass the pkt to the next switch to handle
-                event->nextSwitch->receiveTriggerPkt(event->pkt); // can parallelize switch's processing? 
-
+                // The pkt requires no more network event processing
                 // Add the event's iterator to the toDelete list
                 toDelete.push_front(it); 
             }
             else // forward the event's packet
             {
-                status_t status = event->nextSwitch->routeTriggerPkt(event->pkt, rinfo);
+                // Call routing on the next switch
+                status_t status = event->nextSwitch->routeScheduleTriggerPkt(event->pkt, event->pktForwardTime, rsinfo);
 
                 if(status != SUCCESS){
                     std::string msg = fmt::format("Simulator failed to route trigger pkt {} of trigger event", event->pkt->id);
                     throw std::logic_error(msg);
                 }
 
-                if(rinfo.nextHopType == HostNode){
-                    std::string msg = fmt::format("INCORRECT routing. NextHop for trigger pkt {} is a host!!", event->pkt->id);
-                    throw std::logic_error(msg);
-                }
+                // event->doForwarding(rinfo);
 
-                event->doForwarding(rinfo);
+                event->currSwitch = event->nextSwitch;
+                event->nextSwitch = rsinfo.nextSwitch;
+                event->pktForwardTime = rsinfo.pktNextForwardTime;
                 
             }                
         }
@@ -124,10 +124,7 @@ void Simulation::processTriggerPktEvents(){
 
 void Simulation::processNormalPktEvents(){
 
-    host_tor_link_p pktNextLink;
-    switch_p pktNextSwitch;
-    sim_time_t pktNextSendTime, timeAfterSwitchHop, pktNextSerializeStartTime;
-    routeInfo rinfo;
+    routeScheduleInfo rsinfo;
 
     // List of iterators that we would delete in the end
     std::list<std::list<pktevent_p<normalpkt_p>>::iterator> toDelete;
@@ -154,57 +151,27 @@ void Simulation::processNormalPktEvents(){
                 (it->second).end_time = event->pktForwardTime;
                 #endif
             }
-            // Handling the case that the next hop is the dst ToR switch
-            else if(event->nextSwitch->id == syndbSim.topo.getTorId(event->pkt->dstHost)){
+            // Handling the case that the next hop is a switch (intermediate or dstTor)
+            else{
                 
                 // Pass the pkt to the next switch to handle
                 event->nextSwitch->receiveNormalPkt(event->pkt); // can parallelize switch's processing?
 
-                /* Calculate the pkt forward time on the ToR --> Host link */
-                pktNextSwitch = event->nextSwitch;
-                pktNextLink = pktNextSwitch->neighborHostTable[event->pkt->dstHost];
+                // Call routing on the next switch
+                status_t status = event->nextSwitch->routeScheduleNormalPkt(event->pkt, event->pktForwardTime, rsinfo);
                 
-                // time when we can start serialization *earliest* on the next switch
-                timeAfterSwitchHop = event->pktForwardTime + event->nextSwitch->hop_delay;
-                // actual time when we can start serialization assuming FIFO queuing on the next link
-                pktNextSerializeStartTime = std::max<sim_time_t>(timeAfterSwitchHop, pktNextLink->next_idle_time_to_host);
-
-                // Time when serialization would end and pkt can be forwarded to dst host
-                pktNextSendTime = pktNextSerializeStartTime + getSerializationDelay(event->pkt->size, pktNextLink->speed);
-
-                // Schedule the packet on the Tor-Host link
-                pktNextLink->next_idle_time_to_host = pktNextSendTime;
-
+                
                 /* Update the event */
-                event->pktForwardTime = pktNextSendTime; 
                 event->currSwitch = event->nextSwitch;
-                event->nextSwitch = NULL;
+                event->nextSwitch = rsinfo.nextSwitch; // will be NULL if next hop is a host
+                event->pktForwardTime = rsinfo.pktNextForwardTime;               
 
             }
-            // forward the event's packet (switch-to-switch fowarding)
-            // next switch is NOT a dstTor switch. So need to invoke routing
-            else 
-            {
-                event->nextSwitch->receiveNormalPkt(event->pkt); // can parallelize switch's processing? 
-                status_t status = event->nextSwitch->routeNormalPkt(event->pkt, rinfo);
 
-                if(status != SUCCESS){
-                    std::string msg = fmt::format("Simulator failed to route normal pkt {} of normal event", event->pkt->id);
-                    throw std::logic_error(msg);
-                }
-
-                if(rinfo.nextHopType == HostNode){
-                    std::string msg = fmt::format("INCORRECT routing. NextHop is surely NOT a host. But routing returned a host!!", event->pkt->id);
-                    throw std::logic_error(msg);
-                }
-
-                event->doForwarding(rinfo);
-                
-            }                
-        }
+        } // end of the if(this->currTime >= event->pktForwardTime)
 
         it++;  // iterating over NormalPktEventList
-    }
+    } 
 
     // Now delete the enlisted NormalPktEvents
 
@@ -224,8 +191,9 @@ void Simulation::processNormalPktEvents(){
 
 void Simulation::cleanUp(){
     
-    // Why this is needed? When std::list is destroyed, if its members are pointers, the members are not destroyed.
-    // BUT, what about shared_ptrs?
+    // Why this is needed? When std::list is destroyed, if its members are pointers, only the pointers are destroyed, not the objects pointed by the pointers.
+    // BUT for shared_ptrs, when they are deleted, they do destruct the member objects.
+    // SO this function is actually NOT really required.
 
     // Clean-up the members of the syndbSim
 
