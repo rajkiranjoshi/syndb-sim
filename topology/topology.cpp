@@ -63,12 +63,13 @@ void SimpleTopology::Topology::buildTopo(){
 
     host_id_t hostId;
     switch_id_t switchId;
-    host_p h0, h1;
+    host_p h0, h1, h2;
     switch_p s0, s1, s2;
 
     // Create all hosts
     h0 = createNewHost();
     h1 = createNewHost();
+    // h2 = createNewHost();
     
     // Create all switches
     s0 = createNewSwitch(); 
@@ -76,6 +77,7 @@ void SimpleTopology::Topology::buildTopo(){
     s2 = createNewSwitch(); 
 
     addHostToTor(h0, s0);
+    // addHostToTor(h2, s0);
     addHostToTor(h1, s1);
 
     connectSwitchToSwitch(s0, s2);
