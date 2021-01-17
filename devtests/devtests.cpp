@@ -9,7 +9,7 @@ void checkRemainingQueuingAtLinks(){
     auto it1 = syndbSim.topo.torLinkVector.begin();
     debug_print_yellow("nextPktSendTime on ToR links at time {}ns", syndbSim.currTime);
     for (it1; it1 != syndbSim.topo.torLinkVector.end(); it1++){
-        debug_print("{} {}", (*it1)->next_idle_time_to_host, (*it1)->next_idle_time_to_tor);
+        debug_print("Link ID {}: towards host: {} | towards tor: {}", (*it1)->id, (*it1)->next_idle_time_to_host, (*it1)->next_idle_time_to_tor);
     }
 
     auto it2 = syndbSim.topo.networkLinkVector.begin();
@@ -23,7 +23,7 @@ void checkRemainingQueuingAtLinks(){
         it3++;
         switch_id_t sw2 = it3->first;
         sim_time_t dir2 = it3->second;
-        ndebug_print("towards {}: {} | towards {}: {}", sw1, dir1, sw2, dir2);
+        ndebug_print("Link ID {}: towards {}: {} | towards {}: {}", (*it2)->id, sw1, dir1, sw2, dir2);
     }
 }
 
