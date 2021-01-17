@@ -8,13 +8,9 @@
 #include "topology/switch.hpp"
 
 typedef std::unordered_map<host_id_t, switch_id_t> host_tor_map_t;
-typedef std::pair<host_id_t, switch_id_t> host_tor_map_pair;
-
 typedef std::unordered_map<host_id_t, host_p> host_id_map_t;
-typedef std::pair<host_id_t, host_p> host_id_map_pair;
-
 typedef std::unordered_map<switch_id_t, switch_p> switch_id_map_t;
-typedef std::pair<switch_id_t, switch_p> switch_id_map_pair;
+
 
 typedef struct Topology
 {

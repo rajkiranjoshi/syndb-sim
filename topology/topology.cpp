@@ -39,13 +39,10 @@ void Topology::addHostToTor(host_p host, switch_p tor){
     host->torSwitch = tor;
 
     // Update things on Switch
-    // neighbor_switch_table_pair newNeighborHost(host->id, newLink);
-    // tor->neighborHostTable.insert(newNeighborHost);
     tor->neighborHostTable[host->id] = newLink;
 
     // Update things on Topology
-    host_tor_map_pair newHost(host->id, tor->id);
-    this->hostTorMap.insert(newHost);
+    this->hostTorMap[host->id] = tor->id;
 
 }
 
@@ -55,13 +52,9 @@ void Topology::connectSwitchToSwitch(switch_p s1, switch_p s2){
 
     // Update things on s1
     s1->neighborSwitchTable[s2->id] = newLink;
-    // neighbor_switch_table_pair newNeighborSwitch2(s2->id, newLink);
-    // s1->neighborSwitchTable.insert(newNeighborSwitch2);
 
     // Update things on s2
     s2->neighborSwitchTable[s1->id] = newLink;
-    // neighbor_switch_table_pair newNeighborSwitch1(s1->id, newLink);
-    // s2->neighborSwitchTable.insert(newNeighborSwitch1);
 
 }
 
@@ -89,12 +82,10 @@ void SimpleTopology::Topology::buildTopo(){
     connectSwitchToSwitch(s1, s2);
 
     // Setup routing on s0
-    routing_table_pair newRoute_s0(s1->id, s2->id);
-    s0->routingTable.insert(newRoute_s0);
+    s0->routingTable[s1->id] = s2->id;
 
     // Setup routing on s1
-    routing_table_pair newRoute_s1(s0->id, s2->id);
-    s1->routingTable.insert(newRoute_s1);
+    s1->routingTable[s0->id] = s2->id;
 
     // Setup routing on s2
     // NO need since both the other ToRs are neighbors
@@ -119,7 +110,7 @@ network_link_p Topology::createNewNetworLink(switch_id_t sw1, switch_id_t sw2){
 switch_p Topology::createNewSwitch(){
     switch_p newSwitch = switch_p(new Switch(this->getNextSwitchId()));
 
-    this->switchIDMap.insert(switch_id_map_pair(newSwitch->id, newSwitch));
+    this->switchIDMap[newSwitch->id] = newSwitch; 
 
     return newSwitch;  
 }
@@ -127,7 +118,7 @@ switch_p Topology::createNewSwitch(){
 host_p Topology::createNewHost(){
     host_p newHost = host_p(new Host(this->getNextHostId()));
 
-    this->hostIDMap.insert(host_id_map_pair(newHost->id, newHost));
+    this->hostIDMap[newHost->id] = newHost; 
 
     return newHost;
 }
