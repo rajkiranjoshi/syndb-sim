@@ -50,7 +50,14 @@ typedef struct Topology
   
 } Topology;
 
+/* 
+           s2
+        /      \
+       s0       s1
+       |        |
+       h0       h1
 
+*/
 typedef struct SimpleTopology : Topology
 {
     // switch_id_t getTorId(switch_id_t dstHostId);
