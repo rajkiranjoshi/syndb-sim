@@ -12,7 +12,7 @@
             "args": [],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
-            "environment": [],
+            "environment": [{"name":"MALLOC_CHECK_", "value": "2"}],
             "externalConsole": false,
             "MIMode": "gdb",
             "setupCommands": [
