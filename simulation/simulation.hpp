@@ -8,13 +8,15 @@
 
 // For devtest testNormalPktLatencies()
 #ifdef DEBUG
-typedef struct pktTime
+template<typename T>
+struct pktTime
 {
-    host_id_t srcHost;
-    host_id_t dstHost;
+    T src;
+    T dst;
     sim_time_t start_time;
     sim_time_t end_time;
-} pktTime;
+};
+
 #endif
 
 typedef struct Simulation
@@ -34,7 +36,8 @@ typedef struct Simulation
 
     // For devtest testNormalPktLatencies()
     #ifdef DEBUG
-    std::map<pkt_id_t, pktTime> pktLatencyMap;
+    std::map<pkt_id_t, pktTime<host_id_t>> NormalPktLatencyMap;
+    std::map<pkt_id_t, pktTime<switch_id_t>> TriggerPktLatencyMap;
     #endif
 
     Simulation(); // default constructor

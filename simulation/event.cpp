@@ -6,12 +6,12 @@
 
 template<typename T>
 PktEvent<T>::PktEvent(){
-    debug_print(fmt::format("New empty PktEvent constructed!"));
+    // debug_print(fmt::format("New empty PktEvent constructed!"));
 }
 
 template<typename T>
 PktEvent<T>::~PktEvent(){
-    debug_print(fmt::format("Event with packet id {} destructed!", this->pkt->id));
+    // debug_print(fmt::format("Event with packet id {} destructed!", this->pkt->id));
 }
 
 /* 

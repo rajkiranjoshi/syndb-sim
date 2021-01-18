@@ -86,7 +86,7 @@ syndb_status_t Switch::routeScheduleToDstSwitch(const pkt_size_t pktsize, const 
         }
 
         rsinfo.nextSwitch = nextHopSwitch;
-        rsinfo.pktNextForwardTime = nextLink->next_idle_time[nextHopSwitch->id];
+        rsinfo.pktNextForwardTime = nextLink->next_idle_time_priority[nextHopSwitch->id];
 
         return syndb_status_t::success;
     }
@@ -149,12 +149,18 @@ void Switch::schedulePkt(const pkt_size_t pktsize, const sim_time_t pktArrivalTi
 }
 
 
-void Switch::receiveNormalPkt(normalpkt_p pkt){
+void Switch::receiveNormalPkt(normalpkt_p pkt, sim_time_t rxTime){
 
 }
 
 
-void Switch::receiveTriggerPkt(triggerpkt_p pkt){
+void Switch::receiveTriggerPkt(triggerpkt_p pkt, sim_time_t rxTime){
     
+    if(pkt->dstSwitchId == this->id){ // This is the dst Switch
+        #ifdef DEBUG
+        syndbSim.TriggerPktLatencyMap[pkt->id].end_time = rxTime;
+        #endif
+    }
+
 }
 

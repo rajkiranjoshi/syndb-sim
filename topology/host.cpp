@@ -45,12 +45,12 @@ void Host::generateNextPkt(){
 
     // For devtest testNormalPktLatencies()
     #ifdef DEBUG
-    pktTime pkt_time;
-    pkt_time.srcHost = pktInfo.pkt->srcHost;
-    pkt_time.dstHost = pktInfo.pkt->dstHost;
+    pktTime<host_id_t> pkt_time;
+    pkt_time.src = pktInfo.pkt->srcHost;
+    pkt_time.dst = pktInfo.pkt->dstHost;
     pkt_time.start_time = pktGenSendTime; 
     pkt_time.end_time = 0; // set to zero
-    syndbSim.pktLatencyMap[pktInfo.pkt->id] = pkt_time;
+    syndbSim.NormalPktLatencyMap[pktInfo.pkt->id] = pkt_time;
     #endif
 
 }
@@ -60,7 +60,7 @@ void Host::sendPkt(){
     routeScheduleInfo rsinfo;
 
     // Step 1: Pass the pkt to ToR for its own processing
-    this->torSwitch->receiveNormalPkt(this->nextPkt); // can parallelize switch's processing?
+    this->torSwitch->receiveNormalPkt(this->nextPkt, this->nextPktTime); // can parallelize switch's processing?
 
     // Step 2: Call the routing on the ToR switch to get rsinfo
     syndb_status_t s = this->torSwitch->routeScheduleNormalPkt(this->nextPkt, this->nextPktTime, rsinfo); 

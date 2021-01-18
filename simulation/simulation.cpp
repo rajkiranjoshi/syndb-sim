@@ -41,8 +41,8 @@ void Simulation::initHosts(){
 
 void Simulation::processHosts(){
 
-    debug_print_yellow("Inside process hosts");
-    debug_print("Num hosts: {}", this->topo.hostIDMap.size());
+    // debug_print_yellow("Inside process hosts");
+    // debug_print("Num hosts: {}", this->topo.hostIDMap.size());
 
     auto it = this->topo.hostIDMap.begin();
 
@@ -79,7 +79,7 @@ void Simulation::processTriggerPktEvents(){
         if(this->currTime >= event->pktForwardTime){
 
             // Pass the pkt to the next switch to handle
-            event->nextSwitch->receiveTriggerPkt(event->pkt); // can parallelize switch's processing? 
+            event->nextSwitch->receiveTriggerPkt(event->pkt, event->pktForwardTime); // can parallelize switch's processing? 
 
             // Handling the case that the next hop is the pkt's dstSwitch
             if(event->nextSwitch->id == event->pkt->dstSwitchId){
@@ -116,9 +116,11 @@ void Simulation::processTriggerPktEvents(){
 
     while (it2 != toDelete.end()){
         TriggerPktEventList.erase(*it2);
+
+        it2++;
     }
 
-    it2++;
+    
 }
 
 
@@ -147,7 +149,7 @@ void Simulation::processNormalPktEvents(){
                 
                 // For devtest testNormalPktLatencies()
                 #ifdef DEBUG
-                auto it = syndbSim.pktLatencyMap.find(event->pkt->id);
+                auto it = syndbSim.NormalPktLatencyMap.find(event->pkt->id);
                 (it->second).end_time = event->pktForwardTime;
                 #endif
             }
@@ -155,7 +157,7 @@ void Simulation::processNormalPktEvents(){
             else{
                 
                 // Pass the pkt to the next switch to handle
-                event->nextSwitch->receiveNormalPkt(event->pkt); // can parallelize switch's processing?
+                event->nextSwitch->receiveNormalPkt(event->pkt, event->pktForwardTime); // can parallelize switch's processing?
 
                 // Call routing on the next switch
                 syndb_status_t status = event->nextSwitch->routeScheduleNormalPkt(event->pkt, event->pktForwardTime, rsinfo);

@@ -4,6 +4,64 @@
 
 #ifdef DEBUG
 
+
+void addTriggerPkts(){
+    
+    routeScheduleInfo rsinfo;
+    syndb_status_t status; 
+    pktTime<switch_id_t> latencyRecord;
+
+    const sim_time_t increment = 3000;
+    static sim_time_t nextSendTime = 0;
+
+    switch_p srcSwitch = syndbSim.topo.getSwitchById(0); 
+
+    if(syndbSim.currTime >= nextSendTime){
+
+        triggerpkt_p newTriggerPkt = triggerpkt_p(new TriggerPkt(syndbSim.getNextPktId(), 60)); 
+        newTriggerPkt->srcSwitchId = 0;
+        newTriggerPkt->dstSwitchId = 1;
+
+        status = srcSwitch->routeScheduleTriggerPkt(newTriggerPkt, syndbSim.currTime, rsinfo);
+        debug_print_yellow("Routed and scheduled Trigger Pkt {} from switch {}", newTriggerPkt->id, srcSwitch->id);
+
+        pktevent_p<triggerpkt_p> newEvent = pktevent_p<triggerpkt_p>(new PktEvent<triggerpkt_p>);
+
+        newEvent->pkt = newTriggerPkt;
+        newEvent->pktForwardTime = rsinfo.pktNextForwardTime;
+        newEvent->currSwitch = srcSwitch; 
+        newEvent->nextSwitch = rsinfo.nextSwitch;
+
+        syndbSim.TriggerPktEventList.push_back(newEvent);
+
+
+        latencyRecord.src = srcSwitch->id; 
+        latencyRecord.dst = newTriggerPkt->dstSwitchId;
+        latencyRecord.start_time = syndbSim.currTime;
+        latencyRecord.end_time = 0;
+
+        syndbSim.TriggerPktLatencyMap[newTriggerPkt->id] = latencyRecord;
+
+        nextSendTime += increment;
+    }
+
+}
+
+
+void showTriggerPktLatencies(switch_id_t s0, switch_id_t s1){
+
+    pktTime<switch_id_t> latencyInfo;
+    auto it = syndbSim.TriggerPktLatencyMap.begin();
+
+    debug_print_yellow("Trigger pkt latencies between switches {} --> {}", s0, s1);
+    for(it; it != syndbSim.TriggerPktLatencyMap.end(); it++){
+        latencyInfo = it->second;        
+        if(latencyInfo.src == s0 && latencyInfo.dst == s1 && latencyInfo.end_time !=0){
+            debug_print("{}: {}", it->first, latencyInfo.end_time - latencyInfo.start_time); 
+        }
+    }
+}
+
 void checkRemainingQueuingAtLinks(){
     // Checking queueing on all the links
     auto it1 = syndbSim.topo.torLinkVector.begin();
@@ -23,7 +81,16 @@ void checkRemainingQueuingAtLinks(){
         it3++;
         switch_id_t sw2 = it3->first;
         sim_time_t dir2 = it3->second;
-        ndebug_print("Link ID {}: towards {}: {} | towards {}: {}", (*it2)->id, sw1, dir1, sw2, dir2);
+        ndebug_print("Link ID {} Normal: towards {}: {} | towards {}: {}", (*it2)->id, sw1, dir1, sw2, dir2);
+
+        auto mapPriority = (*it2)->next_idle_time_priority;
+        auto it4 = mapPriority.begin();
+        sw1 = it4->first;
+        dir1 = it4->second;
+        it4++;
+        sw2 = it4->first;
+        dir2 = it4->second;
+        ndebug_print("Link ID {} Priority: towards {}: {} | towards {}: {}", (*it2)->id, sw1, dir1, sw2, dir2);
     }
 }
 
@@ -31,10 +98,10 @@ void checkRemainingQueuingAtLinks(){
 void testNormalPktLatencies(host_id_t h0, host_id_t h1){
 
     debug_print_yellow("\n\n#### Packet Latencies (id latency) ####");
-    auto it = syndbSim.pktLatencyMap.begin();
+    auto it = syndbSim.NormalPktLatencyMap.begin();
     std::list<sim_time_t> h0_send, h0_receive, h1_send, h1_receive;
 
-    for(it; it != syndbSim.pktLatencyMap.end(); it++){
+    for(it; it != syndbSim.NormalPktLatencyMap.end(); it++){
         host_id_t src, dst;
         pkt_id_t id;
         sim_time_t start, end;
@@ -42,8 +109,8 @@ void testNormalPktLatencies(host_id_t h0, host_id_t h1){
         id = it->first;
         start = it->second.start_time;
         end = it->second.end_time;
-        src = it->second.srcHost;
-        dst = it->second.dstHost;
+        src = it->second.src;
+        dst = it->second.dst;
 
         // Printing out the latencies for all delivered packets
         if (end != 0){

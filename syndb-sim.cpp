@@ -32,6 +32,9 @@ int main(){
         syndbSim.processHosts();
         
         // Step 2: Process all triggerPktEvents
+        #ifdef DEBUG
+        addTriggerPkts();
+        #endif
         syndbSim.processTriggerPktEvents();
 
         // Step 3: Process all normalPktEvents
@@ -42,6 +45,8 @@ int main(){
 #ifdef DEBUG
     checkRemainingQueuingAtLinks();
     testNormalPktLatencies(0, 1);
+    showTriggerPktLatencies(0, 1);  
+
 #endif
 
     ndebug_print_yellow("End of main\n");

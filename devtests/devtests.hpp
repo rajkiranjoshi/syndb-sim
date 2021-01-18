@@ -27,6 +27,17 @@ Independent of any topology.
 */
 void testSharedPtrDestruction();
 
+/* 
+Periodically adds TriggerPkts to test their latency.
+Assumes SimpleTopology.
+*/
+void addTriggerPkts();
+
+/* 
+Prints the latencies of recorded TriggerPkts
+*/
+void showTriggerPktLatencies(switch_id_t s0, switch_id_t s1);
+
 
 
 

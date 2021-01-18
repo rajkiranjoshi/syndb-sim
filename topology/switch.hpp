@@ -30,8 +30,8 @@ struct Switch
     routing_table_t routingTable;
 
     /* Switch's processing on receiving a pkt: logging, SyNDB, etc. */
-    void receiveNormalPkt(normalpkt_p pkt);
-    void receiveTriggerPkt(triggerpkt_p pkt);
+    void receiveNormalPkt(normalpkt_p pkt, sim_time_t rxTime);
+    void receiveTriggerPkt(triggerpkt_p pkt, sim_time_t rxTime);
 
     /* Fills rinfo. Returns Success or Failure */
     syndb_status_t routeScheduleNormalPkt(normalpkt_p pkt, const sim_time_t pktArrivalTime, routeScheduleInfo &rsinfo);
