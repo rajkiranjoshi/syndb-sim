@@ -18,6 +18,9 @@ typedef struct Config
 
     const sim_time_t switchHopDelayNs = 1000;
 
+    // SyNDB specific config options
+    static const uint32_t ringBufferSize = 100; // large size for simulation "oracle"
+
 } Config;
 
 extern Config syndbConfig;

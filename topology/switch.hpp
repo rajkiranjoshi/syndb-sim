@@ -5,6 +5,7 @@
 #include <unordered_map>
 #include "utils/types.hpp"
 #include "topology/link.hpp"
+#include "topology/switch_syndb.hpp"
 #include "traffic/packet.hpp"
 
 
@@ -14,10 +15,8 @@ typedef std::unordered_map<host_id_t, host_tor_link_p> neighbor_host_table_t;
 
 
 struct routeScheduleInfo;
-typedef struct routeScheduleInfo routeScheduleInfo;
 
 struct Switch;
-typedef struct Switch Switch;
 typedef std::shared_ptr<Switch> switch_p;
 
 /* Switch struct */
@@ -28,6 +27,8 @@ struct Switch
     neighbor_switch_table_t neighborSwitchTable;
     neighbor_host_table_t neighborHostTable;
     routing_table_t routingTable;
+
+    RingBuffer ringBuffer;
 
     /* Switch's processing on receiving a pkt: logging, SyNDB, etc. */
     void receiveNormalPkt(normalpkt_p pkt, sim_time_t rxTime);
@@ -53,7 +54,5 @@ struct routeScheduleInfo
     switch_p nextSwitch;
     sim_time_t pktNextForwardTime;
 };
-
-
 
 #endif
