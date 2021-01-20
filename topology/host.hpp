@@ -18,9 +18,10 @@ typedef struct Host
     sim_time_t nextPktTime;
 
     trafficGenerator trafficGen;
+    bool trafficGenDisabled;
 
     Host(); // default constructor
-    Host(host_id_t id);
+    Host(host_id_t id, bool disableTrafficGen = false);
 
     void generateNextPkt();
     void sendPkt();

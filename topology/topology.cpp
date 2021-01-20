@@ -117,8 +117,8 @@ switch_p Topology::createNewSwitch(){
     return newSwitch;  
 }
 
-host_p Topology::createNewHost(){
-    host_p newHost = host_p(new Host(this->getNextHostId()));
+host_p Topology::createNewHost(bool trafficGenDisabled){
+    host_p newHost = host_p(new Host(this->getNextHostId(), trafficGenDisabled));
 
     this->hostIDMap[newHost->id] = newHost; 
 

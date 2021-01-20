@@ -15,18 +15,18 @@ Host::Host(){
 
 }
 
-Host::Host(host_id_t id):Host::Host(){
+Host::Host(host_id_t id, bool disableTrafficGen):Host::Host(){
     this->id = id;
-
+    this->trafficGenDisabled = disableTrafficGen;
     this->trafficGen = trafficGenerator(syndbConfig.torLinkSpeedGbps, syndbConfig.hostTrafficGenLoadPercent, id);
 }
 
 void Host::generateNextPkt(){
-    packetInfo pktInfo = this->trafficGen.getNextPacket();
+    
 
 #ifdef DEBUG
     // Just for debugging if pktGen is disabled
-    if(pktInfo.size == 0){ // pktGen has not generated any pkt
+    if(this->trafficGenDisabled == true){ // pktGen has not generated any pkt
         // Set nextPkt as NULL
         this->nextPkt = NULL;
         this->nextPktTime = syndbSim.currTime;
@@ -34,6 +34,8 @@ void Host::generateNextPkt(){
         return;
     }
 #endif
+    
+    packetInfo pktInfo = this->trafficGen.getNextPacket();
 
     this->nextPkt = pktInfo.pkt;
     
@@ -58,6 +60,9 @@ void Host::generateNextPkt(){
 void Host::sendPkt(){
     
     routeScheduleInfo rsinfo;
+
+    if(this->trafficGenDisabled)
+        return;
 
     // Step 1: Pass the pkt to ToR for its own processing
     this->torSwitch->receiveNormalPkt(this->nextPkt, this->nextPktTime); // can parallelize switch's processing?
