@@ -20,6 +20,7 @@ Simulation::Simulation(){
     }
 
     this->nextPktId = 0;
+    this->nextTriggerPktId = 0;
 
 }
 

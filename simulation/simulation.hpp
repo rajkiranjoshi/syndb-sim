@@ -30,6 +30,7 @@ typedef struct Simulation
 
     // packets-related
     pkt_id_t nextPktId;
+    pkt_id_t nextTriggerPktId;
      
     std::list<pktevent_p<normalpkt_p>> NormalPktEventList;
     std::list<pktevent_p<triggerpkt_p>> TriggerPktEventList;
@@ -44,6 +45,7 @@ typedef struct Simulation
     
     // needs to be thread-safe when parallelizing
     inline pkt_id_t getNextPktId() { return this->nextPktId++; }; 
+    inline pkt_id_t getNextTriggerPktId() { return this->nextTriggerPktId++; }; 
     inline void buildTopo(){ this->topo.buildTopo(); };
     void initHosts();
     void processHosts();

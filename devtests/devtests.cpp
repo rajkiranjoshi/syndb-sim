@@ -54,7 +54,7 @@ void addTriggerPkts(){
 
     if(syndbSim.currTime >= nextSendTime){
 
-        triggerpkt_p newTriggerPkt = triggerpkt_p(new TriggerPkt(syndbSim.getNextPktId(), 60)); 
+        triggerpkt_p newTriggerPkt = triggerpkt_p(new TriggerPkt(syndbSim.getNextTriggerPktId(), 60)); 
         newTriggerPkt->srcSwitchId = 0;
         newTriggerPkt->dstSwitchId = 1;
 
