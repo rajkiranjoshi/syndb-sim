@@ -7,32 +7,37 @@
 
 /* Pkt Struct */
 typedef struct Pkt {
-    pkt_id_t id;
     pkt_size_t size;
 
     Pkt() = default;
-    Pkt(pkt_id_t id, pkt_size_t size);
+    Pkt(pkt_size_t size);
 
     ~Pkt();
     
 } Pkt;
 
 typedef struct NormalPkt : Pkt {
+    pkt_id_t id;
     host_id_t srcHost;
     host_id_t dstHost;
 
-    using Pkt::Pkt; // Inheriting constructor of base class Pkt
+    NormalPkt(pkt_id_t id, pkt_size_t size);
+    // using Pkt::Pkt; // Inheriting constructor of base class Pkt
 
 } NormalPkt;
 
 typedef std::shared_ptr<NormalPkt> normalpkt_p;
 
 /* triggerPkt Struct */
-typedef struct : Pkt {
+typedef struct TriggerPkt : Pkt {
+    trigger_id_t triggerId;
     switch_id_t srcSwitchId;
     switch_id_t dstSwitchId;
+    trigger_id_t triggerOriginSwId;
+    sim_time_t triggerTime;
 
-    using Pkt::Pkt; // Inheriting constructor of base class Pkt
+    TriggerPkt(trigger_id_t triggerId, pkt_size_t size);
+    // using Pkt::Pkt; // Inheriting constructor of base class Pkt
 
 } TriggerPkt;
 

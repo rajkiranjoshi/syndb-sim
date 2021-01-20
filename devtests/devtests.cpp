@@ -59,7 +59,7 @@ void addTriggerPkts(){
         newTriggerPkt->dstSwitchId = 1;
 
         status = srcSwitch->routeScheduleTriggerPkt(newTriggerPkt, syndbSim.currTime, rsinfo);
-        debug_print_yellow("Routed and scheduled Trigger Pkt {} from switch {}", newTriggerPkt->id, srcSwitch->id);
+        debug_print_yellow("Routed and scheduled Trigger Pkt {} from switch {}", newTriggerPkt->triggerId, srcSwitch->id);
 
         pktevent_p<triggerpkt_p> newEvent = pktevent_p<triggerpkt_p>(new PktEvent<triggerpkt_p>);
 
@@ -70,14 +70,14 @@ void addTriggerPkts(){
 
         syndbSim.TriggerPktEventList.push_back(newEvent);
 
-
+/* 
         latencyRecord.src = srcSwitch->id; 
         latencyRecord.dst = newTriggerPkt->dstSwitchId;
         latencyRecord.start_time = syndbSim.currTime;
         latencyRecord.end_time = 0;
 
-        syndbSim.TriggerPktLatencyMap[newTriggerPkt->id] = latencyRecord;
-
+        syndbSim.TriggerPktLatencyMap[newTriggerPkt->triggerId] = latencyRecord;
+*/
         nextSendTime += increment;
     }
 
@@ -91,10 +91,12 @@ void showTriggerPktLatencies(switch_id_t s0, switch_id_t s1){
 
     debug_print_yellow("Trigger pkt latencies between switches {} --> {}", s0, s1);
     for(it; it != syndbSim.TriggerPktLatencyMap.end(); it++){
+/* 
         latencyInfo = it->second;        
         if(latencyInfo.src == s0 && latencyInfo.dst == s1 && latencyInfo.end_time !=0){
             debug_print("{}: {}", it->first, latencyInfo.end_time - latencyInfo.start_time); 
         }
+*/
     }
 }
 

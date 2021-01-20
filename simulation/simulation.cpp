@@ -94,7 +94,7 @@ void Simulation::processTriggerPktEvents(){
                 syndb_status_t status = event->nextSwitch->routeScheduleTriggerPkt(event->pkt, event->pktForwardTime, rsinfo);
 
                 if(status != syndb_status_t::success){
-                    std::string msg = fmt::format("Simulator failed to route trigger pkt {} of trigger event", event->pkt->id);
+                    std::string msg = fmt::format("Simulator failed to route trigger pkt of trigger event {}", event->pkt->triggerId);
                     throw std::logic_error(msg);
                 }
 

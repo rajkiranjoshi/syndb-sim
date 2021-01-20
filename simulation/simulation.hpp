@@ -17,6 +17,13 @@ struct pktTime
     sim_time_t end_time;
 };
 
+struct triggerPktLatencyInfo
+{
+    sim_time_t triggerOrigTime;
+    std::map<switch_id_t, sim_time_t> rxSwitchTimes;
+};
+
+
 #endif
 
 typedef struct Simulation
@@ -38,7 +45,7 @@ typedef struct Simulation
     // For devtest testNormalPktLatencies()
     #ifdef DEBUG
     std::map<pkt_id_t, pktTime<host_id_t>> NormalPktLatencyMap;
-    std::map<pkt_id_t, pktTime<switch_id_t>> TriggerPktLatencyMap;
+    std::map<trigger_id_t, triggerPktLatencyInfo> TriggerPktLatencyMap;
     #endif
 
     Simulation(); // default constructor

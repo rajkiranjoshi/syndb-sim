@@ -20,6 +20,7 @@ typedef struct Config
 
     // SyNDB specific config options
     static const uint32_t ringBufferSize = 100; // large size for simulation "oracle"
+    static const pkt_size_t triggerPktSize = 60;
 
 } Config;
 
