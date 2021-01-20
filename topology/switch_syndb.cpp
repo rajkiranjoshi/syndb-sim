@@ -1,4 +1,5 @@
 #include "topology/switch_syndb.hpp"
+#include "utils/logger.hpp"
 
 RingBuffer::RingBuffer(){
     this->end = -1; // ring buffer is empty
@@ -20,11 +21,11 @@ void RingBuffer::insertPrecord(pkt_id_t pktId, sim_time_t arrivalTime){
     }
 }
 
-pRecord RingBuffer::getPrecord(int32_t idx){
+pRecord RingBuffer::getPrecord(ringbuffer_index_t idx){
     return this->pRecordArray.at(idx); 
 }
 
-int32_t RingBuffer::getStart(){
+ringbuffer_index_t RingBuffer::getStart(){
     if(this->isEmpty())
         return -1;
     else if (this->wrapAround == false)
@@ -33,7 +34,7 @@ int32_t RingBuffer::getStart(){
         return this->next;
 }
 
-int32_t RingBuffer::getEnd(){
+ringbuffer_index_t RingBuffer::getEnd(){
     return this->end;
 }
 
@@ -43,8 +44,8 @@ bool RingBuffer::isEmpty(){
 
 actualRingBufferInfo RingBuffer::getActualRingBufferInfo(uint32_t actualSize){
     actualRingBufferInfo info;
-    int32_t start, end;
-    int32_t elementsTillEnd, remainingElements;
+    ringbuffer_index_t start, end;
+    ringbuffer_index_t elementsTillEnd, remainingElements;
     end = this->getEnd();
 
     elementsTillEnd = end + 1; // since array is zero indexed
@@ -73,16 +74,36 @@ actualRingBufferInfo RingBuffer::getActualRingBufferInfo(uint32_t actualSize){
     
 }
 
+ringbuffer_index_t RingBuffer::getNextIndex(ringbuffer_index_t idx){
+    return (idx + 1) % this->pRecordArray.size();
+}
 
-/* 
+void RingBuffer::printRingBufferRange(ringbuffer_index_t start, ringbuffer_index_t end){
+    pRecord precord;
+    ringbuffer_index_t idx = start;
+    ringbuffer_index_t terminating_idx = this->getNextIndex(end); // the idx after end
+    do
+    {
+        precord = this->getPrecord(idx);
+        ndebug_print("{} {}", precord.pktId, precord.arrivalTime);
+        idx = this->getNextIndex(idx);
+    } while (idx != terminating_idx);
+}
 
-Example code to iterate over ring buffer
+void RingBuffer::printRingBuffer(){
+    ringbuffer_index_t start, end;
+    start = this->getStart();
+    end = this->getEnd();
 
-int idx = s0->ringBuffer.getStart(); 
-do
-{
-    ndebug_print("{}", s0->ringBuffer.getPrecord(idx).pktId);
-    idx = (idx + 1) % syndbConfig.ringBufferSize;
-} while (idx != s0->ringBuffer.getEnd()+1);
+    this->printRingBufferRange(start, end); 
 
- */
+}
+
+
+void RingBuffer::printActualRingBuffer(uint32_t actualSize){
+
+    actualRingBufferInfo info = this->getActualRingBufferInfo(actualSize);
+
+    this->printRingBufferRange(info.start, info.end);
+
+}

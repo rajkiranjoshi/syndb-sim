@@ -7,19 +7,11 @@
 void testRingBufferOps(){
     switch_p s0 = syndbSim.topo.getSwitchById(0);
 
-    for(int i=1; i <= 102; i++){
+    for(int i=1; i <= 8; i++){
         s0->ringBuffer.insertPrecord(i, i); 
     }
 
-    actualRingBufferInfo info = s0->ringBuffer.getActualRingBufferInfo(10);
-
-    int32_t idx = info.start;
-    
-    do{
-        debug_print("{}", s0->ringBuffer.getPrecord(idx).pktId);
-        idx = (idx + 1) % syndbConfig.ringBufferSize; 
-    } while (idx != (info.end + 1) % syndbConfig.ringBufferSize );
-
+    s0->ringBuffer.printActualRingBuffer(10); 
 }
 
 void addTriggerPkts(){

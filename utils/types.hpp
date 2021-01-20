@@ -23,6 +23,9 @@ typedef uint32_t link_id_t;
 /* TrafficGen Related Types */
 typedef uint8_t load_t;
 
+/* SyNDB Related Types */
+typedef int32_t ringbuffer_index_t;
+
 typedef union {
     switch_id_t switch_id;
     host_id_t host_id;
