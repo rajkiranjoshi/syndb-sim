@@ -79,14 +79,16 @@ syndb_status_t Switch::routeScheduleToDstSwitch(const pkt_size_t pktsize, const 
         if(ptype == PacketType::NormalPkt){
             // Schedule on the normal queue
             schedulePkt(pktsize, pktArrivalTime, nextLink->speed, nextLink->next_idle_time[nextHopSwitch->id]);
+            rsinfo.pktNextForwardTime = nextLink->next_idle_time[nextHopSwitch->id];
         }
         else if (ptype == PacketType::TriggerPkt){
             // Schedule on the priority queue
             schedulePkt(pktsize, pktArrivalTime, nextLink->speed, nextLink->next_idle_time_priority[nextHopSwitch->id]);
+            rsinfo.pktNextForwardTime = nextLink->next_idle_time_priority[nextHopSwitch->id];
         }
 
         rsinfo.nextSwitch = nextHopSwitch;
-        rsinfo.pktNextForwardTime = nextLink->next_idle_time_priority[nextHopSwitch->id];
+        
 
         return syndb_status_t::success;
     }
