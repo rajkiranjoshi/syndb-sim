@@ -4,6 +4,33 @@
 
 #ifdef DEBUG
 
+
+void showSimpleTopoRingBuffers(){
+    switch_p s0, s1, s2;
+    
+    s0 = syndbSim.topo.getSwitchById(0);
+    s1 = syndbSim.topo.getSwitchById(1);
+    s2 = syndbSim.topo.getSwitchById(2);
+
+    debug_print_yellow("\nRing buffer for s0:");
+    s0->ringBuffer.printRingBuffer();
+
+    debug_print_yellow("\nRing buffer for s1:");
+    s1->ringBuffer.printRingBuffer();
+
+    debug_print_yellow("\nRing buffer for s2:");
+    s2->ringBuffer.printRingBuffer();
+
+    debug_print_yellow("\nActual Ring buffer for s0:");
+    s0->ringBuffer.printActualRingBuffer(5);
+
+    debug_print_yellow("\nActual Ring buffer for s1:");
+    s1->ringBuffer.printActualRingBuffer(5);
+
+    debug_print_yellow("\nActual Ring buffer for s2:");
+    s2->ringBuffer.printActualRingBuffer(5);
+}
+
 void testRingBufferOps(){
     switch_p s0 = syndbSim.topo.getSwitchById(0);
 

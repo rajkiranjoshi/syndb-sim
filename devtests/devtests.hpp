@@ -43,4 +43,10 @@ Test basic operations of the ring buffer in Isolation of the main simulation
  */
 void testRingBufferOps();
 
+/* 
+Show the ring buffer states of the 3 switches in SimpleTopo
+ */
+void showSimpleTopoRingBuffers();
+
+
 #endif

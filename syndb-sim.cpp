@@ -46,7 +46,9 @@ int main(){
     // checkRemainingQueuingAtLinks();
     // testNormalPktLatencies(0, 1);
     // showTriggerPktLatencies(0, 1);
-    testRingBufferOps();
+    // testRingBufferOps();
+
+    // showSimpleTopoRingBuffers(); 
 
 #endif
 
