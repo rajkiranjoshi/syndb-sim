@@ -5,6 +5,7 @@
 #include <map>
 #include "topology/topology.hpp"
 #include "simulation/event.hpp"
+#include "utils/pktdumper.hpp"
 
 // For devtest testNormalPktLatencies()
 #ifdef DEBUG
@@ -48,6 +49,8 @@ typedef struct Simulation
     std::map<pkt_id_t, pktTime<host_id_t>> NormalPktLatencyMap;
     std::map<trigger_id_t, triggerPktLatencyInfo> TriggerPktLatencyMap;
     #endif
+
+    PktDumper pktDumper;
 
     Simulation(); // default constructor
     

@@ -153,6 +153,9 @@ void Simulation::processNormalPktEvents(){
                 auto it = syndbSim.NormalPktLatencyMap.find(event->pkt->id);
                 (it->second).end_time = event->pktForwardTime;
                 #endif
+
+                // TODO: check if pkt is updated with all metadata
+                syndbSim.pktDumper.dumpPacket(event->pkt);
             }
             // Handling the case that the next hop is a switch (intermediate or dstTor)
             else{

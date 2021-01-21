@@ -3,7 +3,16 @@
 
 #include <cstdint>
 #include <memory>
+#include <list>
 #include "utils/types.hpp"
+
+struct switchINTInfo
+{
+    switch_id_t swId;
+    sim_time_t rxTime;
+};
+
+
 
 /* Pkt Struct */
 typedef struct Pkt {
@@ -20,6 +29,10 @@ typedef struct NormalPkt : Pkt {
     pkt_id_t id;
     host_id_t srcHost;
     host_id_t dstHost;
+
+    /* INT data for simulation */
+    sim_time_t startTime, endTime;
+    std::list<switchINTInfo> switchINTInfoList; 
 
     NormalPkt(pkt_id_t id, pkt_size_t size);
     // using Pkt::Pkt; // Inheriting constructor of base class Pkt
