@@ -36,7 +36,7 @@ void addTriggerPkts();
 /* 
 Prints the latencies of recorded TriggerPkts
 */
-void showTriggerPktLatencies(switch_id_t s0, switch_id_t s1);
+void showTriggerPktLatencies();
 
 /* 
 Test basic operations of the ring buffer in Isolation of the main simulation

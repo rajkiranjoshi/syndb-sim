@@ -2,9 +2,6 @@
 #include "utils/logger.hpp"
 #include "devtests/devtests.hpp"
 
-#ifdef DEBUG
-
-
 void showSimpleTopoRingBuffers(){
     switch_p s0, s1, s2;
     
@@ -54,50 +51,40 @@ void addTriggerPkts(){
 
     if(syndbSim.currTime >= nextSendTime){
 
-        triggerpkt_p newTriggerPkt = triggerpkt_p(new TriggerPkt(syndbSim.getNextTriggerPktId(), 60)); 
-        newTriggerPkt->srcSwitchId = 0;
-        newTriggerPkt->dstSwitchId = 1;
+        srcSwitch->generateTrigger(); 
 
-        status = srcSwitch->routeScheduleTriggerPkt(newTriggerPkt, syndbSim.currTime, rsinfo);
-        debug_print_yellow("Routed and scheduled Trigger Pkt {} from switch {}", newTriggerPkt->triggerId, srcSwitch->id);
-
-        pktevent_p<triggerpkt_p> newEvent = pktevent_p<triggerpkt_p>(new PktEvent<triggerpkt_p>);
-
-        newEvent->pkt = newTriggerPkt;
-        newEvent->pktForwardTime = rsinfo.pktNextForwardTime;
-        newEvent->currSwitch = srcSwitch; 
-        newEvent->nextSwitch = rsinfo.nextSwitch;
-
-        syndbSim.TriggerPktEventList.push_back(newEvent);
-
-/* 
-        latencyRecord.src = srcSwitch->id; 
-        latencyRecord.dst = newTriggerPkt->dstSwitchId;
-        latencyRecord.start_time = syndbSim.currTime;
-        latencyRecord.end_time = 0;
-
-        syndbSim.TriggerPktLatencyMap[newTriggerPkt->triggerId] = latencyRecord;
-*/
         nextSendTime += increment;
     }
 
 }
 
 
-void showTriggerPktLatencies(switch_id_t s0, switch_id_t s1){
+void showTriggerPktLatencies(){
 
     pktTime<switch_id_t> latencyInfo;
+    sim_time_t triggerOriginTime, rxTime; 
+    trigger_id_t triggerId;
+    switch_id_t originSwitch, rxSwitch;
+
     auto it = syndbSim.TriggerPktLatencyMap.begin();
 
-    debug_print_yellow("Trigger pkt latencies between switches {} --> {}", s0, s1);
+    debug_print_yellow("Trigger pkt latencies between switches");
     for(it; it != syndbSim.TriggerPktLatencyMap.end(); it++){
-/* 
-        latencyInfo = it->second;        
-        if(latencyInfo.src == s0 && latencyInfo.dst == s1 && latencyInfo.end_time !=0){
-            debug_print("{}: {}", it->first, latencyInfo.end_time - latencyInfo.start_time); 
-        }
-*/
-    }
+        triggerId = it->first;
+        triggerOriginTime = it->second.triggerOrigTime;
+        originSwitch = it->second.originSwitch;
+
+        debug_print_yellow("Trigger ID {} (origin switch: {})", triggerId, originSwitch);
+        auto it2 = it->second.rxSwitchTimes.begin();
+
+        for(it2; it2 != it->second.rxSwitchTimes.end(); it2++){
+            rxSwitch = it2->first;
+            rxTime = it2->second;
+
+            debug_print("{} --> {}: {}ns", originSwitch, rxSwitch, rxTime - triggerOriginTime);
+        } // end of iterating over rxSwitchTimes
+
+    } // end of iterating over TriggerPktLatencyMap
 }
 
 void checkRemainingQueuingAtLinks(){
@@ -249,6 +236,3 @@ void testSharedPtrDestruction(){
     }
 }
 
-
-
-#endif // end of ifdef DEBUG

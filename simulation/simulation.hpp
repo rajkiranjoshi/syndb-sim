@@ -20,6 +20,7 @@ struct pktTime
 struct triggerPktLatencyInfo
 {
     sim_time_t triggerOrigTime;
+    switch_id_t originSwitch;
     std::map<switch_id_t, sim_time_t> rxSwitchTimes;
 };
 

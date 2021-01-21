@@ -165,11 +165,13 @@ void Switch::receiveTriggerPkt(triggerpkt_p pkt, sim_time_t rxTime){
         throw std::logic_error(msg);
     }
 
+    debug_print_yellow("\n[Switch {}] Received trigger pkt {} from switch {} at time {}", this->id, pkt->triggerId, pkt->srcSwitchId, rxTime);
     /* This has to be the destination. All trigger pkts are single-hop */
     // Check if this trigger pkt has been received in the past
     bool triggerSeenBefore = this->triggerHistory.find(pkt->triggerId) != this->triggerHistory.end();
     
     if(triggerSeenBefore){ // already broadcast forwarded before
+        debug_print("Trigger ID seen before. Ignoring now..");
         return; // do nothing
     }
 
@@ -185,13 +187,12 @@ void Switch::receiveTriggerPkt(triggerpkt_p pkt, sim_time_t rxTime){
         // Create a new info entry
         triggerPktLatencyInfo info;
         info.triggerOrigTime = pkt->triggerTime;
+        info.originSwitch = pkt->triggerOriginSwId; 
         info.rxSwitchTimes[this->id] = rxTime;
 
         // Insert it in the global map
         syndbSim.TriggerPktLatencyMap[pkt->triggerId] = info;
     }
-    
-
     #endif
 
     // Broadcast forward to neighbors with source pruning
@@ -205,20 +206,10 @@ void Switch::receiveTriggerPkt(triggerpkt_p pkt, sim_time_t rxTime){
             continue; // source pruning
 
         dstSwitchId = it2->first;
-
-        this->createSendTriggerPkt(dstSwitchId, pkt->triggerId, pkt->triggerOriginSwId, pkt->triggerTime);
+        debug_print("Fowarding to neighbor switch {}", dstSwitchId); 
+        this->createSendTriggerPkt(dstSwitchId, pkt->triggerId, pkt->triggerOriginSwId, pkt->triggerTime, rxTime);
 
     }
-
-// TODO: add code for TriggerPktLatency logging
-// OLD code 
-/* 
-    if(pkt->dstSwitchId == this->id){ // This is the dst Switch
-        #ifdef DEBUG
-        syndbSim.TriggerPktLatencyMap[pkt->id].end_time = rxTime;
-        #endif
-    }
-*/
 
 }
 
@@ -232,6 +223,8 @@ void Switch::generateTrigger(){
 
     this->triggerHistory.insert(newTriggerId); // this switch has already seen this triggerPkt
 
+    debug_print_yellow("Generating Trigger {} on switch {} at time {}:", newTriggerId, this->id, syndbSim.currTime);
+
     // Iterate over the neighbors and schedule a triggerPkt for each neighbor
     auto it = this->neighborSwitchTable.begin();
 
@@ -239,20 +232,12 @@ void Switch::generateTrigger(){
 
         dstSwitchId = it->first;
 
-        this->createSendTriggerPkt(dstSwitchId, newTriggerId, this->id, syndbSim.currTime);
-
-        /* 
-        latencyRecord.src = srcSwitch->id; 
-        latencyRecord.dst = newTriggerPkt->dstSwitchId;
-        latencyRecord.start_time = syndbSim.currTime;
-        latencyRecord.end_time = 0;
-
-        syndbSim.TriggerPktLatencyMap[newTriggerPkt->id] = latencyRecord;
-         */
+        this->createSendTriggerPkt(dstSwitchId, newTriggerId, this->id, syndbSim.currTime, syndbSim.currTime); // when generating, the pktArrivalTime is syndbSim.currTime
     }
+
 }
 
-void Switch::createSendTriggerPkt(switch_id_t dstSwitchId, trigger_id_t triggerId, switch_id_t originSwitchId, sim_time_t origTriggerTime){
+void Switch::createSendTriggerPkt(switch_id_t dstSwitchId, trigger_id_t triggerId, switch_id_t originSwitchId, sim_time_t origTriggerTime, sim_time_t pktArrivalTime){
 
     syndb_status_t status;
     routeScheduleInfo rsinfo;
@@ -263,9 +248,9 @@ void Switch::createSendTriggerPkt(switch_id_t dstSwitchId, trigger_id_t triggerI
     newTriggerPkt->triggerOriginSwId = originSwitchId;
     newTriggerPkt->triggerTime = origTriggerTime; 
 
-    status = this->routeScheduleTriggerPkt(newTriggerPkt, syndbSim.currTime, rsinfo);
+    status = this->routeScheduleTriggerPkt(newTriggerPkt, pktArrivalTime, rsinfo);
     if(status == syndb_status_t::success)
-        debug_print_yellow("Routed and scheduled Trigger Pkt {} from switch {} --> {}", newTriggerPkt->triggerId, this->id, dstSwitchId);
+        debug_print("Routed and scheduled Trigger Pkt {} from switch {} --> {}", newTriggerPkt->triggerId, this->id, dstSwitchId);
     else
     {
         std::string msg = "Failed to routeScheduleTriggerPkt";
@@ -278,7 +263,7 @@ void Switch::createSendTriggerPkt(switch_id_t dstSwitchId, trigger_id_t triggerI
 
     newEvent->pkt = newTriggerPkt;
     newEvent->pktForwardTime = rsinfo.pktNextForwardTime;
-    newEvent->currSwitch = switch_p(this); 
+    newEvent->currSwitch = syndbSim.topo.getSwitchById(this->id); 
     newEvent->nextSwitch = rsinfo.nextSwitch;
 
     syndbSim.TriggerPktEventList.push_back(newEvent);

@@ -33,7 +33,7 @@ int main(){
         
         // Step 2: Process all triggerPktEvents
         #ifdef DEBUG
-        // addTriggerPkts();
+        addTriggerPkts();
         #endif
         syndbSim.processTriggerPktEvents();
 
@@ -44,8 +44,8 @@ int main(){
     
 #ifdef DEBUG
     // checkRemainingQueuingAtLinks();
-    // testNormalPktLatencies(0, 1);
-    // showTriggerPktLatencies(0, 1);
+    testNormalPktLatencies(0, 1);
+    showTriggerPktLatencies();
     // testRingBufferOps();
 
     // showSimpleTopoRingBuffers(); 
