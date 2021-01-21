@@ -62,6 +62,7 @@ typedef struct Simulation
     void processHosts();
     void processTriggerPktEvents();
     void processNormalPktEvents();
+    void flushRemainingNormalPkts();
 
     void cleanUp();
 

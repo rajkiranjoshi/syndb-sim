@@ -45,6 +45,9 @@ void Host::generateNextPkt(){
     this->nextPktTime = nextPktSerializeStart + pktInfo.serializeDelay;
     this->torLink->next_idle_time_to_tor = this->nextPktTime;
 
+    // Add appropriate INT data to the packet
+    this->nextPkt->startTime = nextPktSerializeStart;
+
     // For devtest testNormalPktLatencies()
     #ifdef DEBUG
     pktTime<host_id_t> pkt_time;

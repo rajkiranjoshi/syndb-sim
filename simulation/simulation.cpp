@@ -154,8 +154,20 @@ void Simulation::processNormalPktEvents(){
                 (it->second).end_time = event->pktForwardTime;
                 #endif
 
-                // TODO: check if pkt is updated with all metadata
+                // Add end time INT data to the packet
+                event->pkt->endTime = event->pktForwardTime;
+
+                // Dump the pkt with INT data to the disk
                 syndbSim.pktDumper.dumpPacket(event->pkt);
+
+                #ifdef DEBUG
+                debug_print_yellow("\nPkt ID {} dump:", event->pkt->id);
+                debug_print("s{} --> s{}: {} ns (Start: {} ns | End: {} ns)", event->pkt->srcHost, event->pkt->dstHost, event->pkt->endTime - event->pkt->startTime, event->pkt->startTime, event->pkt->endTime);
+                auto it1 = event->pkt->switchINTInfoList.begin();
+                for(it1; it1 != event->pkt->switchINTInfoList.end(); it1++){
+                    debug_print("Rx on s{} at {} ns", it1->swId, it1->rxTime);
+                }
+                #endif
             }
             // Handling the case that the next hop is a switch (intermediate or dstTor)
             else{
@@ -193,6 +205,27 @@ void Simulation::processNormalPktEvents(){
 }
 
 
+void Simulation::flushRemainingNormalPkts(){
+
+    auto it = this->NormalPktEventList.begin();
+
+    for(it; it != this->NormalPktEventList.end(); it++){
+        pktevent_p<normalpkt_p> event = *it;
+
+        // Dump the pkt with INT data to the disk
+        syndbSim.pktDumper.dumpPacket(event->pkt);
+
+        #ifdef DEBUG
+        debug_print_yellow("\nPkt ID {} dump:", event->pkt->id);
+        debug_print("s{} --> s{}: N/A ns (Start: {} ns | End: {} ns)", event->pkt->srcHost, event->pkt->dstHost, event->pkt->startTime, event->pkt->endTime);
+        auto it1 = event->pkt->switchINTInfoList.begin();
+        for(it1; it1 != event->pkt->switchINTInfoList.end(); it1++){
+            debug_print("Rx on s{} at {} ns", it1->swId, it1->rxTime);
+        }
+        #endif
+    }
+
+}
 
 
 void Simulation::cleanUp(){
