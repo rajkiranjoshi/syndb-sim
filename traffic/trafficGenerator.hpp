@@ -3,7 +3,7 @@
 
 #include "utils/types.hpp"
 #include "traffic/packet.hpp"
-
+#include "randomGenCDF.hpp"
 
 typedef struct nextPacketInfo
 {
@@ -19,9 +19,10 @@ typedef struct
 {
     link_speed_gbps_t torLinkSpeed;
     load_t load;
-
+    RandomFromCDF myRandomFromCDF;
+    
     nextPacketInfo getNextPacketInfo();
-
+    int loadTrafficDistribution(string packetsizeDistFile, string flowarrivalDistFile);
 } trafficGenerator;
 
 

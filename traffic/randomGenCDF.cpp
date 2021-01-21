@@ -1,32 +1,4 @@
-#include <cmath>
-#include <random>
-#include <stdlib.h>
-#include <stdio.h>
-#include <string>
-#include <fstream>
-#include <sstream>
-#include <iostream>
-
-using namespace std;
-
-
-typedef struct randomCDF
-{
-    vector<int> packetSizeDist;
-    vector<int> flowArrivalDist;
-
-    std::default_random_engine generator;
-    
-    std::uniform_int_distribution<int> uniformDist;
-
-    vector<int> readCDFFile(string fileName);
-    void loadCDFs(string packetsizeDistFile, string flowarrivalDistFile);
-
-    int getNextPacketSize();
-    int getNextFlowDelay();
-
-} RandomFromCDF;
-
+#include "randomGenCDF.hpp"
 
 vector<int> RandomFromCDF::readCDFFile(string fileName) {
     fstream myCDFFile;
@@ -69,15 +41,15 @@ int RandomFromCDF::getNextFlowDelay() {
     return flowDelay;
 }
 
-int main () {
-    RandomFromCDF myRandomFromCDF;
-    myRandomFromCDF.loadCDFs("../traffic-dist/fb_webserver_packetsizedist_cdf.csv", "../traffic-dist/fb_webserver_flowinterarrival_ns_cdf.csv");
-    for (int i=0;i<10;i++) {
-        cout<<myRandomFromCDF.getNextPacketSize()<<"\n";
-    }
+// int main () {
+//     RandomFromCDF myRandomFromCDF;
+//     myRandomFromCDF.loadCDFs("../traffic-dist/fb_webserver_packetsizedist_cdf.csv", "../traffic-dist/fb_webserver_flowinterarrival_ns_cdf.csv");
+//     for (int i=0;i<10;i++) {
+//         cout<<myRandomFromCDF.getNextPacketSize()<<"\n";
+//     }
 
-    for (int i=0;i<10;i++) {
-        cout<<myRandomFromCDF.getNextFlowDelay()<<"\n";
-    }
-    return 0;
-}
+//     for (int i=0;i<10;i++) {
+//         cout<<myRandomFromCDF.getNextFlowDelay()<<"\n";
+//     }
+//     return 0;
+// }
