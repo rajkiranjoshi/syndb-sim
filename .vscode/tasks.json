@@ -4,9 +4,9 @@
     "version": "2.0.0",
     "tasks": [
         {
-            "label": "Clean Build",
+            "label": "Debug Build",
             "type": "shell",
-            "command": "make clean && make all",
+            "command": "make CONFIG=debug -j $(($(nproc)-1))",
             "problemMatcher": [],
             "group": {
                 "kind": "build",

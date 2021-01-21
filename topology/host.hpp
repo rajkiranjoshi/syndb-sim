@@ -8,20 +8,26 @@
 #include "traffic/trafficGenerator.hpp"
 
 /* Host struct */
-struct Host
+typedef struct Host
 {
     host_id_t id;
-    link_p torLink;
+    host_tor_link_p torLink;
     switch_p torSwitch;
 
     normalpkt_p nextPkt;
     sim_time_t nextPktTime;
 
     trafficGenerator trafficGen;
+    bool trafficGenDisabled;
 
-};
+    Host(); // default constructor
+    Host(host_id_t id, bool disableTrafficGen = false);
 
-typedef struct Host Host;
+    void generateNextPkt();
+    void sendPkt();
+
+} Host;
+
 typedef std::shared_ptr<Host> host_p;
 
 
