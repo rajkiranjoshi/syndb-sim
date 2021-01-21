@@ -2,6 +2,8 @@ ifndef $(CONFIG)
 	CONFIG := release
 endif
 
+UNAME_S := $(shell uname -s)
+
 CURR_DIR:=$(shell dirname $(realpath $(firstword $(MAKEFILE_LIST))))
 BASE_BUILDDIR:=$(CURR_DIR)/build
 BUILDDIR=$(BASE_BUILDDIR)/$(CONFIG)
@@ -19,11 +21,21 @@ DEPENDS = $(patsubst $(CURR_DIR)/%,$(BUILDDIR)/%,$(SOURCES:.cpp=.d))
 RELEASE_BINARY := syndb-sim
 DEBUG_BINARY := syndb-sim-debug
 
+LIB_BOOST_LOG := 
+
+ifeq ($(UNAME_S),Linux)
+	LIB_BOOST_LOG := boost_log
+endif
+
+ifeq ($(UNAME_S),Darwin)
+	LIB_BOOST_LOG := boost_log-mt
+endif
+
 CXXFLAGS  = -DBOOST_LOG_DYN_LINK \
 			-I$(CURR_DIR) \
 			-std=c++11
 
-LDLIBS = -lboost_log \
+LDLIBS = -l$(LIB_BOOST_LOG) \
 		 -lpthread \
 		 -lfmt
 
