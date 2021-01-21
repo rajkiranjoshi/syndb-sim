@@ -195,9 +195,12 @@ void Switch::receiveTriggerPkt(triggerpkt_p pkt, sim_time_t rxTime){
     }
     #endif
 
+
+    // Flush the current RingBuffer
+    this->snapshotRingBuffer();
+
     // Broadcast forward to neighbors with source pruning
     switch_id_t srcSwitch = pkt->srcSwitchId;
-    
 
     auto it2 = this->neighborSwitchTable.begin();
     for(it2; it2 != this->neighborSwitchTable.end(); it2++){
@@ -267,5 +270,10 @@ void Switch::createSendTriggerPkt(switch_id_t dstSwitchId, trigger_id_t triggerI
     newEvent->nextSwitch = rsinfo.nextSwitch;
 
     syndbSim.TriggerPktEventList.push_back(newEvent);
+}
+
+
+void Switch::snapshotRingBuffer(){
+
 }
 
