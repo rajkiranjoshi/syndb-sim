@@ -1,4 +1,4 @@
 #include "config.hpp"
 
 
-SimpleTopology topo;
+Config syndbConfig;

@@ -1,16 +1,59 @@
 #include <stdio.h>
-
-#include "traffic/packet.hpp"
+#include <fmt/core.h>
+#include <fmt/color.h>
+#include "utils/logger.hpp"
+#include "simulation/config.hpp"
+#include "simulation/simulation.hpp"
+#include "devtests/devtests.hpp"
 
 int main(){
 
-    normalPkt pkt; 
-    triggerPkt tpkt;
+    syndbSim = Simulation();
 
-    tpkt.triggerSwitchId = 99;
+    // Init Step 1: Build the topology
+    syndbSim.buildTopo();
+    debug_print("Done building topo");
 
-    printf("Size of struct NormalPacket is %ld bytes\n", sizeof(pkt));
-    printf("Size of struct TriggerPacket is %ld bytes\n", sizeof(tpkt));
+    debug_print("Time increment is {}", syndbSim.timeIncrement);
 
+    // Init Step 2: Initialize the hosts
+    syndbSim.initHosts();
+    debug_print("Done init hosts topo");
+
+    debug_print("Running simulation for {}ns ...",syndbSim.totalTime);
+
+
+    // Main simulation loop
+    for ( ; syndbSim.currTime <= syndbSim.totalTime; syndbSim.currTime += syndbSim.timeIncrement)
+    {
+        debug_print_yellow("########  Simulation Time: {} ########", syndbSim.currTime); 
+        
+        // Step 1: Process all hosts
+        syndbSim.processHosts();
+        
+        // Step 2: Process all triggerPktEvents
+        #ifdef DEBUG
+        addTriggerPkts();
+        #endif
+        syndbSim.processTriggerPktEvents();
+
+        // Step 3: Process all normalPktEvents
+        syndbSim.processNormalPktEvents();
+
+    }
+    
+#ifdef DEBUG
+    // checkRemainingQueuingAtLinks();
+    testNormalPktLatencies(0, 1);
+    showTriggerPktLatencies();
+    // testRingBufferOps();
+
+    // showSimpleTopoRingBuffers(); 
+
+#endif
+
+    ndebug_print_yellow("End of main\n");
     return 0;
 }
+
+
