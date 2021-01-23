@@ -38,7 +38,7 @@ typedef struct Topology
 
     host_tor_link_p createNewToRLink();
     network_link_p createNewNetworLink(switch_id_t sw1, switch_id_t sw2);
-    switch_p createNewSwitch();
+    switch_p createNewSwitch(SwitchType type);
     host_p createNewHost(bool trafficGenDisabled = false);
 
     void addHostToTor(host_p host, switch_p tor);

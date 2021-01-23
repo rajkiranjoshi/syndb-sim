@@ -72,9 +72,9 @@ void SimpleTopology::Topology::buildTopo(){
     // h2 = createNewHost();
     
     // Create all switches
-    s0 = createNewSwitch(); 
-    s1 = createNewSwitch(); 
-    s2 = createNewSwitch(); 
+    s0 = createNewSwitch(SwitchType::Simple); 
+    s1 = createNewSwitch(SwitchType::Simple); 
+    s2 = createNewSwitch(SwitchType::Simple); 
 
     addHostToTor(h0, s0);
     // addHostToTor(h2, s0);
@@ -84,10 +84,10 @@ void SimpleTopology::Topology::buildTopo(){
     connectSwitchToSwitch(s1, s2);
 
     // Setup routing on s0
-    s0->routingTable[s1->id] = s2->id;
+    s0->updateRouting(s1->id, s2->id);
 
     // Setup routing on s1
-    s1->routingTable[s0->id] = s2->id;
+    s1->updateRouting(s0->id, s2->id);
 
     // Setup routing on s2
     // NO need since both the other ToRs are neighbors
@@ -109,9 +109,28 @@ network_link_p Topology::createNewNetworLink(switch_id_t sw1, switch_id_t sw2){
     return newLink;
 }
 
-switch_p Topology::createNewSwitch(){
-    switch_p newSwitch = switch_p(new Switch(this->getNextSwitchId()));
+switch_p Topology::createNewSwitch(SwitchType type){
+    switch_p newSwitch;
+    
+    switch (type)
+    {
+        case SwitchType::Rack:
+        case SwitchType::Aggregation:
+            // TODO: 
+            break;
 
+        case SwitchType::Core:
+            // TODO:
+            break;
+
+        case SwitchType::Simple:
+        default:
+            newSwitch = switch_p(new SimpleSwitch(this->getNextSwitchId()));
+            break;  
+    }
+
+    newSwitch->type = type;
+     
     this->switchIDMap[newSwitch->id] = newSwitch; 
 
     return newSwitch;  

@@ -12,8 +12,11 @@ Switch::Switch(switch_id_t id){
     this->hop_delay = syndbConfig.switchHopDelayNs;
 }
 
+void SimpleSwitch::updateRouting(switch_id_t dstSwitchId, switch_id_t nextHopSwitchId){
+    this->routingTable[dstSwitchId] = nextHopSwitchId;
+}
 
-syndb_status_t Switch::routeScheduleNormalPkt(normalpkt_p pkt, const sim_time_t pktArrivalTime, routeScheduleInfo &rsinfo){
+syndb_status_t SimpleSwitch::routeScheduleNormalPkt(normalpkt_p pkt, const sim_time_t pktArrivalTime, routeScheduleInfo &rsinfo){
     // Two steps for updating the rsinfo struct
     // Step 1: Do the routing: determines nextSwitch, nextLink, nextLink's queue (correct next_idle_time)
     // Step 2: (common) Do the scheduling: determines the pktNextForwardTime for the correct nextLink's queue
@@ -55,7 +58,7 @@ syndb_status_t Switch::routeScheduleNormalPkt(normalpkt_p pkt, const sim_time_t 
 
 }
 
-syndb_status_t Switch::routeScheduleTriggerPkt(triggerpkt_p pkt, const sim_time_t pktArrivalTime, routeScheduleInfo &rsinfo){
+syndb_status_t SimpleSwitch::routeScheduleTriggerPkt(triggerpkt_p pkt, const sim_time_t pktArrivalTime, routeScheduleInfo &rsinfo){
     switch_p nextHopSwitch;
     network_link_p nextLink;
 
@@ -64,7 +67,7 @@ syndb_status_t Switch::routeScheduleTriggerPkt(triggerpkt_p pkt, const sim_time_
 }
 
 
-syndb_status_t Switch::routeScheduleToDstSwitch(const pkt_size_t pktsize, const sim_time_t pktArrivalTime, const switch_id_t dstSwitchId, routeScheduleInfo &rsinfo, PacketType ptype){
+syndb_status_t SimpleSwitch::routeScheduleToDstSwitch(const pkt_size_t pktsize, const sim_time_t pktArrivalTime, const switch_id_t dstSwitchId, routeScheduleInfo &rsinfo, PacketType ptype){
     
     switch_p nextHopSwitch;
     network_link_p nextLink;
@@ -101,7 +104,7 @@ syndb_status_t Switch::routeScheduleToDstSwitch(const pkt_size_t pktsize, const 
 }
 
 
-switch_p Switch::getNextHop(switch_id_t dstSwitchId){
+switch_p SimpleSwitch::getNextHop(switch_id_t dstSwitchId){
     
     // First, find if the dstSwitchId is in the neighbor switch list
 
