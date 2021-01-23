@@ -2,6 +2,8 @@
 #include "utils/logger.hpp"
 #include "devtests/devtests.hpp"
 
+#ifdef DEBUG
+
 void showSimpleTopoRingBuffers(){
     switch_p s0, s1, s2;
     
@@ -236,3 +238,4 @@ void testSharedPtrDestruction(){
     }
 }
 
+#endif // end of DEBUG
