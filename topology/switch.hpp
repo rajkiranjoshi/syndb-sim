@@ -21,6 +21,7 @@ struct routeScheduleInfo;
 struct Switch;
 typedef std::shared_ptr<Switch> switch_p;
 
+
 /* Switch struct */
 struct Switch
 {
@@ -48,7 +49,9 @@ struct Switch
     virtual syndb_status_t routeScheduleNormalPkt(normalpkt_p pkt, const sim_time_t pktArrivalTime, routeScheduleInfo &rsinfo) = 0;
     virtual syndb_status_t routeScheduleTriggerPkt(triggerpkt_p pkt, const sim_time_t pktArrivalTime, routeScheduleInfo &rsinfo) = 0;
     
-    
+    syndb_status_t intraRackRouteNormalPkt(normalpkt_p pkt, const sim_time_t pktArrivalTime, routeScheduleInfo &rsinfo);
+    /* Inter-switch scheduling  */ 
+    syndb_status_t scheduleToNextHopSwitch(const pkt_size_t pktsize, const sim_time_t pktArrivalTime, const switch_p nextHopSwitch, routeScheduleInfo &rsinfo, PacketType ptype);
     void schedulePkt(const pkt_size_t pktsize, const sim_time_t pktArrivalTime, const link_speed_gbps_t linkSpeed, sim_time_t &qNextIdleTime);
 
     
@@ -67,8 +70,6 @@ struct SimpleSwitch : Switch{
     syndb_status_t routeScheduleTriggerPkt(triggerpkt_p pkt, const sim_time_t pktArrivalTime, routeScheduleInfo &rsinfo);
 
     switch_p getNextHop(switch_id_t dstSwitchId);
-    /* Inter-switch routing+scheduling  */ 
-    syndb_status_t routeScheduleToDstSwitch(const pkt_size_t pktsize, const sim_time_t pktArrivalTime, const switch_id_t dstSwitchId, routeScheduleInfo &rsinfo, PacketType ptype);
 
     SimpleSwitch(switch_id_t id):Switch(id) {};
 
