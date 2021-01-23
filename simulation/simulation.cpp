@@ -162,7 +162,7 @@ void Simulation::processNormalPktEvents(){
 
                 #ifdef DEBUG
                 debug_print_yellow("\nPkt ID {} dump:", event->pkt->id);
-                debug_print("s{} --> s{}: {} ns (Start: {} ns | End: {} ns)", event->pkt->srcHost, event->pkt->dstHost, event->pkt->endTime - event->pkt->startTime, event->pkt->startTime, event->pkt->endTime);
+                debug_print("h{} --> h{}: {} ns (Start: {} ns | End: {} ns)", event->pkt->srcHost, event->pkt->dstHost, event->pkt->endTime - event->pkt->startTime, event->pkt->startTime, event->pkt->endTime);
                 auto it1 = event->pkt->switchINTInfoList.begin();
                 for(it1; it1 != event->pkt->switchINTInfoList.end(); it1++){
                     debug_print("Rx on s{} at {} ns", it1->swId, it1->rxTime);
@@ -217,7 +217,7 @@ void Simulation::flushRemainingNormalPkts(){
 
         #ifdef DEBUG
         debug_print_yellow("\nPkt ID {} dump:", event->pkt->id);
-        debug_print("s{} --> s{}: N/A ns (Start: {} ns | End: {} ns)", event->pkt->srcHost, event->pkt->dstHost, event->pkt->startTime, event->pkt->endTime);
+        debug_print("h{} --> h{}: N/A ns (Start: {} ns | End: {} ns)", event->pkt->srcHost, event->pkt->dstHost, event->pkt->startTime, event->pkt->endTime);
         auto it1 = event->pkt->switchINTInfoList.begin();
         for(it1; it1 != event->pkt->switchINTInfoList.end(); it1++){
             debug_print("Rx on s{} at {} ns", it1->swId, it1->rxTime);
