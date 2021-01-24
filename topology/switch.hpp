@@ -6,7 +6,7 @@
 #include <set>
 #include "utils/types.hpp"
 #include "topology/link.hpp"
-#include "topology/switch_syndb.hpp"
+#include "topology/syndb_ringbuffer.hpp"
 #include "traffic/packet.hpp"
 
 
