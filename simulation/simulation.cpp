@@ -5,6 +5,7 @@
 #include "simulation/simulation.hpp"
 #include "utils/logger.hpp"
 #include "utils/utils.hpp"
+#include "topology/fattree_topology.hpp"
 
 
 Simulation syndbSim;
@@ -15,8 +16,11 @@ Simulation::Simulation(){
     this->timeIncrement = syndbConfig.timeIncrementNs;
     this->totalTime = (sim_time_t)(syndbConfig.totalTimeMSecs * (float)1000000);
 
-    if(syndbConfig.topo == "SimpleToplogy"){
-        this->topo = SimpleTopology();
+    if(syndbConfig.topo == "SimpleTopology"){
+        this->topo = std::unique_ptr<Topology>(new SimpleTopology());
+    }
+    else if (syndbConfig.topo == "FatTreeTopology"){
+        this->topo = std::unique_ptr<Topology>(new FattreeTopology(syndbConfig.fatTreeTopoK)); 
     }
 
     this->nextPktId = 0;
@@ -26,9 +30,9 @@ Simulation::Simulation(){
 
 void Simulation::initHosts(){
 
-    auto it = this->topo.hostIDMap.begin();
+    auto it = this->topo->hostIDMap.begin();
 
-    while (it != this->topo.hostIDMap.end() )
+    while (it != this->topo->hostIDMap.end() )
     {
         host_p h = it->second;
         h->generateNextPkt();
@@ -36,18 +40,18 @@ void Simulation::initHosts(){
         it++;
     }
 
-    debug_print(fmt::format("Initialized {} hosts!", this->topo.hostIDMap.size()));
+    debug_print(fmt::format("Initialized {} hosts!", this->topo->hostIDMap.size()));
     
 }
 
 void Simulation::processHosts(){
 
     // debug_print_yellow("Inside process hosts");
-    // debug_print("Num hosts: {}", this->topo.hostIDMap.size());
+    // debug_print("Num hosts: {}", this->topo->hostIDMap.size());
 
-    auto it = this->topo.hostIDMap.begin();
+    auto it = this->topo->hostIDMap.begin();
 
-    while (it != this->topo.hostIDMap.end() )
+    while (it != this->topo->hostIDMap.end() )
     {
         host_p h = it->second;
 

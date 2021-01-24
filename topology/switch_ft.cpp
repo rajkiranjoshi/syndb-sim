@@ -19,7 +19,7 @@ switch_p SwitchFtTorAggr::getNextHop(host_id_t dstHostId){
     }
 
     nextHopSwitchId = it->second; 
-    nextHopSwitch = syndbSim.topo.getSwitchById(nextHopSwitchId);
+    nextHopSwitch = syndbSim.topo->getSwitchById(nextHopSwitchId);
 
     return nextHopSwitch;
 }
@@ -28,7 +28,7 @@ syndb_status_t SwitchFtTor::routeScheduleNormalPkt(normalpkt_p pkt, const sim_ti
 
     switch_id_t dstTorId;
 
-    dstTorId = syndbSim.topo.getTorId(pkt->dstHost);
+    dstTorId = syndbSim.topo->getTorId(pkt->dstHost);
     
     if(dstTorId == this->id){ // intra-rack routing
         return this->intraRackRouteNormalPkt(pkt, pktArrivalTime, rsinfo); 
@@ -48,12 +48,12 @@ syndb_status_t SwitchFtTor::routeScheduleNormalPkt(normalpkt_p pkt, const sim_ti
 syndb_status_t SwitchFtAggr::routeScheduleNormalPkt(normalpkt_p pkt, const sim_time_t pktArrivalTime, routeScheduleInfo &rsinfo){
     switch_id_t dstTorId;
     switch_p nextHopSwitch;
-    dstTorId = syndbSim.topo.getTorId(pkt->dstHost);
+    dstTorId = syndbSim.topo->getTorId(pkt->dstHost);
 
     // find if dstTor is in the neighbors (if intra-pod routing)
     auto it = this->neighborSwitchTable.find(dstTorId);
     if(it != this->neighborSwitchTable.end()){ // intra-pod routing
-        nextHopSwitch = syndbSim.topo.getSwitchById(dstTorId);
+        nextHopSwitch = syndbSim.topo->getSwitchById(dstTorId);
     }
     else // inter-pod routing. Send to the uplink core
     {
@@ -82,7 +82,7 @@ switch_p SwitchFtCore::getNextHop(host_id_t dstHostId){
     }
     
     // it->second is the aggr switch id
-    nextHopSwitch = syndbSim.topo.getSwitchById(it->second);
+    nextHopSwitch = syndbSim.topo->getSwitchById(it->second);
 
     return nextHopSwitch;   
 

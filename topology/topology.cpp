@@ -59,7 +59,7 @@ void Topology::connectSwitchToSwitch(switch_p s1, switch_p s2){
 }
 
 
-void SimpleTopology::Topology::buildTopo(){
+void SimpleTopology::buildTopo(){
 
     host_id_t hostId;
     switch_id_t switchId;
@@ -67,18 +67,18 @@ void SimpleTopology::Topology::buildTopo(){
     switch_p s0, s1, s2;
 
     // Create all hosts
-    h0 = createNewHost();
-    h1 = createNewHost();
+    h0 = this->createNewHost();
+    h1 = this->createNewHost();
     // h2 = createNewHost();
     
     // Create all switches
-    s0 = createNewSwitch(SwitchType::Simple); 
-    s1 = createNewSwitch(SwitchType::Simple); 
-    s2 = createNewSwitch(SwitchType::Simple); 
+    s0 = this->createNewSwitch(SwitchType::Simple); 
+    s1 = this->createNewSwitch(SwitchType::Simple); 
+    s2 = this->createNewSwitch(SwitchType::Simple); 
 
-    addHostToTor(h0, s0);
-    // addHostToTor(h2, s0);
-    addHostToTor(h1, s1);
+    this->addHostToTor(h0, s0);
+    // this->addHostToTor(h2, s0);
+    this->addHostToTor(h1, s1);
 
     connectSwitchToSwitch(s0, s2);
     connectSwitchToSwitch(s1, s2);

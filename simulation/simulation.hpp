@@ -30,7 +30,7 @@ struct triggerPktLatencyInfo
 
 typedef struct Simulation
 {
-    Topology topo;
+    std::unique_ptr<Topology> topo;
 
     // time-related. All units are nanoseconds
     sim_time_t currTime;
@@ -57,7 +57,7 @@ typedef struct Simulation
     // needs to be thread-safe when parallelizing
     inline pkt_id_t getNextPktId() { return this->nextPktId++; }; 
     inline pkt_id_t getNextTriggerPktId() { return this->nextTriggerPktId++; }; 
-    inline void buildTopo(){ this->topo.buildTopo(); };
+    inline void buildTopo(){ this->topo->buildTopo(); };
     void initHosts();
     void processHosts();
     void processTriggerPktEvents();

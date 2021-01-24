@@ -216,7 +216,7 @@ void Switch::createSendTriggerPkt(switch_id_t dstSwitchId, trigger_id_t triggerI
 
     newEvent->pkt = newTriggerPkt;
     newEvent->pktForwardTime = rsinfo.pktNextForwardTime;
-    newEvent->currSwitch = syndbSim.topo.getSwitchById(this->id); 
+    newEvent->currSwitch = syndbSim.topo->getSwitchById(this->id); 
     newEvent->nextSwitch = rsinfo.nextSwitch;
 
     syndbSim.TriggerPktEventList.push_back(newEvent);
@@ -225,7 +225,7 @@ void Switch::createSendTriggerPkt(switch_id_t dstSwitchId, trigger_id_t triggerI
 syndb_status_t Switch::routeScheduleTriggerPkt(triggerpkt_p pkt, const sim_time_t pktArrivalTime, routeScheduleInfo &rsinfo){
     switch_p nextHopSwitch;
 
-    nextHopSwitch = syndbSim.topo.getSwitchById(pkt->dstSwitchId); // since triggerPkts sent to neighbors only
+    nextHopSwitch = syndbSim.topo->getSwitchById(pkt->dstSwitchId); // since triggerPkts sent to neighbors only
 
     return this->scheduleToNextHopSwitch(pkt->size, pktArrivalTime, nextHopSwitch, rsinfo, PacketType::TriggerPkt);
 }
@@ -246,7 +246,7 @@ syndb_status_t SimpleSwitch::routeScheduleNormalPkt(normalpkt_p pkt, const sim_t
 
     switch_id_t dstTorId;
 
-    dstTorId = syndbSim.topo.getTorId(pkt->dstHost);
+    dstTorId = syndbSim.topo->getTorId(pkt->dstHost);
     
     if(dstTorId == this->id){ // intra-rack routing
         return this->intraRackRouteNormalPkt(pkt, pktArrivalTime, rsinfo); 
@@ -272,7 +272,7 @@ switch_p SimpleSwitch::getNextHop(switch_id_t dstSwitchId){
     if(it != this->neighborSwitchTable.end()){ // dst switch is a neighbor
         // So it itself is the nextHop
         // simply return the shared_pointer to the dstSwitchId 
-        return syndbSim.topo.getSwitchById(dstSwitchId); 
+        return syndbSim.topo->getSwitchById(dstSwitchId); 
     }
 
     // Not a neighbor. Now refer to the routing table.
@@ -285,7 +285,7 @@ switch_p SimpleSwitch::getNextHop(switch_id_t dstSwitchId){
         nextHopSwitchId = it1->second;
         
         // Simply return the pointer to the nextHopSwitch
-        return syndbSim.topo.getSwitchById(nextHopSwitchId);
+        return syndbSim.topo->getSwitchById(nextHopSwitchId);
 
     }
     else // Err No known route to dst ToR
