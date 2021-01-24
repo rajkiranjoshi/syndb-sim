@@ -116,15 +116,15 @@ switch_p Topology::createNewSwitch(SwitchType type){
     
     switch (type)
     {
-        case SwitchType::Rack:
-        case SwitchType::Aggregation:
-            // TODO: 
+        case SwitchType::FtTor:
+            newSwitch = switch_p(new SwitchFtTor(this->getNextSwitchId()));
             break;
-
-        case SwitchType::Core:
-            // TODO:
+        case SwitchType::FtAggr:
+            newSwitch = switch_p(new SwitchFtAggr(this->getNextSwitchId()));
             break;
-
+        case SwitchType::FtCore:
+            newSwitch = switch_p(new SwitchFtCore(this->getNextSwitchId())); 
+            break;
         case SwitchType::Simple:
         default:
             newSwitch = switch_p(new SimpleSwitch(this->getNextSwitchId()));

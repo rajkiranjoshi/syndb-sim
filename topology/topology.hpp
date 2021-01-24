@@ -6,6 +6,7 @@
 #include "topology/host.hpp"
 #include "topology/link.hpp"
 #include "topology/switch.hpp"
+#include "topology/switch_ft.hpp"
 
 typedef std::unordered_map<host_id_t, switch_id_t> host_tor_map_t;
 typedef std::unordered_map<host_id_t, host_p> host_id_map_t;

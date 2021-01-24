@@ -13,7 +13,7 @@
 typedef std::unordered_map<switch_id_t, network_link_p> neighbor_switch_table_t;
 typedef std::unordered_map<host_id_t, host_tor_link_p> neighbor_host_table_t;
 
-enum class SwitchType {Simple, Rack, Aggregation, Core}; 
+enum class SwitchType {Simple, FtTor, FtAggr, FtCore}; 
 
 struct routeScheduleInfo;
 

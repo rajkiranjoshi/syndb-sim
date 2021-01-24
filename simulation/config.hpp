@@ -22,6 +22,9 @@ typedef struct Config
     static const uint32_t ringBufferSize = 100; // large size for simulation "oracle"
     static const pkt_size_t triggerPktSize = 60;
 
+    // Fat Tree specific config options
+    static const ft_scale_t fatTreeTopoScale = 4; // Fat Tree scale k
+
 } Config;
 
 extern Config syndbConfig;
