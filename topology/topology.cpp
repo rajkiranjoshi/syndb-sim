@@ -83,11 +83,13 @@ void SimpleTopology::Topology::buildTopo(){
     connectSwitchToSwitch(s0, s2);
     connectSwitchToSwitch(s1, s2);
 
-    // Setup routing on s0
-    s0->updateRouting(s1->id, s2->id);
+    // Setup routing on s0. Need to downcast shared_pointer to SimpleSwitch
+    auto s0_ss = std::dynamic_pointer_cast<SimpleSwitch>(s0); 
+    s0_ss->routingTable[s1->id] = s2->id;
 
-    // Setup routing on s1
-    s1->updateRouting(s0->id, s2->id);
+    // Setup routing on s1. Need to downcast shared_pointer to SimpleSwitch
+    auto s1_ss = std::dynamic_pointer_cast<SimpleSwitch>(s1);
+    s1_ss->routingTable[s0->id] = s2->id;
 
     // Setup routing on s2
     // NO need since both the other ToRs are neighbors
