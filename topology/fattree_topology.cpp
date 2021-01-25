@@ -12,6 +12,7 @@ void Pod::buildPod(){
         *aggr_it = parentTopo.createNewSwitch(SwitchType::FtAggr);
         std::dynamic_pointer_cast<SwitchFtAggr>(*aggr_it)->podId = this->id;
 
+        // Update common routing table for the ToR switches
         commonTorRoutingTable[localHostId++] = (*aggr_it)->id;
     }
 
@@ -55,7 +56,7 @@ void FattreeTopology::buildTopo(){
 
     // Create all Core switches
     for(int i=0; i < this->numCoreSwitches; i++){
-        this->coreSwitches[i] = switch_p(new SwitchFtCore(this->getNextSwitchId()));
+        this->coreSwitches[i] = this->createNewSwitch(SwitchType::FtCore);
     }
 
     // Connect Core switches to the pods. Update routing on both the switches
@@ -64,7 +65,7 @@ void FattreeTopology::buildTopo(){
         Then for each pod, index the aggrSwitch array with the stride number 
         to get the connected aggr switch.
     */
-    for(uint coreSwitchIdx=0; coreSwitchIdx < this->k; coreSwitchIdx++){
+    for(uint coreSwitchIdx=0; coreSwitchIdx < this->numCoreSwitches; coreSwitchIdx++){
         // compute the stride for the core switch
         uint stride = coreSwitchIdx / (this->k/2); 
         uint strideLocalCoreSwitchIdx = coreSwitchIdx % (this->k/2); 
@@ -81,6 +82,6 @@ void FattreeTopology::buildTopo(){
             std::dynamic_pointer_cast<SwitchFtAggr>(aggrSwitch)->routingTable[strideLocalCoreSwitchIdx] = coreSwitch->id;
         }    
         
-    }
+    } // end of for loop on all core switches
     
 }

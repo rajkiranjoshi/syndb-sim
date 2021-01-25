@@ -4,6 +4,51 @@
 
 #ifdef DEBUG
 
+void showFatTreeTopoRoutingTables(){
+    
+    std::shared_ptr<FattreeTopology> fattreetopo = std::dynamic_pointer_cast<FattreeTopology>(syndbSim.topo); 
+
+    debug_print_yellow("\n-------------  Routing Tables [Core Switches]  -------------");
+    auto it = fattreetopo->coreSwitches.begin();
+    for(it; it != fattreetopo->coreSwitches.end(); it++){
+        std::shared_ptr<SwitchFtCore> coreSwitch = std::dynamic_pointer_cast<SwitchFtCore>(*it);
+        
+        debug_print("Core Switch {}:", coreSwitch->id);
+        auto entry_it = coreSwitch->routingTable.begin();
+        for(entry_it; entry_it != coreSwitch->routingTable.end(); entry_it++){
+            debug_print("{} --> {}", entry_it->first, entry_it->second);
+        }
+    }
+
+    debug_print_yellow("\n-------------  Routing Tables [Aggr Switches]  -------------");
+    for(int i = 0; i < fattreetopo->k; i++){ // iterate over all pods
+        for(int j = 0; j < (fattreetopo->k/2); j++){
+            std::shared_ptr<SwitchFtAggr> aggrSwitch = std::dynamic_pointer_cast<SwitchFtAggr>(fattreetopo->pods[i]->aggrSwitches[j]);
+
+            debug_print("Aggr Switch {}:", aggrSwitch->id);
+            auto entry_it = aggrSwitch->routingTable.begin();
+            for(entry_it; entry_it != aggrSwitch->routingTable.end(); entry_it++){
+                debug_print("{} --> {}", entry_it->first, entry_it->second);
+            }
+        }
+    }
+
+    debug_print_yellow("\n-------------  Routing Tables [ToR Switches]  -------------");
+    for(int i = 0; i < fattreetopo->k; i++){ // iterate over all pods
+        for(int j = 0; j < (fattreetopo->k/2); j++){
+            std::shared_ptr<SwitchFtTor> torSwitch = std::dynamic_pointer_cast<SwitchFtTor>(fattreetopo->pods[i]->torSwitches[j]);
+
+            debug_print("ToR Switch {}:", torSwitch->id);
+            auto entry_it = torSwitch->routingTable.begin();
+            for(entry_it; entry_it != torSwitch->routingTable.end(); entry_it++){
+                debug_print("{} --> {}", entry_it->first, entry_it->second);
+            }
+        }
+    }
+    
+}
+
+
 void showSimpleTopoRingBuffers(){
     switch_p s0, s1, s2;
     

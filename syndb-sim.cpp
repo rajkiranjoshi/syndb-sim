@@ -13,7 +13,7 @@ int main(){
     // Init Step 1: Build the topology
     syndbSim.buildTopo();
     debug_print("Done building topo");
-
+    
     debug_print("Time increment is {}", syndbSim.timeIncrement);
 
     // Init Step 2: Initialize the hosts
@@ -51,7 +51,7 @@ int main(){
     // showTriggerPktLatencies();
     // testRingBufferOps();
     // showSimpleTopoRingBuffers(); 
-
+    // showFatTreeTopoRoutingTables();
 #endif
 
     ndebug_print_yellow("End of main\n");

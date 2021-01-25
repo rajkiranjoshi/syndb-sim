@@ -3,6 +3,7 @@
 #include "simulation/config.hpp"
 #include "simulation/simulation.hpp"
 #include "topology/topology.hpp"
+#include "utils/logger.hpp"
 
 
 switch_p Topology::getSwitchById(switch_id_t id){
@@ -44,6 +45,8 @@ void Topology::addHostToTor(host_p host, switch_p tor){
     // Update things on Topology
     this->hostTorMap[host->id] = tor->id;
 
+    // debug_print("Connected h{} to sw{}", host->id, tor->id);
+
 }
 
 void Topology::connectSwitchToSwitch(switch_p s1, switch_p s2){
@@ -55,6 +58,8 @@ void Topology::connectSwitchToSwitch(switch_p s1, switch_p s2){
 
     // Update things on s2
     s2->neighborSwitchTable[s1->id] = newLink;
+
+    // debug_print("Connected sw{} to sw{}", s1->id, s2->id);
 
 }
 

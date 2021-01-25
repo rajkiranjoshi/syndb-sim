@@ -17,10 +17,10 @@ Simulation::Simulation(){
     this->totalTime = (sim_time_t)(syndbConfig.totalTimeMSecs * (float)1000000);
 
     if(syndbConfig.topo == "SimpleTopology"){
-        this->topo = std::unique_ptr<Topology>(new SimpleTopology());
+        this->topo = std::shared_ptr<Topology>(new SimpleTopology());
     }
     else if (syndbConfig.topo == "FatTreeTopology"){
-        this->topo = std::unique_ptr<Topology>(new FattreeTopology(syndbConfig.fatTreeTopoK)); 
+        this->topo = std::shared_ptr<Topology>(new FattreeTopology(syndbConfig.fatTreeTopoK)); 
     }
 
     this->nextPktId = 0;
@@ -220,12 +220,12 @@ void Simulation::flushRemainingNormalPkts(){
         syndbSim.pktDumper.dumpPacket(event->pkt);
 
         #ifdef DEBUG
-        debug_print_yellow("\nPkt ID {} dump:", event->pkt->id);
+        /* debug_print_yellow("\nPkt ID {} dump:", event->pkt->id);
         debug_print("h{} --> h{}: N/A ns (Start: {} ns | End: {} ns)", event->pkt->srcHost, event->pkt->dstHost, event->pkt->startTime, event->pkt->endTime);
         auto it1 = event->pkt->switchINTInfoList.begin();
         for(it1; it1 != event->pkt->switchINTInfoList.end(); it1++){
             debug_print("Rx on s{} at {} ns", it1->swId, it1->rxTime);
-        }
+        } */
         #endif
     }
 

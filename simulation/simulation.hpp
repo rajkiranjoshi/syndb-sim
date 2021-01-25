@@ -30,7 +30,7 @@ struct triggerPktLatencyInfo
 
 typedef struct Simulation
 {
-    std::unique_ptr<Topology> topo;
+    std::shared_ptr<Topology> topo;
 
     // time-related. All units are nanoseconds
     sim_time_t currTime;

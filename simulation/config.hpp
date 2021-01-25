@@ -24,7 +24,7 @@ typedef struct Config
     static const pkt_size_t triggerPktSize = 60;
 
     // Fat Tree specific config options
-    static const ft_scale_t fatTreeTopoK = 4; // Fat Tree scale k
+    static const ft_scale_t fatTreeTopoK = 6; // Fat Tree scale k
     static const uint numCoreSwitches = (fatTreeTopoK/2) * (fatTreeTopoK/2);
 
 } Config;
