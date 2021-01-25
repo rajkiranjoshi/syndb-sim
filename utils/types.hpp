@@ -40,4 +40,5 @@ typedef union {
 
 enum class syndb_status_t {success, failure};
 
+enum class TopologyType {Simple, FatTree}; 
 #endif

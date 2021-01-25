@@ -16,10 +16,10 @@ Simulation::Simulation(){
     this->timeIncrement = syndbConfig.timeIncrementNs;
     this->totalTime = (sim_time_t)(syndbConfig.totalTimeMSecs * (float)1000000);
 
-    if(syndbConfig.topo == "SimpleTopology"){
+    if(syndbConfig.topoType == TopologyType::Simple){
         this->topo = std::shared_ptr<Topology>(new SimpleTopology());
     }
-    else if (syndbConfig.topo == "FatTreeTopology"){
+    else if (syndbConfig.topoType == TopologyType::FatTree){
         this->topo = std::shared_ptr<Topology>(new FattreeTopology(syndbConfig.fatTreeTopoK)); 
     }
 
