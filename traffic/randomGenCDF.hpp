@@ -19,14 +19,18 @@ typedef struct randomCDF
     vector<int> flowArrivalDist;
 
     std::default_random_engine generator;
-    
+    std::default_random_engine generator2;
+
     std::uniform_int_distribution<int> uniformDist;
 
+    std::lognormal_distribution<double> lognormalDist;
+
     vector<int> readCDFFile(string fileName);
-    void loadCDFs(string packetsizeDistFile, string flowarrivalDistFile);
+    void loadCDFs(string packetsizeDistFile, string flowarrivalDistFile, int min_delay_ns);
 
     int getNextPacketSize();
     int getNextFlowDelay();
+    int getNextPacketDelay();
 
 } RandomFromCDF;
 

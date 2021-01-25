@@ -21,19 +21,16 @@ typedef struct trafficGenerator
 {
     link_speed_gbps_t torLinkSpeed;
     load_t load;
-<<<<<<< HEAD
     RandomFromCDF myRandomFromCDF;
     
-    nextPacketInfo getNextPacketInfo();
-    int loadTrafficDistribution(string packetsizeDistFile, string flowarrivalDistFile);
-=======
     host_id_t parentHostId;
 
     trafficGenerator() = default;
     trafficGenerator(link_speed_gbps_t linkSpeed, load_t load, switch_id_t hostId);
+    
     packetInfo getNextPacket();
+    int loadTrafficDistribution(string packetsizeDistFile, string flowarrivalDistFile);
 
->>>>>>> 7cbab8b6c8222fce1a3dbf6276b8dabad91ac803
 } trafficGenerator;
 
 

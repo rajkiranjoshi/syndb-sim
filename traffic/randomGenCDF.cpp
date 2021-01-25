@@ -1,6 +1,6 @@
 #include "randomGenCDF.hpp"
 
-vector<int> RandomFromCDF::readCDFFile(string fileName) {
+vector<int> RandomFromCDF::readCDFFile (string fileName) {
     fstream myCDFFile;
     string line;
     vector<pair<int, int> > cdfMatrix;
@@ -20,25 +20,32 @@ vector<int> RandomFromCDF::readCDFFile(string fileName) {
     return distribution;
 }   
 
-void RandomFromCDF::loadCDFs(string packetsizeDistFile, string flowarrivalDistFile) {
+void RandomFromCDF::loadCDFs (string packetsizeDistFile, string flowarrivalDistFile, int min_delay_ns) {
     packetSizeDist = readCDFFile(packetsizeDistFile);
     flowArrivalDist = readCDFFile(flowarrivalDistFile);
     uniformDist = std::uniform_int_distribution<>(0,99);
+    lognormalDist = std::lognormal_distribution<>(min_delay_ns, min_delay_ns*10000);
 
 }
     
-int RandomFromCDF::getNextPacketSize() {
+int RandomFromCDF::getNextPacketSize () {
     int packetSize;
     int random = uniformDist(generator);
     packetSize = packetSizeDist.at(random);
     return packetSize;
 }
 
-int RandomFromCDF::getNextFlowDelay() {
+int RandomFromCDF::getNextFlowDelay () {
     int flowDelay;
     int random = uniformDist(generator);
     flowDelay = flowArrivalDist.at(random);
     return flowDelay;
+}
+
+int RandomFromCDF::getNextPacketDelay () {
+    int packet_delay;
+    packet_delay = lognormalDist(generator2);
+    return packet_delay;
 }
 
 // int main () {
