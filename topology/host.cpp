@@ -5,20 +5,18 @@
 #include "simulation/simulation.hpp"
 #include "utils/utils.hpp"
 
-Host::Host(){
-    
+Host::Host(host_id_t id, bool disableTrafficGen){
     this->torLink = NULL;
     this->torSwitch = NULL;
-
     this->nextPkt = NULL;
     this->nextPktTime = 0;
 
-}
-
-Host::Host(host_id_t id, bool disableTrafficGen):Host::Host(){
     this->id = id;
     this->trafficGenDisabled = disableTrafficGen;
-    this->trafficGen = trafficGenerator(syndbConfig.torLinkSpeedGbps, syndbConfig.hostTrafficGenLoadPercent, id);
+    
+    if(syndbConfig.trafficGenType == TrafficGenType::Simple){
+        this->trafficGen = std::shared_ptr<TrafficGenerator>(new SimpleTrafficGenerator(syndbConfig.torLinkSpeedGbps, syndbConfig.hostTrafficGenLoadPercent, id));
+    }
 }
 
 void Host::generateNextPkt(){
@@ -35,7 +33,7 @@ void Host::generateNextPkt(){
     }
 #endif
     
-    packetInfo pktInfo = this->trafficGen.getNextPacket();
+    packetInfo pktInfo = this->trafficGen->getNextPacket();
 
     this->nextPkt = pktInfo.pkt;
     

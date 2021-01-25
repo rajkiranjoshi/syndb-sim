@@ -5,7 +5,7 @@
 #include "traffic/packet.hpp"
 
 
-typedef struct packetInfo
+struct packetInfo
 {
     normalpkt_p pkt;
     pkt_size_t size;
@@ -14,20 +14,31 @@ typedef struct packetInfo
 
     packetInfo(normalpkt_p pkt, pkt_size_t size, time_t sendDelay, time_t serializeDelay); // constructor
 
-} packetInfo;
+};
 
-/* trafficGenerator struct */
-typedef struct trafficGenerator
+
+struct TrafficGenerator
 {
     link_speed_gbps_t torLinkSpeed;
     load_t load;
     host_id_t parentHostId;
 
-    trafficGenerator() = default;
-    trafficGenerator(link_speed_gbps_t linkSpeed, load_t load, switch_id_t hostId);
+    TrafficGenerator(link_speed_gbps_t linkSpeed, load_t load, host_id_t hostId);
+    virtual packetInfo getNextPacket() = 0;
+};
+
+
+/* SimpleTrafficGenerator struct */
+struct SimpleTrafficGenerator : TrafficGenerator
+{
+    // using the constructor of the base class
+    using TrafficGenerator::TrafficGenerator; 
+    
+    /* Overriding method of the abstract class */
     packetInfo getNextPacket();
 
-} trafficGenerator;
+};
+
 
 
 #endif

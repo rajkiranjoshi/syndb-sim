@@ -17,10 +17,9 @@ typedef struct Host
     normalpkt_p nextPkt;
     sim_time_t nextPktTime;
 
-    trafficGenerator trafficGen;
+    std::shared_ptr<TrafficGenerator> trafficGen;
     bool trafficGenDisabled;
 
-    Host(); // default constructor
     Host(host_id_t id, bool disableTrafficGen = false);
 
     void generateNextPkt();
