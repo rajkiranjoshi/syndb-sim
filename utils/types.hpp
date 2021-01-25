@@ -41,6 +41,7 @@ typedef union {
 enum class syndb_status_t {success, failure};
 
 enum class TopologyType {Simple, FatTree}; 
+enum class TrafficPatternType {SimpleTopo, FtAlltoAll, FtUniform};
 enum class TrafficGenType {Simple, Distribution};
 
 #endif

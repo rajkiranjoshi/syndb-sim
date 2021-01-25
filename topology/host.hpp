@@ -6,6 +6,7 @@
 #include "topology/link.hpp"
 #include "topology/switch.hpp"
 #include "traffic/trafficGenerator.hpp"
+#include "traffic/trafficPattern.hpp"
 
 /* Host struct */
 typedef struct Host
@@ -18,6 +19,7 @@ typedef struct Host
     sim_time_t nextPktTime;
 
     std::shared_ptr<TrafficGenerator> trafficGen;
+    std::shared_ptr<TrafficPattern> trafficPattern;
     bool trafficGenDisabled;
 
     Host(host_id_t id, bool disableTrafficGen = false);

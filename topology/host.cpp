@@ -17,6 +17,16 @@ Host::Host(host_id_t id, bool disableTrafficGen){
     if(syndbConfig.trafficGenType == TrafficGenType::Simple){
         this->trafficGen = std::shared_ptr<TrafficGenerator>(new SimpleTrafficGenerator(syndbConfig.torLinkSpeedGbps, syndbConfig.hostTrafficGenLoadPercent, id));
     }
+    else if (syndbConfig.trafficGenType == TrafficGenType::Distribution)
+    {
+        /* TODO: add code here */
+    }
+
+    if(syndbConfig.trafficPatternType == TrafficPatternType::SimpleTopo){
+        this->trafficPattern = std::shared_ptr<TrafficPattern>(new SimpleTopoTrafficPattern()); 
+    }
+    
+
 }
 
 void Host::generateNextPkt(){
@@ -32,9 +42,10 @@ void Host::generateNextPkt(){
         return;
     }
 #endif
-    
+    // Get the pktsize + delay from the trafficGen
     packetInfo pktInfo = this->trafficGen->getNextPacket();
-
+    // Get the dstHost from the TrafficPattern
+    pktInfo.pkt->dstHost = this->trafficPattern->applyTrafficPattern(this->id);
     this->nextPkt = pktInfo.pkt;
     
     sim_time_t pktGenSendTime = this->nextPktTime + pktInfo.sendDelay;

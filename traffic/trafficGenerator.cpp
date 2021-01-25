@@ -30,9 +30,7 @@ packetInfo SimpleTrafficGenerator::getNextPacket(){
     normalpkt_p pkt = normalpkt_p(new NormalPkt(pktId, size));
     
     pkt->srcHost = this->parentHostId;
-
-    // Hard-coded logic for destination host. Mainly for SimpleTopology
-    pkt->dstHost = (this->parentHostId + 1) % 2; // 1 for 0 and 0 for 1
+       
 
     return packetInfo(pkt, size, sendDelay, serializeDelay);
 }
