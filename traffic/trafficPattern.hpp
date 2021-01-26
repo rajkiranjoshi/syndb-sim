@@ -21,11 +21,19 @@ struct SimpleTopoTrafficPattern : TrafficPattern
 struct AlltoAllTrafficPattern : TrafficPattern
 {
     host_id_t nextDst;
-    bool finished;
     
     AlltoAllTrafficPattern(host_id_t hostId);
     switch_id_t applyTrafficPattern();
 };
+
+struct FtUniformTrafficPattern : TrafficPattern
+{
+    host_id_t fixedDstHost;
+
+    FtUniformTrafficPattern(host_id_t hostId); 
+    switch_id_t applyTrafficPattern();
+};
+
 
 
 #endif

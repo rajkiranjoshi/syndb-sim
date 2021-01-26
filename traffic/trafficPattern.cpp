@@ -10,7 +10,6 @@ switch_id_t SimpleTopoTrafficPattern::applyTrafficPattern(){
 
 AlltoAllTrafficPattern::AlltoAllTrafficPattern(host_id_t hostId): TrafficPattern::TrafficPattern(hostId){
     this->nextDst = (hostId + 1) % syndbConfig.numHosts;
-    this->finished = false;
 }
 
 switch_id_t AlltoAllTrafficPattern::applyTrafficPattern(){
@@ -25,4 +24,21 @@ switch_id_t AlltoAllTrafficPattern::applyTrafficPattern(){
        - when dstHost becomes same as parentHostId, it's a loopback pkt
        - after a loopback pkt is detected in Host::sendpkt(), no more calls to generatePkt() and so no more calls to applyTrafficPattern()
     */
+}
+
+
+FtUniformTrafficPattern::FtUniformTrafficPattern(host_id_t hostId):TrafficPattern::TrafficPattern(hostId){
+    host_id_t halfPoint = syndbConfig.numHosts / 2;
+
+    if(hostId < halfPoint){ // this host is in the left half
+        this->fixedDstHost = hostId + halfPoint;
+    }
+    else // this host is in the right half
+    {
+        this->fixedDstHost = hostId - halfPoint;
+    }
+}
+
+switch_id_t FtUniformTrafficPattern::applyTrafficPattern(){
+    return this->fixedDstHost;
 }

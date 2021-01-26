@@ -23,7 +23,8 @@ typedef struct Config
     const TrafficGenType trafficGenType = TrafficGenType::Simple;
 
     // const TrafficPatternType trafficPatternType = TrafficPatternType::SimpleTopo;
-    const TrafficPatternType trafficPatternType = TrafficPatternType::AlltoAll;
+    // const TrafficPatternType trafficPatternType = TrafficPatternType::AlltoAll;
+    const TrafficPatternType trafficPatternType = TrafficPatternType::FtUniform;
 
     const link_speed_gbps_t torLinkSpeedGbps = 100;
     const link_speed_gbps_t networkLinkSpeedGbps = 100;
