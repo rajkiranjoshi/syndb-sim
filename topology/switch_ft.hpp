@@ -34,6 +34,7 @@ struct SwitchFtTor : SwitchFtTorAggr
 
 struct SwitchFtAggr : SwitchFtTorAggr
 {
+    std::vector<switch_id_t> coreSwitchesList;
     // resuse constructor of the base class
     using SwitchFtTorAggr::SwitchFtTorAggr;
     
