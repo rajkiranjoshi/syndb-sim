@@ -18,6 +18,18 @@ switch_p Topology::getSwitchById(switch_id_t id){
     }
 }
 
+host_p Topology::getHostById(host_id_t hostId){
+    auto it = this->hostIDMap.find(hostId);
+    if(it != this->hostIDMap.end()){ // found the switch_p
+        return it->second;
+    }
+    else
+    {
+        std::string msg = fmt::format("No host_p found for host_id {}. This should NEVER happen!", hostId);
+        throw std::logic_error(msg); 
+    }
+}
+
 switch_id_t Topology::getTorId(host_id_t hostId){
 
     auto it = hostTorMap.find(hostId);
@@ -68,13 +80,14 @@ void SimpleTopology::buildTopo(){
 
     host_id_t hostId;
     switch_id_t switchId;
-    host_p h0, h1, h2;
+    host_p h0, h1, h2, h3;
     switch_p s0, s1, s2;
 
     // Create all hosts
     h0 = this->createNewHost();
     h1 = this->createNewHost();
-    // h2 = createNewHost();
+    h2 = this->createNewHost();
+    h3 = this->createNewHost();
     
     // Create all switches
     s0 = this->createNewSwitch(SwitchType::Simple); 
@@ -82,8 +95,9 @@ void SimpleTopology::buildTopo(){
     s2 = this->createNewSwitch(SwitchType::Simple); 
 
     this->addHostToTor(h0, s0);
-    // this->addHostToTor(h2, s0);
+    this->addHostToTor(h2, s0);
     this->addHostToTor(h1, s1);
+    this->addHostToTor(h3, s1);
 
     connectSwitchToSwitch(s0, s2);
     connectSwitchToSwitch(s1, s2);

@@ -30,6 +30,7 @@ struct Topology
 
     switch_id_t getTorId(host_id_t hostId);
     switch_p getSwitchById(switch_id_t id);
+    host_p getHostById(host_id_t hostId);
 
     inline host_id_t getNextHostId() {return this->nextHostId++;}
     inline link_id_t getNextLinkId() {return this->nextLinkId++;}

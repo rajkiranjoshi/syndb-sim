@@ -116,7 +116,7 @@ void Simulation::processTriggerPktEvents(){
 
     // Now delete the enlisted TriggerPktEvents
 
-    debug_print(fmt::format("Deleting {} TriggerPktEvents...", toDelete.size()));
+    // debug_print(fmt::format("Deleting {} TriggerPktEvents...", toDelete.size()));
     auto it2 = toDelete.begin();
 
     while (it2 != toDelete.end()){
@@ -197,7 +197,7 @@ void Simulation::processNormalPktEvents(){
 
     // Now delete the enlisted NormalPktEvents
 
-    debug_print(fmt::format("Deleting {} NormalPktEvents...", toDelete.size()));
+    // debug_print(fmt::format("Deleting {} NormalPktEvents...", toDelete.size()));
     auto it2 = toDelete.begin();
 
     while (it2 != toDelete.end()){
