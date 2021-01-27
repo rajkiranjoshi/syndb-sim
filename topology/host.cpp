@@ -4,21 +4,52 @@
 #include "simulation/config.hpp"
 #include "simulation/simulation.hpp"
 #include "utils/utils.hpp"
+#include "utils/logger.hpp"
 
-Host::Host(){
-    
+Host::Host(host_id_t id, bool disableTrafficGen){
     this->torLink = NULL;
     this->torSwitch = NULL;
-
     this->nextPkt = NULL;
     this->nextPktTime = 0;
 
-}
-
-Host::Host(host_id_t id, bool disableTrafficGen):Host::Host(){
     this->id = id;
     this->trafficGenDisabled = disableTrafficGen;
-    this->trafficGen = trafficGenerator(syndbConfig.torLinkSpeedGbps, syndbConfig.hostTrafficGenLoadPercent, id);
+    
+    if(syndbConfig.trafficGenType == TrafficGenType::Simple){
+        this->trafficGen = std::shared_ptr<TrafficGenerator>(new SimpleTrafficGenerator(syndbConfig.torLinkSpeedGbps, syndbConfig.hostTrafficGenLoadPercent, id));
+    }
+    else if (syndbConfig.trafficGenType == TrafficGenType::Distribution)
+    {
+        /* TODO: add code here */
+    }
+
+    switch(syndbConfig.trafficGenType){
+        case TrafficGenType::Simple:
+            this->trafficGen = std::shared_ptr<TrafficGenerator>(new SimpleTrafficGenerator(syndbConfig.torLinkSpeedGbps, syndbConfig.hostTrafficGenLoadPercent, id));
+            break;
+        /* case TrafficGenType::Distribution:
+            break; */
+        default:
+            std::string msg = fmt::format("Host constructor failed. No way to initialize the traffic generator: {}", syndbConfig.trafficGenType);
+            throw std::logic_error(msg);
+            break;
+    }
+
+    switch(syndbConfig.trafficPatternType){
+        case TrafficPatternType::SimpleTopo:
+            this->trafficPattern = std::shared_ptr<TrafficPattern>(new SimpleTopoTrafficPattern(this->id));
+            break;
+        case TrafficPatternType::AlltoAll:
+            this->trafficPattern = std::shared_ptr<TrafficPattern>(new AlltoAllTrafficPattern(this->id));
+            break;
+        case TrafficPatternType::FtUniform:
+            this->trafficPattern = std::shared_ptr<TrafficPattern>(new FtUniformTrafficPattern(this->id));
+            break;
+        default:
+            std::string msg = fmt::format("Host constructor failed. No way to initialize the specified traffic pattern: {}", syndbConfig.trafficPatternType);
+            throw std::logic_error(msg);
+            break;
+    }
 }
 
 void Host::generateNextPkt(){
@@ -34,9 +65,10 @@ void Host::generateNextPkt(){
         return;
     }
 #endif
-    
-    packetInfo pktInfo = this->trafficGen.getNextPacket();
-
+    // Get the pktsize + delay from the trafficGen
+    packetInfo pktInfo = this->trafficGen->getNextPacket();
+    // Get the dstHost from the TrafficPattern
+    pktInfo.pkt->dstHost = this->trafficPattern->applyTrafficPattern();
     this->nextPkt = pktInfo.pkt;
     
     sim_time_t pktGenSendTime = this->nextPktTime + pktInfo.sendDelay;
@@ -44,6 +76,9 @@ void Host::generateNextPkt(){
     // this->nextPktTime is the last pkt serialize end time
     this->nextPktTime = nextPktSerializeStart + pktInfo.serializeDelay;
     this->torLink->next_idle_time_to_tor = this->nextPktTime;
+
+    // Add appropriate INT data to the packet
+    this->nextPkt->startTime = nextPktSerializeStart;
 
     // For devtest testNormalPktLatencies()
     #ifdef DEBUG
@@ -63,6 +98,12 @@ void Host::sendPkt(){
 
     if(this->trafficGenDisabled)
         return;
+    else if (this->nextPkt->dstHost == this->id){ // loopback pkt
+        return;
+    }
+    
+    // For quick testing of AlltoAll traffic pattern
+    // ndebug_print("sendPkt(): {} --> {}", this->id, this->nextPkt->dstHost);
 
     // Step 1: Pass the pkt to ToR for its own processing
     this->torSwitch->receiveNormalPkt(this->nextPkt, this->nextPktTime); // can parallelize switch's processing?

@@ -13,7 +13,7 @@ int main(){
     // Init Step 1: Build the topology
     syndbSim.buildTopo();
     debug_print("Done building topo");
-
+    
     debug_print("Time increment is {}", syndbSim.timeIncrement);
 
     // Init Step 2: Initialize the hosts
@@ -33,23 +33,25 @@ int main(){
         
         // Step 2: Process all triggerPktEvents
         #ifdef DEBUG
-        addTriggerPkts();
+        // addTriggerPkts();
         #endif
         syndbSim.processTriggerPktEvents();
 
         // Step 3: Process all normalPktEvents
         syndbSim.processNormalPktEvents();
 
-    }
+    } // end of main simulation loop
+
+    ndebug_print_yellow("Flushing remaining normal pkts");
+    syndbSim.flushRemainingNormalPkts();
     
 #ifdef DEBUG
     // checkRemainingQueuingAtLinks();
-    testNormalPktLatencies(0, 1);
-    showTriggerPktLatencies();
+    // testNormalPktLatencies(0, 1);
+    // showTriggerPktLatencies();
     // testRingBufferOps();
-
     // showSimpleTopoRingBuffers(); 
-
+    // showFatTreeTopoRoutingTables();
 #endif
 
     ndebug_print_yellow("End of main\n");

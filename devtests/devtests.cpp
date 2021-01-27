@@ -2,12 +2,59 @@
 #include "utils/logger.hpp"
 #include "devtests/devtests.hpp"
 
+#ifdef DEBUG
+
+void showFatTreeTopoRoutingTables(){
+    
+    std::shared_ptr<FattreeTopology> fattreetopo = std::dynamic_pointer_cast<FattreeTopology>(syndbSim.topo); 
+
+    debug_print_yellow("\n-------------  Routing Tables [Core Switches]  -------------");
+    auto it = fattreetopo->coreSwitches.begin();
+    for(it; it != fattreetopo->coreSwitches.end(); it++){
+        std::shared_ptr<SwitchFtCore> coreSwitch = std::dynamic_pointer_cast<SwitchFtCore>(*it);
+        
+        debug_print("Core Switch {}:", coreSwitch->id);
+        auto entry_it = coreSwitch->routingTable.begin();
+        for(entry_it; entry_it != coreSwitch->routingTable.end(); entry_it++){
+            debug_print("{} --> {}", entry_it->first, entry_it->second);
+        }
+    }
+
+    debug_print_yellow("\n-------------  Routing Tables [Aggr Switches]  -------------");
+    for(int i = 0; i < fattreetopo->k; i++){ // iterate over all pods
+        for(int j = 0; j < (fattreetopo->k/2); j++){
+            std::shared_ptr<SwitchFtAggr> aggrSwitch = std::dynamic_pointer_cast<SwitchFtAggr>(fattreetopo->pods[i]->aggrSwitches[j]);
+
+            debug_print("Aggr Switch {}:", aggrSwitch->id);
+            auto entry_it = aggrSwitch->routingTable.begin();
+            for(entry_it; entry_it != aggrSwitch->routingTable.end(); entry_it++){
+                debug_print("{} --> {}", entry_it->first, entry_it->second);
+            }
+        }
+    }
+
+    debug_print_yellow("\n-------------  Routing Tables [ToR Switches]  -------------");
+    for(int i = 0; i < fattreetopo->k; i++){ // iterate over all pods
+        for(int j = 0; j < (fattreetopo->k/2); j++){
+            std::shared_ptr<SwitchFtTor> torSwitch = std::dynamic_pointer_cast<SwitchFtTor>(fattreetopo->pods[i]->torSwitches[j]);
+
+            debug_print("ToR Switch {}:", torSwitch->id);
+            auto entry_it = torSwitch->routingTable.begin();
+            for(entry_it; entry_it != torSwitch->routingTable.end(); entry_it++){
+                debug_print("{} --> {}", entry_it->first, entry_it->second);
+            }
+        }
+    }
+    
+}
+
+
 void showSimpleTopoRingBuffers(){
     switch_p s0, s1, s2;
     
-    s0 = syndbSim.topo.getSwitchById(0);
-    s1 = syndbSim.topo.getSwitchById(1);
-    s2 = syndbSim.topo.getSwitchById(2);
+    s0 = syndbSim.topo->getSwitchById(0);
+    s1 = syndbSim.topo->getSwitchById(1);
+    s2 = syndbSim.topo->getSwitchById(2);
 
     debug_print_yellow("\nRing buffer for s0:");
     s0->ringBuffer.printRingBuffer();
@@ -29,7 +76,7 @@ void showSimpleTopoRingBuffers(){
 }
 
 void testRingBufferOps(){
-    switch_p s0 = syndbSim.topo.getSwitchById(0);
+    switch_p s0 = syndbSim.topo->getSwitchById(0);
 
     for(int i=1; i <= 8; i++){
         s0->ringBuffer.insertPrecord(i, i); 
@@ -47,7 +94,7 @@ void addTriggerPkts(){
     const sim_time_t increment = 3000;
     static sim_time_t nextSendTime = 0;
 
-    switch_p srcSwitch = syndbSim.topo.getSwitchById(0); 
+    switch_p srcSwitch = syndbSim.topo->getSwitchById(0); 
 
     if(syndbSim.currTime >= nextSendTime){
 
@@ -89,15 +136,15 @@ void showTriggerPktLatencies(){
 
 void checkRemainingQueuingAtLinks(){
     // Checking queueing on all the links
-    auto it1 = syndbSim.topo.torLinkVector.begin();
+    auto it1 = syndbSim.topo->torLinkVector.begin();
     debug_print_yellow("nextPktSendTime on ToR links at time {}ns", syndbSim.currTime);
-    for (it1; it1 != syndbSim.topo.torLinkVector.end(); it1++){
+    for (it1; it1 != syndbSim.topo->torLinkVector.end(); it1++){
         debug_print("Link ID {}: towards host: {} | towards tor: {}", (*it1)->id, (*it1)->next_idle_time_to_host, (*it1)->next_idle_time_to_tor);
     }
 
-    auto it2 = syndbSim.topo.networkLinkVector.begin();
+    auto it2 = syndbSim.topo->networkLinkVector.begin();
     debug_print_yellow("nextPktSendTime on Network links at time {}ns", syndbSim.currTime);
-    for (it2; it2 != syndbSim.topo.networkLinkVector.end(); it2++){
+    for (it2; it2 != syndbSim.topo->networkLinkVector.end(); it2++){
         auto map = (*it2)->next_idle_time;
 
         auto it3 = map.begin();
@@ -236,3 +283,4 @@ void testSharedPtrDestruction(){
     }
 }
 
+#endif // end of DEBUG

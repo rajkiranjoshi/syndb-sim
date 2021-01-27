@@ -13,63 +13,37 @@ Switch::Switch(switch_id_t id){
 }
 
 
-syndb_status_t Switch::routeScheduleNormalPkt(normalpkt_p pkt, const sim_time_t pktArrivalTime, routeScheduleInfo &rsinfo){
-    // Two steps for updating the rsinfo struct
-    // Step 1: Do the routing: determines nextSwitch, nextLink, nextLink's queue (correct next_idle_time)
-    // Step 2: (common) Do the scheduling: determines the pktNextForwardTime for the correct nextLink's queue
+syndb_status_t Switch::intraRackRouteNormalPkt(normalpkt_p pkt, const sim_time_t pktArrivalTime, routeScheduleInfo &rsinfo){
 
-    switch_id_t dstTorId;
+    // intra-rack routing
+    // Figure-out the link + queue and call schedulePkt() --> updates the q_next_idle_time
+    // nextSwitch is NULL (since host)
+    // Update the rsinfo struct
 
-    dstTorId = syndbSim.topo.getTorId(pkt->dstHost);
-    
-    if(dstTorId == this->id){ // intra-rack routing
-        // Figure-out the link + queue and call schedulePkt() --> updates the q_next_idle_time
-        // nextSwitch is NULL (since host)
-        // Update the rsinfo struct
+    host_tor_link_p hostTorLink;
 
-        host_tor_link_p hostTorLink;
-
-        auto search = this->neighborHostTable.find(pkt->dstHost);
-        if(search != this->neighborHostTable.end()){
-            
-            hostTorLink = search->second;
-            this->schedulePkt(pkt->size, pktArrivalTime, hostTorLink->speed, hostTorLink->next_idle_time_to_host);
-
-            rsinfo.nextSwitch = NULL; // next hop is a host
-            rsinfo.pktNextForwardTime = hostTorLink->next_idle_time_to_host;
-
-            return syndb_status_t::success;
-        }
-        else
-        { // this should never happen
-            std::string msg = fmt::format("ToR switch {} doesn't have entry for neighbor host {} in neighborHostTable", this->id, pkt->dstHost);
-            throw std::logic_error(msg);
-        }
-    } // end of intra-rack routing case
-    else // inter-rack routing
-    {
-        // call the switch-to-switch routing+scheduling since we know the dstTorId
-        return this->routeScheduleToDstSwitch(pkt->size, pktArrivalTime, dstTorId, rsinfo, PacketType::NormalPkt);
+    auto search = this->neighborHostTable.find(pkt->dstHost);
+    if(search != this->neighborHostTable.end()){
         
-    } // end of inter-rack routing
+        hostTorLink = search->second;
+        this->schedulePkt(pkt->size, pktArrivalTime, hostTorLink->speed, hostTorLink->next_idle_time_to_host);
+
+        rsinfo.nextSwitch = NULL; // next hop is a host
+        rsinfo.pktNextForwardTime = hostTorLink->next_idle_time_to_host;
+
+        return syndb_status_t::success;
+    }
+    else
+    { // this should never happen
+        std::string msg = fmt::format("ToR switch {} doesn't have entry for neighbor host {} in neighborHostTable", this->id, pkt->dstHost);
+        throw std::logic_error(msg);
+    }
 
 }
 
-syndb_status_t Switch::routeScheduleTriggerPkt(triggerpkt_p pkt, const sim_time_t pktArrivalTime, routeScheduleInfo &rsinfo){
-    switch_p nextHopSwitch;
-    network_link_p nextLink;
-
-    return this->routeScheduleToDstSwitch(pkt->size, pktArrivalTime, pkt->dstSwitchId, rsinfo, PacketType::TriggerPkt);
-
-}
-
-
-syndb_status_t Switch::routeScheduleToDstSwitch(const pkt_size_t pktsize, const sim_time_t pktArrivalTime, const switch_id_t dstSwitchId, routeScheduleInfo &rsinfo, PacketType ptype){
+syndb_status_t Switch::scheduleToNextHopSwitch(const pkt_size_t pktsize, const sim_time_t pktArrivalTime, switch_p nextHopSwitch, routeScheduleInfo &rsinfo, PacketType ptype){
     
-    switch_p nextHopSwitch;
     network_link_p nextLink;
-    
-    nextHopSwitch = this->getNextHop(dstSwitchId);
 
     auto search = this->neighborSwitchTable.find(nextHopSwitch->id);
     if(search != this->neighborSwitchTable.end()){
@@ -94,44 +68,12 @@ syndb_status_t Switch::routeScheduleToDstSwitch(const pkt_size_t pktsize, const 
     }
     else
     { // this should never happen
-        std::string msg = fmt::format("Switch {} has no link to next hop switch {} for dst switch {}", this->id, nextHopSwitch->id, dstSwitchId);
+        std::string msg = fmt::format("Switch {} has no link to next hop switch {}", this->id, nextHopSwitch->id);
         throw std::logic_error(msg);
     }
         
 }
 
-
-switch_p Switch::getNextHop(switch_id_t dstSwitchId){
-    
-    // First, find if the dstSwitchId is in the neighbor switch list
-
-    auto it = this->neighborSwitchTable.find(dstSwitchId);
-
-    if(it != this->neighborSwitchTable.end()){ // dst switch is a neighbor
-        // So it itself is the nextHop
-        // simply return the shared_pointer to the dstSwitchId 
-        return syndbSim.topo.getSwitchById(dstSwitchId); 
-    }
-
-    // Not a neighbor. Now refer to the routing table.
-    
-    switch_id_t nextHopSwitchId;
-    auto it1 = this->routingTable.find(dstSwitchId);
-
-    if (it1 != routingTable.end()){ // Next hop found
-
-        nextHopSwitchId = it1->second;
-        
-        // Simply return the pointer to the nextHopSwitch
-        return syndbSim.topo.getSwitchById(nextHopSwitchId);
-
-    }
-    else // Err No known route to dst ToR
-    {   // ideally this should never happen
-        std::string msg = fmt::format("Switch {} couldn't find any route to dst switch {}", this->id, dstSwitchId); 
-        throw std::logic_error(msg); 
-    }
-}
 
 void Switch::schedulePkt(const pkt_size_t pktsize, const sim_time_t pktArrivalTime, const link_speed_gbps_t linkSpeed, sim_time_t &qNextIdleTime){
     
@@ -152,7 +94,15 @@ void Switch::schedulePkt(const pkt_size_t pktsize, const sim_time_t pktArrivalTi
 
 
 void Switch::receiveNormalPkt(normalpkt_p pkt, sim_time_t rxTime){
-    this->ringBuffer.insertPrecord(pkt->id, rxTime); 
+    this->ringBuffer.insertPrecord(pkt->id, rxTime);
+
+    // Prepare and insert switch INT into the packet
+    switchINTInfo newInfo;
+    newInfo.swId = this->id;
+    newInfo.rxTime = rxTime;
+
+    pkt->switchINTInfoList.push_back(newInfo); 
+
 }
 
 
@@ -266,14 +216,83 @@ void Switch::createSendTriggerPkt(switch_id_t dstSwitchId, trigger_id_t triggerI
 
     newEvent->pkt = newTriggerPkt;
     newEvent->pktForwardTime = rsinfo.pktNextForwardTime;
-    newEvent->currSwitch = syndbSim.topo.getSwitchById(this->id); 
+    newEvent->currSwitch = syndbSim.topo->getSwitchById(this->id); 
     newEvent->nextSwitch = rsinfo.nextSwitch;
 
     syndbSim.TriggerPktEventList.push_back(newEvent);
+}
+
+syndb_status_t Switch::routeScheduleTriggerPkt(triggerpkt_p pkt, const sim_time_t pktArrivalTime, routeScheduleInfo &rsinfo){
+    switch_p nextHopSwitch;
+
+    nextHopSwitch = syndbSim.topo->getSwitchById(pkt->dstSwitchId); // since triggerPkts sent to neighbors only
+
+    return this->scheduleToNextHopSwitch(pkt->size, pktArrivalTime, nextHopSwitch, rsinfo, PacketType::TriggerPkt);
 }
 
 
 void Switch::snapshotRingBuffer(){
 
 }
+
+/****************************************/
+/*        SimpleSwitch Methods          */
+/****************************************/
+
+syndb_status_t SimpleSwitch::routeScheduleNormalPkt(normalpkt_p pkt, const sim_time_t pktArrivalTime, routeScheduleInfo &rsinfo){
+    // Two steps for updating the rsinfo struct
+    // Step 1: Do the routing: determines nextSwitch, nextLink, nextLink's queue (correct next_idle_time)
+    // Step 2: (common) Do the scheduling: determines the pktNextForwardTime for the correct nextLink's queue
+
+    switch_id_t dstTorId;
+
+    dstTorId = syndbSim.topo->getTorId(pkt->dstHost);
+    
+    if(dstTorId == this->id){ // intra-rack routing
+        return this->intraRackRouteNormalPkt(pkt, pktArrivalTime, rsinfo); 
+    } // end of intra-rack routing case
+    else // inter-rack routing
+    {
+        switch_p nextHopSwitch;
+        nextHopSwitch = this->getNextHop(dstTorId);
+        
+        // call the switch-to-switch scheduling since we know the nextHopSwitch
+        return this->scheduleToNextHopSwitch(pkt->size, pktArrivalTime, nextHopSwitch, rsinfo, PacketType::NormalPkt);
+        
+    } // end of inter-rack routing
+
+}
+
+switch_p SimpleSwitch::getNextHop(switch_id_t dstSwitchId){
+    
+    // First, find if the dstSwitchId is in the neighbor switch list
+
+    auto it = this->neighborSwitchTable.find(dstSwitchId);
+
+    if(it != this->neighborSwitchTable.end()){ // dst switch is a neighbor
+        // So it itself is the nextHop
+        // simply return the shared_pointer to the dstSwitchId 
+        return syndbSim.topo->getSwitchById(dstSwitchId); 
+    }
+
+    // Not a neighbor. Now refer to the routing table.
+    
+    switch_id_t nextHopSwitchId;
+    auto it1 = this->routingTable.find(dstSwitchId);
+
+    if (it1 != routingTable.end()){ // Next hop found
+
+        nextHopSwitchId = it1->second;
+        
+        // Simply return the pointer to the nextHopSwitch
+        return syndbSim.topo->getSwitchById(nextHopSwitchId);
+
+    }
+    else // Err No known route to dst ToR
+    {   // ideally this should never happen
+        std::string msg = fmt::format("Switch {} couldn't find any route to dst switch {}", this->id, dstSwitchId); 
+        throw std::logic_error(msg); 
+    }
+}
+
 

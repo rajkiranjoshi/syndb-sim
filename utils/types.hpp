@@ -27,6 +27,11 @@ typedef uint8_t load_t;
 typedef uint16_t trigger_id_t;
 typedef int32_t ringbuffer_index_t;
 
+/* Fat Tree Related Types */
+typedef uint8_t pod_id_t;
+typedef uint8_t ft_scale_t;
+typedef uint8_t racklocal_host_id_t;
+
 
 typedef union {
     switch_id_t switch_id;
@@ -34,5 +39,9 @@ typedef union {
 } next_hop_id;
 
 enum class syndb_status_t {success, failure};
+
+enum class TopologyType {Simple, FatTree}; 
+enum class TrafficPatternType {SimpleTopo, AlltoAll, FtUniform};
+enum class TrafficGenType {Simple, Distribution};
 
 #endif

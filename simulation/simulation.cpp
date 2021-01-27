@@ -5,6 +5,7 @@
 #include "simulation/simulation.hpp"
 #include "utils/logger.hpp"
 #include "utils/utils.hpp"
+#include "topology/fattree_topology.hpp"
 
 
 Simulation syndbSim;
@@ -15,8 +16,11 @@ Simulation::Simulation(){
     this->timeIncrement = syndbConfig.timeIncrementNs;
     this->totalTime = (sim_time_t)(syndbConfig.totalTimeMSecs * (float)1000000);
 
-    if(syndbConfig.topo == "SimpleToplogy"){
-        this->topo = SimpleTopology();
+    if(syndbConfig.topoType == TopologyType::Simple){
+        this->topo = std::shared_ptr<Topology>(new SimpleTopology());
+    }
+    else if (syndbConfig.topoType == TopologyType::FatTree){
+        this->topo = std::shared_ptr<Topology>(new FattreeTopology(syndbConfig.fatTreeTopoK)); 
     }
 
     this->nextPktId = 0;
@@ -26,9 +30,9 @@ Simulation::Simulation(){
 
 void Simulation::initHosts(){
 
-    auto it = this->topo.hostIDMap.begin();
+    auto it = this->topo->hostIDMap.begin();
 
-    while (it != this->topo.hostIDMap.end() )
+    while (it != this->topo->hostIDMap.end() )
     {
         host_p h = it->second;
         h->generateNextPkt();
@@ -36,18 +40,18 @@ void Simulation::initHosts(){
         it++;
     }
 
-    debug_print(fmt::format("Initialized {} hosts!", this->topo.hostIDMap.size()));
+    debug_print(fmt::format("Initialized {} hosts!", this->topo->hostIDMap.size()));
     
 }
 
 void Simulation::processHosts(){
 
     // debug_print_yellow("Inside process hosts");
-    // debug_print("Num hosts: {}", this->topo.hostIDMap.size());
+    // debug_print("Num hosts: {}", this->topo->hostIDMap.size());
 
-    auto it = this->topo.hostIDMap.begin();
+    auto it = this->topo->hostIDMap.begin();
 
-    while (it != this->topo.hostIDMap.end() )
+    while (it != this->topo->hostIDMap.end() )
     {
         host_p h = it->second;
 
@@ -112,7 +116,7 @@ void Simulation::processTriggerPktEvents(){
 
     // Now delete the enlisted TriggerPktEvents
 
-    debug_print(fmt::format("Deleting {} TriggerPktEvents...", toDelete.size()));
+    // debug_print(fmt::format("Deleting {} TriggerPktEvents...", toDelete.size()));
     auto it2 = toDelete.begin();
 
     while (it2 != toDelete.end()){
@@ -153,6 +157,21 @@ void Simulation::processNormalPktEvents(){
                 auto it = syndbSim.NormalPktLatencyMap.find(event->pkt->id);
                 (it->second).end_time = event->pktForwardTime;
                 #endif
+
+                // Add end time INT data to the packet
+                event->pkt->endTime = event->pktForwardTime;
+
+                // Dump the pkt with INT data to the disk
+                syndbSim.pktDumper.dumpPacket(event->pkt);
+
+                #ifdef DEBUG
+                debug_print_yellow("\nPkt ID {} dump:", event->pkt->id);
+                debug_print("h{} --> h{}: {} ns (Start: {} ns | End: {} ns)", event->pkt->srcHost, event->pkt->dstHost, event->pkt->endTime - event->pkt->startTime, event->pkt->startTime, event->pkt->endTime);
+                auto it1 = event->pkt->switchINTInfoList.begin();
+                for(it1; it1 != event->pkt->switchINTInfoList.end(); it1++){
+                    debug_print("Rx on s{} at {} ns", it1->swId, it1->rxTime);
+                }
+                #endif
             }
             // Handling the case that the next hop is a switch (intermediate or dstTor)
             else{
@@ -178,7 +197,7 @@ void Simulation::processNormalPktEvents(){
 
     // Now delete the enlisted NormalPktEvents
 
-    debug_print(fmt::format("Deleting {} NormalPktEvents...", toDelete.size()));
+    // debug_print(fmt::format("Deleting {} NormalPktEvents...", toDelete.size()));
     auto it2 = toDelete.begin();
 
     while (it2 != toDelete.end()){
@@ -190,6 +209,27 @@ void Simulation::processNormalPktEvents(){
 }
 
 
+void Simulation::flushRemainingNormalPkts(){
+
+    auto it = this->NormalPktEventList.begin();
+
+    for(it; it != this->NormalPktEventList.end(); it++){
+        pktevent_p<normalpkt_p> event = *it;
+
+        // Dump the pkt with INT data to the disk
+        syndbSim.pktDumper.dumpPacket(event->pkt);
+
+        #ifdef DEBUG
+        /* debug_print_yellow("\nPkt ID {} dump:", event->pkt->id);
+        debug_print("h{} --> h{}: N/A ns (Start: {} ns | End: {} ns)", event->pkt->srcHost, event->pkt->dstHost, event->pkt->startTime, event->pkt->endTime);
+        auto it1 = event->pkt->switchINTInfoList.begin();
+        for(it1; it1 != event->pkt->switchINTInfoList.end(); it1++){
+            debug_print("Rx on s{} at {} ns", it1->swId, it1->rxTime);
+        } */
+        #endif
+    }
+
+}
 
 
 void Simulation::cleanUp(){

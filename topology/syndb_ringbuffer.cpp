@@ -1,4 +1,4 @@
-#include "topology/switch_syndb.hpp"
+#include "topology/syndb_ringbuffer.hpp"
 #include "utils/logger.hpp"
 
 RingBuffer::RingBuffer(){

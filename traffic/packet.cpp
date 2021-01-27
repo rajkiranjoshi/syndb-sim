@@ -16,6 +16,7 @@ Pkt::~Pkt(){
 
 NormalPkt::NormalPkt(pkt_id_t id, pkt_size_t size):Pkt::Pkt(size){
     this->id = id;
+    this->endTime = 0;
 }
 
 TriggerPkt::TriggerPkt(trigger_id_t triggerId, pkt_size_t size):Pkt::Pkt(size){
