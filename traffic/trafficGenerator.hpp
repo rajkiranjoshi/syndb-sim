@@ -3,7 +3,7 @@
 
 #include "utils/types.hpp"
 #include "traffic/packet.hpp"
-
+#include "randomGenCDF.hpp"
 
 struct packetInfo
 {
@@ -38,6 +38,17 @@ struct SimpleTrafficGenerator : TrafficGenerator
     packetInfo getNextPacket();
 
 };
+
+/* DC Trafficgenerator struct */
+struct DcTrafficGenerator : TrafficGenerator
+{
+    RandomFromCDF myRandomFromCDF;
+    
+    using TrafficGenerator::TrafficGenerator;
+    
+    packetInfo getNextPacket();
+};
+
 
 
 
