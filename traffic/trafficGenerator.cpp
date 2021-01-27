@@ -65,7 +65,7 @@ packetInfo SimpleTrafficGenerator::getNextPacket(){
     return packetInfo(pkt, size, sendDelay, serializeDelay);
 }
 
-int trafficGenerator::loadTrafficDistribution (string packetsizeDistFile, string flowarrivalDistFile) {
+int DcTrafficGenerator::loadTrafficDistribution (string packetsizeDistFile, string flowarrivalDistFile) {
     pkt_size_t base_size = 80; // in bytes
     pkt_size_t size_on_wire = base_size + 24;
     int pps = ((size_on_wire * 8) / this->torLinkSpeed);
@@ -73,4 +73,5 @@ int trafficGenerator::loadTrafficDistribution (string packetsizeDistFile, string
 
 
     myRandomFromCDF.loadCDFs("traffic-dist/fb_webserver_packetsizedist_cdf.csv", "traffic-dist/fb_webserver_flowinterarrival_ns_cdf.csv", min_delay_ns);
+    return 0;
 }

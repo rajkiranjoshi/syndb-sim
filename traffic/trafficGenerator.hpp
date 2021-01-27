@@ -47,6 +47,7 @@ struct DcTrafficGenerator : TrafficGenerator
     using TrafficGenerator::TrafficGenerator;
     
     packetInfo getNextPacket();
+    int loadTrafficDistribution (string packetsizeDistFile, string flowarrivalDistFile);
 };
 
 
