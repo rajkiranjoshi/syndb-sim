@@ -20,12 +20,23 @@ Simulation::Simulation(){
         this->topo = std::shared_ptr<Topology>(new SimpleTopology());
     }
     else if (syndbConfig.topoType == TopologyType::FatTree){
-        this->topo = std::shared_ptr<Topology>(new FattreeTopology(syndbConfig.fatTreeTopoK)); 
+        this->topo = std::shared_ptr<Topology>(new FattreeTopology(syndbConfig.fatTreeTopoK));
     }
 
     this->nextPktId = 0;
     this->nextTriggerPktId = 0;
 
+}
+
+void Simulation::initTriggerGen(){
+    switch(syndbConfig.topoType){
+        case TopologyType::Simple:
+            this->triggerGen = std::shared_ptr<TriggerGenerator>(new TriggerGeneratorSimpleTopo());
+            break;
+        case TopologyType::FatTree:
+            this->triggerGen = std::shared_ptr<TriggerGenerator>(new TriggerGeneratorFatTreeTopo());
+            break;
+    }
 }
 
 void Simulation::initHosts(){

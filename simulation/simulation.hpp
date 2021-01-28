@@ -6,6 +6,7 @@
 #include "topology/topology.hpp"
 #include "simulation/event.hpp"
 #include "utils/pktdumper.hpp"
+#include "traffic/triggerGenerator.hpp"
 
 // For devtest testNormalPktLatencies()
 #ifdef DEBUG
@@ -52,6 +53,8 @@ typedef struct Simulation
     std::map<pkt_id_t, pktTime<host_id_t>> NormalPktLatencyMap;
     #endif
 
+    std::shared_ptr<TriggerGenerator> triggerGen;
+
     PktDumper pktDumper;
 
     Simulation(); // default constructor
@@ -60,6 +63,7 @@ typedef struct Simulation
     inline pkt_id_t getNextPktId() { return this->nextPktId++; }; 
     inline pkt_id_t getNextTriggerPktId() { return this->nextTriggerPktId++; }; 
     inline void buildTopo(){ this->topo->buildTopo(); };
+    void initTriggerGen();
     void initHosts();
     void processHosts();
     void processTriggerPktEvents();

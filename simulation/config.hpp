@@ -7,17 +7,17 @@
 
 typedef struct Config 
 {
-    const sim_time_t timeIncrementNs = 100;
+    static const sim_time_t timeIncrementNs = 100;
     const float totalTimeMSecs = 0.1;
 
     // IMPORTANT: update numHosts as per the topology
-    // const TopologyType topoType = TopologyType::Simple;
-    const TopologyType topoType = TopologyType::FatTree;
+    const TopologyType topoType = TopologyType::Simple;
+    // const TopologyType topoType = TopologyType::FatTree;
     
     static const ft_scale_t fatTreeTopoK = 4; // Fat Tree scale k
 
-    static const int numHosts = (fatTreeTopoK * fatTreeTopoK * fatTreeTopoK)/4;
-    // static const uint numHosts = 4;
+    // static const int numHosts = (fatTreeTopoK * fatTreeTopoK * fatTreeTopoK)/4;
+    static const uint numHosts = 4;
 
     // const TrafficGenType trafficGenType = TrafficGenType::Distribution;
     const TrafficGenType trafficGenType = TrafficGenType::Continuous;
@@ -25,6 +25,8 @@ typedef struct Config
     // const TrafficPatternType trafficPatternType = TrafficPatternType::SimpleTopo;
     const TrafficPatternType trafficPatternType = TrafficPatternType::AlltoAll;
     // const TrafficPatternType trafficPatternType = TrafficPatternType::FtUniform;
+
+    static const uint numTriggersSimpleTopo = 30;
 
     const link_speed_gbps_t torLinkSpeedGbps = 100;
     const link_speed_gbps_t networkLinkSpeedGbps = 100;

@@ -13,10 +13,14 @@ int main(){
     // Init Step 1: Build the topology
     syndbSim.buildTopo();
     debug_print("Done building topo");
+
+    // Init Step 2: Init the triggerGen schedule
+    syndbSim.initTriggerGen();
+    syndbSim.triggerGen->printTriggerSchedule();
     
     debug_print("Time increment is {}", syndbSim.timeIncrement);
 
-    // Init Step 2: Initialize the hosts
+    // Init Step 3: Initialize the hosts
     syndbSim.initHosts();
     debug_print("Done init hosts topo");
 
@@ -31,10 +35,8 @@ int main(){
         // Step 1: Process all hosts
         syndbSim.processHosts();
         
-        // Step 2: Process all triggerPktEvents
-        #ifdef DEBUG
-        addTriggerPkts();
-        #endif
+        // Step 2: Generate (as per schedule) and process triggerPktEvents
+        syndbSim.triggerGen->generateTrigger();
         syndbSim.processTriggerPktEvents();
 
         // Step 3: Process all normalPktEvents
