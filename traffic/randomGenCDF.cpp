@@ -17,6 +17,7 @@ vector<int> RandomFromCDF::readCDFFile (string fileName) {
         iss>>a;
         distribution.push_back(a);
     }
+    myCDFFile.close();
     return distribution;
 }   
 
@@ -48,15 +49,3 @@ int RandomFromCDF::getNextPacketDelay () {
     return packet_delay;
 }
 
-// int main () {
-//     RandomFromCDF myRandomFromCDF;
-//     myRandomFromCDF.loadCDFs("../traffic-dist/fb_webserver_packetsizedist_cdf.csv", "../traffic-dist/fb_webserver_flowinterarrival_ns_cdf.csv");
-//     for (int i=0;i<10;i++) {
-//         cout<<myRandomFromCDF.getNextPacketSize()<<"\n";
-//     }
-
-//     for (int i=0;i<10;i++) {
-//         cout<<myRandomFromCDF.getNextFlowDelay()<<"\n";
-//     }
-//     return 0;
-// }
