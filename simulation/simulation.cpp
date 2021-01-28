@@ -165,12 +165,12 @@ void Simulation::processNormalPktEvents(){
                 syndbSim.pktDumper.dumpPacket(event->pkt);
 
                 #ifdef DEBUG
-                debug_print_yellow("\nPkt ID {} dump:", event->pkt->id);
+                /* debug_print_yellow("\nPkt ID {} dump:", event->pkt->id);
                 debug_print("h{} --> h{}: {} ns (Start: {} ns | End: {} ns)", event->pkt->srcHost, event->pkt->dstHost, event->pkt->endTime - event->pkt->startTime, event->pkt->startTime, event->pkt->endTime);
                 auto it1 = event->pkt->switchINTInfoList.begin();
                 for(it1; it1 != event->pkt->switchINTInfoList.end(); it1++){
                     debug_print("Rx on s{} at {} ns", it1->swId, it1->rxTime);
-                }
+                } */
                 #endif
             }
             // Handling the case that the next hop is a switch (intermediate or dstTor)
@@ -229,6 +229,33 @@ void Simulation::flushRemainingNormalPkts(){
         #endif
     }
 
+}
+
+void Simulation::dumpTriggerInfoMap(){
+    pktTime<switch_id_t> latencyInfo;
+    sim_time_t triggerOriginTime, rxTime; 
+    trigger_id_t triggerId;
+    switch_id_t originSwitch, rxSwitch;
+
+    auto it1 = syndbSim.TriggerInfoMap.begin();
+
+    ndebug_print_yellow("\nTrigger pkt latencies between switches");
+    for(it1; it1 != syndbSim.TriggerInfoMap.end(); it1++){
+        triggerId = it1->first;
+        triggerOriginTime = it1->second.triggerOrigTime;
+        originSwitch = it1->second.originSwitch;
+
+        ndebug_print_yellow("Trigger ID {} (origin switch: {})", triggerId, originSwitch);
+        auto it2 = it1->second.rxSwitchTimes.begin();
+
+        for(it2; it2 != it1->second.rxSwitchTimes.end(); it2++){
+            rxSwitch = it2->first;
+            rxTime = it2->second;
+
+            ndebug_print("{} --> {}: {}ns", originSwitch, rxSwitch, rxTime - triggerOriginTime);
+        } // end of iterating over rxSwitchTimes
+
+    } // end of iterating over TriggerPktLatencyMap
 }
 
 

@@ -18,7 +18,7 @@ struct pktTime
     sim_time_t end_time;
 };
 
-struct triggerPktLatencyInfo
+struct triggerInfo
 {
     sim_time_t triggerOrigTime;
     switch_id_t originSwitch;
@@ -44,10 +44,12 @@ typedef struct Simulation
     std::list<pktevent_p<normalpkt_p>> NormalPktEventList;
     std::list<pktevent_p<triggerpkt_p>> TriggerPktEventList;
 
-    // For devtest testNormalPktLatencies()
+    // For tracking and logging triggerInfo
+    std::map<trigger_id_t, triggerInfo> TriggerInfoMap;
+
     #ifdef DEBUG
+    // For devtest testNormalPktLatencies()
     std::map<pkt_id_t, pktTime<host_id_t>> NormalPktLatencyMap;
-    std::map<trigger_id_t, triggerPktLatencyInfo> TriggerPktLatencyMap;
     #endif
 
     PktDumper pktDumper;
@@ -63,6 +65,7 @@ typedef struct Simulation
     void processTriggerPktEvents();
     void processNormalPktEvents();
     void flushRemainingNormalPkts();
+    void dumpTriggerInfoMap();
 
     void cleanUp();
 

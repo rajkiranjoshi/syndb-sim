@@ -33,7 +33,7 @@ int main(){
         
         // Step 2: Process all triggerPktEvents
         #ifdef DEBUG
-        // addTriggerPkts();
+        addTriggerPkts();
         #endif
         syndbSim.processTriggerPktEvents();
 
@@ -44,11 +44,11 @@ int main(){
 
     ndebug_print_yellow("Flushing remaining normal pkts");
     syndbSim.flushRemainingNormalPkts();
+    syndbSim.dumpTriggerInfoMap();
     
 #ifdef DEBUG
-    // checkRemainingQueuingAtLinks();
+    checkRemainingQueuingAtLinks();
     // testNormalPktLatencies(0, 1);
-    // showTriggerPktLatencies();
     // testRingBufferOps();
     // showSimpleTopoRingBuffers(); 
     // showFatTreeTopoRoutingTables();

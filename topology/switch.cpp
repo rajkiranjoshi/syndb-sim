@@ -124,26 +124,16 @@ void Switch::receiveTriggerPkt(triggerpkt_p pkt, sim_time_t rxTime){
         debug_print("Trigger ID seen before. Ignoring now..");
         return; // do nothing
     }
-
-    // For logging latency of triggerPkts
-    #ifdef DEBUG
     
-    auto it1 = syndbSim.TriggerPktLatencyMap.find(pkt->triggerId);
-    if(it1 != syndbSim.TriggerPktLatencyMap.end()){ // already exists
-        it1->second.rxSwitchTimes[this->id] = rxTime;
-    }
-    else
-    {
-        // Create a new info entry
-        triggerPktLatencyInfo info;
-        info.triggerOrigTime = pkt->triggerTime;
-        info.originSwitch = pkt->triggerOriginSwId; 
-        info.rxSwitchTimes[this->id] = rxTime;
+    /* Trigger ID is being seen for the first time */
 
-        // Insert it in the global map
-        syndbSim.TriggerPktLatencyMap[pkt->triggerId] = info;
-    }
-    #endif
+    // Add triggerId to the history
+    this->triggerHistory.insert(pkt->triggerId); 
+
+    // Logging the triggerInfo
+    syndbSim.TriggerInfoMap[pkt->triggerId].rxSwitchTimes[this->id] = rxTime;
+
+
 
 
     // Flush the current RingBuffer
@@ -177,6 +167,12 @@ void Switch::generateTrigger(){
     this->triggerHistory.insert(newTriggerId); // this switch has already seen this triggerPkt
 
     debug_print_yellow("Generating Trigger {} on switch {} at time {}:", newTriggerId, this->id, syndbSim.currTime);
+
+    // Create and add TriggerInfo to TriggerInfoMap
+    triggerInfo newTriggerInfo;
+    newTriggerInfo.originSwitch = this->id;
+    newTriggerInfo.triggerOrigTime = syndbSim.currTime;
+    syndbSim.TriggerInfoMap[newTriggerId] = newTriggerInfo;
 
     // Iterate over the neighbors and schedule a triggerPkt for each neighbor
     auto it = this->neighborSwitchTable.begin();

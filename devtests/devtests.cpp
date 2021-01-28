@@ -86,52 +86,30 @@ void testRingBufferOps(){
 }
 
 void addTriggerPkts(){
-    
-    routeScheduleInfo rsinfo;
-    syndb_status_t status; 
-    pktTime<switch_id_t> latencyRecord;
 
-    const sim_time_t increment = 3000;
-    static sim_time_t nextSendTime = 0;
+    if(syndbConfig.topoType == TopologyType::Simple){    
+        const sim_time_t increment = 3000;
+        static sim_time_t nextSendTime = 0;
 
-    switch_p srcSwitch = syndbSim.topo->getSwitchById(0); 
+        switch_p srcSwitch = syndbSim.topo->getSwitchById(0); 
 
-    if(syndbSim.currTime >= nextSendTime){
+        if(syndbSim.currTime >= nextSendTime){
 
-        srcSwitch->generateTrigger(); 
+            srcSwitch->generateTrigger(); 
 
-        nextSendTime += increment;
+            nextSendTime += increment;
+        }
+    }
+    else if(syndbConfig.topoType == TopologyType::FatTree){
+        static bool generatedAlready = false;
+
+        if(generatedAlready == false){
+            // Generate a single trigger on switchID 2
+            syndbSim.topo->getSwitchById(9)->generateTrigger();
+            generatedAlready = true;
+        }
     }
 
-}
-
-
-void showTriggerPktLatencies(){
-
-    pktTime<switch_id_t> latencyInfo;
-    sim_time_t triggerOriginTime, rxTime; 
-    trigger_id_t triggerId;
-    switch_id_t originSwitch, rxSwitch;
-
-    auto it = syndbSim.TriggerPktLatencyMap.begin();
-
-    debug_print_yellow("Trigger pkt latencies between switches");
-    for(it; it != syndbSim.TriggerPktLatencyMap.end(); it++){
-        triggerId = it->first;
-        triggerOriginTime = it->second.triggerOrigTime;
-        originSwitch = it->second.originSwitch;
-
-        debug_print_yellow("Trigger ID {} (origin switch: {})", triggerId, originSwitch);
-        auto it2 = it->second.rxSwitchTimes.begin();
-
-        for(it2; it2 != it->second.rxSwitchTimes.end(); it2++){
-            rxSwitch = it2->first;
-            rxTime = it2->second;
-
-            debug_print("{} --> {}: {}ns", originSwitch, rxSwitch, rxTime - triggerOriginTime);
-        } // end of iterating over rxSwitchTimes
-
-    } // end of iterating over TriggerPktLatencyMap
 }
 
 void checkRemainingQueuingAtLinks(){
