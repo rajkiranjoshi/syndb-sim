@@ -40,6 +40,9 @@ typedef struct Config
     // Fat Tree specific config options
     static const uint numCoreSwitches = (fatTreeTopoK/2) * (fatTreeTopoK/2);
 
+    const string packetSizeDistFile = "traffic-dist/fb_webserver_packetsizedist_cdf.csv";
+
+    const string flowArrivalDistFile = "traffic-dist/fb_webserver_flowinterarrival_ns_cdf.csv";
 } Config;
 
 extern Config syndbConfig;
