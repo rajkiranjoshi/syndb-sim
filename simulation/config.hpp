@@ -20,11 +20,11 @@ typedef struct Config
     // static const uint numHosts = 4;
 
     // const TrafficGenType trafficGenType = TrafficGenType::Distribution;
-    const TrafficGenType trafficGenType = TrafficGenType::Simple;
+    const TrafficGenType trafficGenType = TrafficGenType::Continuous;
 
     // const TrafficPatternType trafficPatternType = TrafficPatternType::SimpleTopo;
-    // const TrafficPatternType trafficPatternType = TrafficPatternType::AlltoAll;
-    const TrafficPatternType trafficPatternType = TrafficPatternType::FtUniform;
+    const TrafficPatternType trafficPatternType = TrafficPatternType::AlltoAll;
+    // const TrafficPatternType trafficPatternType = TrafficPatternType::FtUniform;
 
     const link_speed_gbps_t torLinkSpeedGbps = 100;
     const link_speed_gbps_t networkLinkSpeedGbps = 100;

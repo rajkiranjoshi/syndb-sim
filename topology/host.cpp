@@ -15,7 +15,7 @@ Host::Host(host_id_t id, bool disableTrafficGen){
     this->id = id;
     this->trafficGenDisabled = disableTrafficGen;
     
-    if(syndbConfig.trafficGenType == TrafficGenType::Simple){
+    if(syndbConfig.trafficGenType == TrafficGenType::Continuous){
         this->trafficGen = std::shared_ptr<TrafficGenerator>(new SimpleTrafficGenerator(syndbConfig.torLinkSpeedGbps, syndbConfig.hostTrafficGenLoadPercent, id));
     }
     else if (syndbConfig.trafficGenType == TrafficGenType::Distribution)

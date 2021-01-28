@@ -42,6 +42,6 @@ enum class syndb_status_t {success, failure};
 
 enum class TopologyType {Simple, FatTree}; 
 enum class TrafficPatternType {SimpleTopo, AlltoAll, FtUniform};
-enum class TrafficGenType {Simple, Distribution};
+enum class TrafficGenType {Continuous, Distribution};
 
 #endif
