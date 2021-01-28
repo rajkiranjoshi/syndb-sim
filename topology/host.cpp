@@ -24,18 +24,6 @@ Host::Host(host_id_t id, bool disableTrafficGen){
         this->trafficGen->loadTrafficDistribution(syndbConfig.packetSizeDistFile, syndbConfig.flowArrivalDistFile);
     }
 
-    switch(syndbConfig.trafficGenType){
-        case TrafficGenType::Simple:
-            this->trafficGen = std::shared_ptr<TrafficGenerator>(new SimpleTrafficGenerator(syndbConfig.torLinkSpeedGbps, syndbConfig.hostTrafficGenLoadPercent, id));
-            break;
-        /* case TrafficGenType::Distribution:
-            break; */
-        default:
-            std::string msg = fmt::format("Host constructor failed. No way to initialize the traffic generator: {}", syndbConfig.trafficGenType);
-            throw std::logic_error(msg);
-            break;
-    }
-
     switch(syndbConfig.trafficPatternType){
         case TrafficPatternType::SimpleTopo:
             this->trafficPattern = std::shared_ptr<TrafficPattern>(new SimpleTopoTrafficPattern(this->id));
