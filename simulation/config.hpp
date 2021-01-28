@@ -16,7 +16,7 @@ typedef struct Config
     
     static const ft_scale_t fatTreeTopoK = 4; // Fat Tree scale k
 
-    static const uint numHosts = (fatTreeTopoK * fatTreeTopoK * fatTreeTopoK)/4;
+    static const int numHosts = (fatTreeTopoK * fatTreeTopoK * fatTreeTopoK)/4;
     // static const uint numHosts = 4;
 
     // const TrafficGenType trafficGenType = TrafficGenType::Distribution;
@@ -38,11 +38,11 @@ typedef struct Config
     static const pkt_size_t triggerPktSize = 60;
 
     // Fat Tree specific config options
-    static const uint numCoreSwitches = (fatTreeTopoK/2) * (fatTreeTopoK/2);
+    static const int numCoreSwitches = (fatTreeTopoK/2) * (fatTreeTopoK/2);
 
-    const string packetSizeDistFile = "traffic-dist/fb_webserver_packetsizedist_cdf.csv";
+    const std::string packetSizeDistFile = "traffic-dist/fb_webserver_packetsizedist_cdf.csv";
 
-    const string flowArrivalDistFile = "traffic-dist/fb_webserver_flowinterarrival_ns_cdf.csv";
+    const std::string flowArrivalDistFile = "traffic-dist/fb_webserver_flowinterarrival_ns_cdf.csv";
 } Config;
 
 extern Config syndbConfig;
