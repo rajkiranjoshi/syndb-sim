@@ -20,7 +20,8 @@ Host::Host(host_id_t id, bool disableTrafficGen){
     }
     else if (syndbConfig.trafficGenType == TrafficGenType::Distribution)
     {
-        /* TODO: add code here */
+        this->trafficGen = std::shared_ptr<TrafficGenerator>(new DcTrafficGenerator(syndbConfig.torLinkSpeedGbps, syndbConfig.hostTrafficGenLoadPercent, id));
+        this->trafficGen->loadTrafficDistribution(syndbConfig.packetSizeDistFile, syndbConfig.flowArrivalDistFile);
     }
 
     switch(syndbConfig.trafficGenType){
