@@ -28,26 +28,23 @@ packetInfo DcTrafficGenerator::getNextPacket(){
     pkt_size_t size = 1500;
     pkt_size_t size_on_wire = base_size + 24;
     sim_time_t delay = 0;
-    sim_time_t flowdelay = 0;
-    //considering a packet size of 80-byte
 
 
     int pkt_size = myRandomFromCDF.getNextPacketSize(); 
-    int pkt_delay_ns = myRandomFromCDF.getNextPacketDelay();
+    sim_time_t sendDelay = myRandomFromCDF.getNextPacketDelay();
     
 
     sim_time_t serializeDelay = getSerializationDelay(size, this->torLinkSpeed);
-    sim_time_t sendDelay = 0;
 
     pkt_id_t pktId = syndbSim.getNextPktId();
     normalpkt_p pkt = normalpkt_p(new NormalPkt(pktId, pkt_size));
     
     pkt->srcHost = this->parentHostId;
 
-    return packetInfo(pkt, size, sendDelay, serializeDelay);
+    return packetInfo(pkt, pkt_size, sendDelay, serializeDelay);
 }
 
-int DcTrafficGenerator::loadTrafficDistribution (string packetsizeDistFile, string flowarrivalDistFile) {
+int DcTrafficGenerator::loadTrafficDistribution (std::string packetsizeDistFile, std::string flowarrivalDistFile) {
     pkt_size_t base_size = 80; // in bytes
     pkt_size_t size_on_wire = base_size + 24;
     int pps = ((this->torLinkSpeed * 1000000000)/ (size_on_wire * 8));
@@ -76,7 +73,7 @@ packetInfo SimpleTrafficGenerator::getNextPacket(){
     return packetInfo(pkt, size, sendDelay, serializeDelay);
 }
 
-int SimpleTrafficGenerator::loadTrafficDistribution (string packetsizeDistFile, string flowarrivalDistFile) {
+int SimpleTrafficGenerator::loadTrafficDistribution (std::string packetsizeDistFile, std::string flowarrivalDistFile) {
 
     return 0;
 }
