@@ -255,8 +255,9 @@ void Simulation::dumpTriggerInfoMap(){
         triggerId = it1->first;
         triggerOriginTime = it1->second.triggerOrigTime;
         originSwitch = it1->second.originSwitch;
+        const SwitchType switchType = syndbSim.topo->getSwitchTypeById(originSwitch);
 
-        ndebug_print_yellow("Trigger ID {} (origin switch: {})", triggerId, originSwitch);
+        ndebug_print_yellow("Trigger ID {} (origin switch: {} {})", triggerId, originSwitch, switchTypeToString(switchType));
         auto it2 = it1->second.rxSwitchTimes.begin();
 
         for(it2; it2 != it1->second.rxSwitchTimes.end(); it2++){

@@ -8,25 +8,25 @@
 typedef struct Config 
 {
     static const sim_time_t timeIncrementNs = 100;
-    const float totalTimeMSecs = 0.1;
+    const float totalTimeMSecs = 0.3;
 
     // IMPORTANT: update numHosts as per the topology
-    const TopologyType topoType = TopologyType::Simple;
-    // const TopologyType topoType = TopologyType::FatTree;
+    // const TopologyType topoType = TopologyType::Simple;
+    const TopologyType topoType = TopologyType::FatTree;
     
-    static const ft_scale_t fatTreeTopoK = 4; // Fat Tree scale k
+    static const ft_scale_t fatTreeTopoK = 6; // Fat Tree scale k
 
-    // static const int numHosts = (fatTreeTopoK * fatTreeTopoK * fatTreeTopoK)/4;
-    static const uint numHosts = 4;
+    static const int numHosts = (fatTreeTopoK * fatTreeTopoK * fatTreeTopoK)/4;
+    // static const uint numHosts = 4;
 
     // const TrafficGenType trafficGenType = TrafficGenType::Distribution;
     const TrafficGenType trafficGenType = TrafficGenType::Continuous;
 
     // const TrafficPatternType trafficPatternType = TrafficPatternType::SimpleTopo;
-    const TrafficPatternType trafficPatternType = TrafficPatternType::AlltoAll;
-    // const TrafficPatternType trafficPatternType = TrafficPatternType::FtUniform;
+    // const TrafficPatternType trafficPatternType = TrafficPatternType::AlltoAll;
+    const TrafficPatternType trafficPatternType = TrafficPatternType::FtUniform;
 
-    static const uint numTriggersSimpleTopo = 30;
+    static const uint numTriggersPerSwitchType = 15;
 
     const link_speed_gbps_t torLinkSpeedGbps = 100;
     const link_speed_gbps_t networkLinkSpeedGbps = 100;
@@ -41,7 +41,7 @@ typedef struct Config
 
     // Fat Tree specific config options
     static const int numCoreSwitches = (fatTreeTopoK/2) * (fatTreeTopoK/2);
-
+  
     const std::string packetSizeDistFile = "traffic-dist/fb_webserver_packetsizedist_cdf.csv";
 
     const std::string flowArrivalDistFile = "traffic-dist/fb_webserver_flowinterarrival_ns_cdf.csv";

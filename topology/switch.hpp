@@ -4,6 +4,7 @@
 #include <memory>
 #include <unordered_map>
 #include <set>
+#include <fmt/core.h>
 #include "utils/types.hpp"
 #include "topology/link.hpp"
 #include "topology/syndb_ringbuffer.hpp"
@@ -13,7 +14,27 @@
 typedef std::unordered_map<switch_id_t, network_link_p> neighbor_switch_table_t;
 typedef std::unordered_map<host_id_t, host_tor_link_p> neighbor_host_table_t;
 
-enum class SwitchType {Simple, FtTor, FtAggr, FtCore}; 
+enum class SwitchType {Simple, FtTor, FtAggr, FtCore};
+
+inline std::string switchTypeToString(SwitchType type){
+    switch(type){
+        case SwitchType::Simple:
+            return "Simple";
+            break;
+        case SwitchType::FtTor:
+            return "Tor";
+            break;
+        case SwitchType::FtAggr:
+            return "Aggr";
+            break; 
+        case SwitchType::FtCore:
+            return "Core";
+            break;
+        default:
+            std::string msg = fmt::format("Unknown SwitchType {}", type);
+            throw std::logic_error(msg);
+    }
+}
 
 struct routeScheduleInfo;
 

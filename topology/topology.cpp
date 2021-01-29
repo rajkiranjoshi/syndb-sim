@@ -6,6 +6,24 @@
 #include "utils/logger.hpp"
 
 
+Topology::Topology(){
+    this->switchTypeIDMap[SwitchType::Simple] = std::set<switch_id_t>();
+    this->switchTypeIDMap[SwitchType::FtTor] = std::set<switch_id_t>();
+    this->switchTypeIDMap[SwitchType::FtAggr] = std::set<switch_id_t>();
+    this->switchTypeIDMap[SwitchType::FtCore] = std::set<switch_id_t>();
+}
+
+SwitchType Topology::getSwitchTypeById(switch_id_t id){
+    auto typeit = this->switchTypeIDMap.begin();
+    for(typeit; typeit != this->switchTypeIDMap.end(); typeit++){
+        if(typeit->second.find(id) != typeit->second.end()) // Found the switch ID
+            return typeit->first; 
+    }
+
+    std::string msg = fmt::format("Switch id {} has no assigned type. This should NEVER happen!",id);
+    throw std::logic_error(msg);
+}
+
 switch_p Topology::getSwitchById(switch_id_t id){
     auto it = this->switchIDMap.find(id);
     if(it != this->switchIDMap.end()){ // found the switch_p
@@ -153,6 +171,7 @@ switch_p Topology::createNewSwitch(SwitchType type){
     newSwitch->type = type;
      
     this->switchIDMap[newSwitch->id] = newSwitch; 
+    this->switchTypeIDMap[type].insert(newSwitch->id); 
 
     return newSwitch;  
 }

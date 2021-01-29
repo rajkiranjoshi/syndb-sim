@@ -2,6 +2,7 @@
 #define TOPOLOGY_H
 
 #include <vector>
+#include <map>
 #include <unordered_map>
 #include "topology/host.hpp"
 #include "topology/link.hpp"
@@ -27,9 +28,11 @@ struct Topology
     switch_id_map_t switchIDMap;
     
     host_tor_map_t hostTorMap; // updated by addHostToTor()
+    std::map<SwitchType, std::set<switch_id_t>> switchTypeIDMap; // updated by createNewSwitch()
 
     switch_id_t getTorId(host_id_t hostId);
     switch_p getSwitchById(switch_id_t id);
+    SwitchType getSwitchTypeById(switch_id_t id); 
     host_p getHostById(host_id_t hostId);
 
     inline host_id_t getNextHostId() {return this->nextHostId++;}
@@ -44,6 +47,7 @@ struct Topology
     void addHostToTor(host_p host, switch_p tor);
     void connectSwitchToSwitch(switch_p s1, switch_p s2);
 
+    Topology();
     virtual void buildTopo() = 0;
   
 };

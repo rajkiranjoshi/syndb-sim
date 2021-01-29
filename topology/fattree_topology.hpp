@@ -15,8 +15,6 @@ struct FattreeTopology : Topology
     pod_id_t nextPodId = 0;
     std::array<pod_p, syndbConfig.fatTreeTopoK> pods;
     std::array<switch_p, syndbConfig.numCoreSwitches> coreSwitches;
-    std::list<switch_p> aggrSwitches; 
-    std::list<switch_p> torSwitches;
 
     // Override the virtual function of the abstract Topology class
     void buildTopo();
