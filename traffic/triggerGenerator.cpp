@@ -4,6 +4,7 @@
 #include "traffic/triggerGenerator.hpp"
 #include "utils/logger.hpp"
 #include "simulation/config.hpp"
+#include "topology/fattree_topology.hpp"
 
 
 
@@ -52,8 +53,10 @@ void TriggerGenerator::updateNextTrigger(){
     nextTrigger++;
 }
 
-
-TriggerGeneratorSimpleTopo::TriggerGeneratorSimpleTopo():TriggerGenerator::TriggerGenerator(2012, syndbConfig.numTriggersSimpleTopo){  
+/* 
+    Constructs the trigger schedule for Simple topo. Then calls updateNextTrigger() so that nextTriggerTime and nextSwitchId are initialized.
+*/
+TriggerGeneratorSimpleTopo::TriggerGeneratorSimpleTopo():TriggerGenerator::TriggerGenerator(2012, syndbConfig.numTriggersPerSwitchType){  
 
     sim_time_t halfSimTimeIncrement = syndbSim.timeIncrement / 2;
     sim_time_t currBaseTime = this->initialDelay + this->baseIncrement;
@@ -97,8 +100,64 @@ void TriggerGenerator::printTriggerSchedule(){
 
 }
 
+/* 
+    Constructs the trigger schedule for FatTree topo. Then calls updateNextTrigger() so that nextTriggerTime and nextSwitchId are initialized.
+*/
+TriggerGeneratorFatTreeTopo::TriggerGeneratorFatTreeTopo():TriggerGenerator::TriggerGenerator(4024, 3 * syndbConfig.numTriggersPerSwitchType){  
 
-TriggerGeneratorFatTreeTopo::TriggerGeneratorFatTreeTopo():TriggerGenerator::TriggerGenerator(4024, syndbConfig.numTriggersSimpleTopo){  
+    std::shared_ptr<FattreeTopology> fatTreeTopo = std::dynamic_pointer_cast<FattreeTopology>(syndbSim.topo);
 
+    std::vector<switch_id_t> coreSwitches(fatTreeTopo->switchTypeIDMap[SwitchType::FtCore].begin(),fatTreeTopo->switchTypeIDMap[SwitchType::FtCore].end()); 
+    std::vector<switch_id_t> aggrSwitches(fatTreeTopo->switchTypeIDMap[SwitchType::FtAggr].begin(),fatTreeTopo->switchTypeIDMap[SwitchType::FtAggr].end()); 
+    std::vector<switch_id_t> torSwitches(fatTreeTopo->switchTypeIDMap[SwitchType::FtTor].begin(),fatTreeTopo->switchTypeIDMap[SwitchType::FtTor].end());
+
+    // debug_print_yellow("Initialized vectors of switchID");
+    // debug_print("Total switches: {} core, {} aggr, {} tor", coreSwitches.size(), aggrSwitches.size(), torSwitches.size());
+
+    sim_time_t halfSimTimeIncrement = syndbSim.timeIncrement / 2;
+    sim_time_t currBaseTime = this->initialDelay + this->baseIncrement;
+    sim_time_t nextTime;
+    switch_id_t nextSwitch;
+
+    std::default_random_engine generator(std::random_device{}());
+    std::uniform_int_distribution<int> torSelectDist(0, torSwitches.size()-1);
+    std::uniform_int_distribution<int> aggrSelectDist(0, aggrSwitches.size()-1);
+    std::uniform_int_distribution<int> coreSelectDist(0, coreSwitches.size()-1);
+
+    auto getRandomTorSwitchIdx = std::bind(torSelectDist, generator);
+    auto getRandomAggrSwitchIdx = std::bind(aggrSelectDist, generator);
+    auto getRandomCoreSwitchIdx = std::bind(coreSelectDist, generator);
+
+    std::vector<switch_id_t> nextSwitchIds;
+
+    for(int i=0; i < syndbConfig.numTriggersPerSwitchType; i++)
+        nextSwitchIds.push_back(torSwitches[getRandomTorSwitchIdx()]);
+
+    for(int i=0; i < syndbConfig.numTriggersPerSwitchType; i++)
+        nextSwitchIds.push_back(aggrSwitches[getRandomAggrSwitchIdx()]);
+
+    for(int i=0; i < syndbConfig.numTriggersPerSwitchType; i++)
+        nextSwitchIds.push_back(coreSwitches[getRandomCoreSwitchIdx()]);
+    
+    for(int i=0; i < nextSwitchIds.size(); i++){
+        
+        triggerScheduleInfo newScheduleInfo;
+        
+        nextSwitch = nextSwitchIds[i]; 
+        nextTime = currBaseTime + this->getRandomExtraTime();
+        // round nextTime to nearest simulator increment
+        nextTime = ((nextTime + halfSimTimeIncrement) / syndbSim.timeIncrement) * syndbSim.timeIncrement;
+
+        newScheduleInfo.time = nextTime;
+        newScheduleInfo.switchId = nextSwitch;
+
+        this->triggerSchedule.push_back(newScheduleInfo);
+
+        // update currBaseTime
+        // currBaseTime += this->baseIncrement;
+        currBaseTime = nextTime + this->baseIncrement;
+    }
+
+    this->updateNextTrigger();
 
 }
