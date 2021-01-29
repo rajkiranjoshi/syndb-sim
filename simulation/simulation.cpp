@@ -163,11 +163,6 @@ void Simulation::processNormalPktEvents(){
                 // Mark the event for deletion
                 toDelete.push_back(it);
                 
-                // For devtest testNormalPktLatencies()
-                #ifdef DEBUG
-                auto it = syndbSim.NormalPktLatencyMap.find(event->pkt->id);
-                (it->second).end_time = event->pktForwardTime;
-                #endif
 
                 // Add end time INT data to the packet
                 event->pkt->endTime = event->pktForwardTime;
@@ -243,7 +238,6 @@ void Simulation::flushRemainingNormalPkts(){
 }
 
 void Simulation::dumpTriggerInfoMap(){
-    pktTime<switch_id_t> latencyInfo;
     sim_time_t triggerOriginTime, rxTime; 
     trigger_id_t triggerId;
     switch_id_t originSwitch, rxSwitch;

@@ -115,13 +115,15 @@ void Switch::receiveTriggerPkt(triggerpkt_p pkt, sim_time_t rxTime){
         throw std::logic_error(msg);
     }
 
-    debug_print_yellow("\n[Switch {}] Received trigger pkt {} from switch {} at time {}", this->id, pkt->triggerId, pkt->srcSwitchId, rxTime);
+    // debug_print_yellow("\n[Switch {}] Received trigger pkt {} from switch {} at time {}", this->id, pkt->triggerId, pkt->srcSwitchId, rxTime);
+
     /* This has to be the destination. All trigger pkts are single-hop */
+
     // Check if this trigger pkt has been received in the past
     bool triggerSeenBefore = this->triggerHistory.find(pkt->triggerId) != this->triggerHistory.end();
     
     if(triggerSeenBefore){ // already broadcast forwarded before
-        debug_print("Trigger ID seen before. Ignoring now..");
+        // debug_print("Trigger ID seen before. Ignoring now..");
         return; // do nothing
     }
     
@@ -132,9 +134,6 @@ void Switch::receiveTriggerPkt(triggerpkt_p pkt, sim_time_t rxTime){
 
     // Logging the triggerInfo
     syndbSim.TriggerInfoMap[pkt->triggerId].rxSwitchTimes[this->id] = rxTime;
-
-
-
 
     // Flush the current RingBuffer
     this->snapshotRingBuffer();
@@ -149,7 +148,7 @@ void Switch::receiveTriggerPkt(triggerpkt_p pkt, sim_time_t rxTime){
             continue; // source pruning
 
         dstSwitchId = it2->first;
-        debug_print("Fowarding to neighbor switch {}", dstSwitchId); 
+        // debug_print("Fowarding to neighbor switch {}", dstSwitchId); 
         this->createSendTriggerPkt(dstSwitchId, pkt->triggerId, pkt->triggerOriginSwId, pkt->triggerTime, rxTime);
 
     }
@@ -166,7 +165,7 @@ void Switch::generateTrigger(){
 
     this->triggerHistory.insert(newTriggerId); // this switch has already seen this triggerPkt
 
-    debug_print_yellow("Generating Trigger {} on switch {} at time {}:", newTriggerId, this->id, syndbSim.currTime);
+    // debug_print_yellow("Generating Trigger {} on switch {} at time {}:", newTriggerId, this->id, syndbSim.currTime);
 
     // Create and add TriggerInfo to TriggerInfoMap
     triggerInfo newTriggerInfo;
@@ -198,8 +197,9 @@ void Switch::createSendTriggerPkt(switch_id_t dstSwitchId, trigger_id_t triggerI
     newTriggerPkt->triggerTime = origTriggerTime; 
 
     status = this->routeScheduleTriggerPkt(newTriggerPkt, pktArrivalTime, rsinfo);
-    if(status == syndb_status_t::success)
-        debug_print("Routed and scheduled Trigger Pkt {} from switch {} --> {}", newTriggerPkt->triggerId, this->id, dstSwitchId);
+    if(status == syndb_status_t::success){
+        // debug_print("Routed and scheduled Trigger Pkt {} from switch {} --> {}", newTriggerPkt->triggerId, this->id, dstSwitchId);
+    }
     else
     {
         std::string msg = "Failed to routeScheduleTriggerPkt";

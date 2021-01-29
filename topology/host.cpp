@@ -69,15 +69,6 @@ void Host::generateNextPkt(){
     // Add appropriate INT data to the packet
     this->nextPkt->startTime = nextPktSerializeStart;
 
-    // For devtest testNormalPktLatencies()
-    #ifdef DEBUG
-    pktTime<host_id_t> pkt_time;
-    pkt_time.src = pktInfo.pkt->srcHost;
-    pkt_time.dst = pktInfo.pkt->dstHost;
-    pkt_time.start_time = pktGenSendTime; 
-    pkt_time.end_time = 0; // set to zero
-    syndbSim.NormalPktLatencyMap[pktInfo.pkt->id] = pkt_time;
-    #endif
 
 }
 

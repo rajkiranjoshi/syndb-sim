@@ -19,8 +19,8 @@ typedef struct Config
     static const int numHosts = (fatTreeTopoK * fatTreeTopoK * fatTreeTopoK)/4;
     // static const uint numHosts = 4;
 
-    // const TrafficGenType trafficGenType = TrafficGenType::Distribution;
-    const TrafficGenType trafficGenType = TrafficGenType::Continuous;
+    const TrafficGenType trafficGenType = TrafficGenType::Distribution;
+    // const TrafficGenType trafficGenType = TrafficGenType::Continuous;
 
     // const TrafficPatternType trafficPatternType = TrafficPatternType::SimpleTopo;
     // const TrafficPatternType trafficPatternType = TrafficPatternType::AlltoAll;

@@ -8,16 +8,6 @@
 #include "utils/pktdumper.hpp"
 #include "traffic/triggerGenerator.hpp"
 
-// For devtest testNormalPktLatencies()
-#ifdef DEBUG
-template<typename T>
-struct pktTime
-{
-    T src;
-    T dst;
-    sim_time_t start_time;
-    sim_time_t end_time;
-};
 
 struct triggerInfo
 {
@@ -25,9 +15,6 @@ struct triggerInfo
     switch_id_t originSwitch;
     std::map<switch_id_t, sim_time_t> rxSwitchTimes;
 };
-
-
-#endif
 
 typedef struct Simulation
 {
@@ -48,10 +35,6 @@ typedef struct Simulation
     // For tracking and logging triggerInfo
     std::map<trigger_id_t, triggerInfo> TriggerInfoMap;
 
-    #ifdef DEBUG
-    // For devtest testNormalPktLatencies()
-    std::map<pkt_id_t, pktTime<host_id_t>> NormalPktLatencyMap;
-    #endif
 
     std::shared_ptr<TriggerGenerator> triggerGen;
 
