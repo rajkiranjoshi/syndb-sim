@@ -25,7 +25,7 @@ struct TrafficGenerator
 
     TrafficGenerator(link_speed_gbps_t linkSpeed, load_t load, host_id_t hostId);
     virtual packetInfo getNextPacket() = 0;
-    virtual int loadTrafficDistribution(string packetsizeDistFile, string flowarrivalDistFile) = 0;
+    virtual int loadTrafficDistribution(std::string packetsizeDistFile, std::string flowarrivalDistFile) = 0;
 };
 
 
@@ -37,7 +37,7 @@ struct SimpleTrafficGenerator : TrafficGenerator
     
     /* Overriding method of the abstract class */
     packetInfo getNextPacket();
-    int loadTrafficDistribution(string packetsizeDistFile, string flowarrivalDistFile);
+    int loadTrafficDistribution(std::string packetsizeDistFile, std::string flowarrivalDistFile);
 };
 
 /* DC Trafficgenerator struct */
@@ -48,7 +48,7 @@ struct DcTrafficGenerator : TrafficGenerator
     using TrafficGenerator::TrafficGenerator;
     
     packetInfo getNextPacket();
-    int loadTrafficDistribution(string packetsizeDistFile, string flowarrivalDistFile);
+    int loadTrafficDistribution(std::string packetsizeDistFile, std::string flowarrivalDistFile);
 };
 
 

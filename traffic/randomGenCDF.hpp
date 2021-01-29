@@ -9,14 +9,13 @@
 #include <fstream>
 #include <sstream>
 #include <iostream>
-
-using namespace std;
+#include "utils/types.hpp"
 
 
 typedef struct randomCDF
 {
-    vector<int> packetSizeDist;
-    vector<int> flowArrivalDist;
+    std::vector<int> packetSizeDist;
+    std::vector<int> flowArrivalDist;
 
     std::default_random_engine generator;
     std::default_random_engine generator2;
@@ -25,12 +24,12 @@ typedef struct randomCDF
 
     std::lognormal_distribution<double> lognormalDist;
 
-    vector<int> readCDFFile(string fileName);
-    void loadCDFs(string packetsizeDistFile, string flowarrivalDistFile, int min_delay_ns);
+    std::vector<int> readCDFFile(std::string fileName);
+    void loadCDFs(std::string packetsizeDistFile, std::string flowarrivalDistFile, int min_delay_ns);
 
     int getNextPacketSize();
-    int getNextFlowDelay();
-    int getNextPacketDelay();
+    sim_time_t getNextFlowDelay();
+    sim_time_t getNextPacketDelay();
 
 } RandomFromCDF;
 
