@@ -40,7 +40,7 @@ packetInfo DcTrafficGenerator::getNextPacket(){
     sim_time_t sendDelay = 0;
 
     pkt_id_t pktId = syndbSim.getNextPktId();
-    normalpkt_p pkt = normalpkt_p(new NormalPkt(pktId, size));
+    normalpkt_p pkt = normalpkt_p(new NormalPkt(pktId, pkt_size));
     
     pkt->srcHost = this->parentHostId;
 
@@ -50,7 +50,7 @@ packetInfo DcTrafficGenerator::getNextPacket(){
 int DcTrafficGenerator::loadTrafficDistribution (string packetsizeDistFile, string flowarrivalDistFile) {
     pkt_size_t base_size = 80; // in bytes
     pkt_size_t size_on_wire = base_size + 24;
-    int pps = ((size_on_wire * 8) / this->torLinkSpeed);
+    int pps = ((this->torLinkSpeed * 1000000000)/ (size_on_wire * 8));
     sim_time_t min_delay_ns = (1/pps * 1000000000);
 
 
