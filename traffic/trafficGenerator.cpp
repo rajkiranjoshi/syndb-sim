@@ -23,18 +23,12 @@ TrafficGenerator::TrafficGenerator(link_speed_gbps_t linkSpeed, load_t load, swi
 /* Load variation: return pkt_size 0, if no packet is to be sent. */
 
 packetInfo DcTrafficGenerator::getNextPacket(){
-    pkt_size_t base_size = 80; // in bytes
-
-    pkt_size_t size = 1500;
-    pkt_size_t size_on_wire = base_size + 24;
-    sim_time_t delay = 0;
-
-
-    int pkt_size = myRandomFromCDF.getNextPacketSize(); 
+   
+    pkt_size_t pkt_size = myRandomFromCDF.getNextPacketSize(); 
     sim_time_t sendDelay = myRandomFromCDF.getNextPacketDelay();
     
 
-    sim_time_t serializeDelay = getSerializationDelay(size, this->torLinkSpeed);
+    sim_time_t serializeDelay = getSerializationDelay(pkt_size, this->torLinkSpeed);
 
     pkt_id_t pktId = syndbSim.getNextPktId();
     normalpkt_p pkt = normalpkt_p(new NormalPkt(pktId, pkt_size));
