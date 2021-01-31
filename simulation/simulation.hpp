@@ -9,13 +9,6 @@
 #include "traffic/triggerGenerator.hpp"
 
 
-struct triggerInfo
-{
-    sim_time_t triggerOrigTime;
-    switch_id_t originSwitch;
-    std::map<switch_id_t, sim_time_t> rxSwitchTimes;
-};
-
 typedef struct Simulation
 {
     std::shared_ptr<Topology> topo;

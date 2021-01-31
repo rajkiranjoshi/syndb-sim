@@ -246,11 +246,19 @@ void Simulation::dumpTriggerInfoMap(){
 
     ndebug_print_yellow("\nTrigger pkt latencies between switches");
     for(it1; it1 != syndbSim.TriggerInfoMap.end(); it1++){
+        
         triggerId = it1->first;
-        triggerOriginTime = it1->second.triggerOrigTime;
         originSwitch = it1->second.originSwitch;
-        const SwitchType switchType = syndbSim.topo->getSwitchTypeById(originSwitch);
+        SwitchType switchType = syndbSim.topo->getSwitchTypeById(originSwitch);
 
+        syndbSim.pktDumper.dumpTriggerInfo(triggerId, it1->second, switchType);
+
+        /* Below code is only for debugging. TODO: comment out later. */
+
+        
+        triggerOriginTime = it1->second.triggerOrigTime;
+        
+        
         ndebug_print_yellow("Trigger ID {} (origin switch: {} {})", triggerId, originSwitch, switchTypeToString(switchType));
         auto it2 = it1->second.rxSwitchTimes.begin();
 
