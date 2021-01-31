@@ -54,7 +54,7 @@ int DcTrafficGenerator::loadTrafficDistribution (std::string packetsizeDistFile,
 /* Load variation: return pkt_size 0, if no packet is to be sent. */
 packetInfo SimpleTrafficGenerator::getNextPacket(){
     
-    pkt_size_t size = 1500;
+    pkt_size_t size = syndbConfig.fixedPktSizeForSimpleTrafficGen;
     
     sim_time_t serializeDelay = getSerializationDelay(size, this->torLinkSpeed);
     sim_time_t sendDelay = 0;
