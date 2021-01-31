@@ -12,19 +12,18 @@ int main(){
 
     // Init Step 1: Build the topology
     syndbSim.buildTopo();
-    debug_print("Done building topo");
+    ndebug_print("Done building topo");
 
     // Init Step 2: Init the triggerGen schedule
     syndbSim.initTriggerGen();
     syndbSim.triggerGen->printTriggerSchedule();
     
-    debug_print("Time increment is {}", syndbSim.timeIncrement);
-
     // Init Step 3: Initialize the hosts
     syndbSim.initHosts();
-    debug_print("Done init hosts topo");
+    ndebug_print("Done init hosts");
 
-    debug_print("Running simulation for {}ns ...",syndbSim.totalTime);
+    ndebug_print("Running simulation for {}ns ...",syndbSim.totalTime);
+    ndebug_print("Time increment is {}", syndbSim.timeIncrement);
 
 
     // Main simulation loop
