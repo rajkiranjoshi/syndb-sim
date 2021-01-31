@@ -47,8 +47,9 @@ packetInfo DcTrafficGenerator::getNextPacket(){
 int DcTrafficGenerator::loadTrafficDistribution (std::string packetsizeDistFile, std::string flowarrivalDistFile) {
     pkt_size_t base_size = 80; // in bytes
     pkt_size_t size_on_wire = base_size + 24;
-    int pps = ((this->torLinkSpeed * 1000000000)/ (size_on_wire * 8));
-    sim_time_t min_delay_ns = ((double)1/(double)pps * 1000000000);
+    // int pps = ((this->torLinkSpeed * 1000000000)/ (size_on_wire * 8));
+    // sim_time_t min_delay_ns = ((double)1/(double)pps * 1000000000);
+    sim_time_t min_delay_ns = (size_on_wire * 8) / this->torLinkSpeed;
 
 
     myRandomFromCDF.loadCDFs("traffic-dist/fb_webserver_packetsizedist_cdf.csv", "traffic-dist/fb_webserver_flowinterarrival_ns_cdf.csv", min_delay_ns);
