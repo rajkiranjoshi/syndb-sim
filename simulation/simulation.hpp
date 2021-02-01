@@ -45,7 +45,8 @@ typedef struct Simulation
     void processTriggerPktEvents();
     void processNormalPktEvents();
     void flushRemainingNormalPkts();
-    void dumpTriggerInfoMap();
+    void logTriggerInfoMap();
+    void showLinkUtilizations();
 
     void cleanUp();
 

@@ -13,11 +13,14 @@ NetworkLink::NetworkLink(link_id_t id, link_speed_gbps_t speed, switch_id_t sw1,
     this->next_idle_time[sw2] = 0;
     this->next_idle_time_priority[sw1] = 0;
     this->next_idle_time_priority[sw2] = 0;
-
+    this->byte_count[sw1] = 0;
+    this->byte_count[sw2] = 0;
 }
 
 
 HostTorLink::HostTorLink(link_id_t id, link_speed_gbps_t speed) : Link::Link(id, speed){
     this->next_idle_time_to_tor = 0;
     this->next_idle_time_to_host = 0;
+    this->byte_count_to_tor = 0;
+    this->byte_count_to_host = 0;
 }

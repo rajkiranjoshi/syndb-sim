@@ -14,7 +14,7 @@ typedef struct Config
     // const TopologyType topoType = TopologyType::Simple;
     const TopologyType topoType = TopologyType::FatTree;
     
-    static const ft_scale_t fatTreeTopoK = 6; // Fat Tree scale k
+    static const ft_scale_t fatTreeTopoK = 4; // Fat Tree scale k
 
     static const int numHosts = (fatTreeTopoK * fatTreeTopoK * fatTreeTopoK)/4;
     // static const uint numHosts = 4;

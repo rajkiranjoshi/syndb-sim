@@ -237,7 +237,7 @@ void Simulation::flushRemainingNormalPkts(){
 
 }
 
-void Simulation::dumpTriggerInfoMap(){
+void Simulation::logTriggerInfoMap(){
     sim_time_t triggerOriginTime, rxTime; 
     trigger_id_t triggerId;
     switch_id_t originSwitch, rxSwitch;
@@ -272,7 +272,37 @@ void Simulation::dumpTriggerInfoMap(){
     } // end of iterating over TriggerPktLatencyMap
 }
 
+void Simulation::showLinkUtilizations(){
 
+    ndebug_print_yellow("Utilization on ToR links:");
+    for(auto it = syndbSim.topo->torLinkVector.begin(); it != syndbSim.topo->torLinkVector.end(); it++){
+        
+        double util_to_tor = (double)((*it)->byte_count_to_tor * 8) / syndbSim.totalTime;
+        double util_to_host = (double)((*it)->byte_count_to_host * 8) / syndbSim.totalTime;
+
+        ndebug_print("Link ID {}: towards host: {} | towards tor: {}", (*it)->id, util_to_tor, util_to_tor);
+    }
+
+    ndebug_print_yellow("Utilization on Network links:");
+    for(auto it = syndbSim.topo->networkLinkVector.begin(); it != syndbSim.topo->networkLinkVector.end(); it++){
+        
+        auto map = (*it)->byte_count;
+        auto it_byte_count = map.begin();
+
+        switch_id_t sw1 = it_byte_count->first;
+        byte_count_t byteCount1 = it_byte_count->second;
+        it_byte_count++;
+        switch_id_t sw2 = it_byte_count->first;
+        byte_count_t byteCount2 = it_byte_count->second;
+
+        double util1 = (double)(byteCount1 * 8) / syndbSim.totalTime;
+        double util2 = (double)(byteCount2 * 8) / syndbSim.totalTime;
+
+        ndebug_print("Link ID {}: towards sw{}: {} | towards sw{}: {}", (*it)->id, sw1, util1, sw2, util2);
+    }
+
+
+}
 void Simulation::cleanUp(){
     
     // Why this is needed? When std::list is destroyed, if its members are pointers, only the pointers are destroyed, not the objects pointed by the pointers.

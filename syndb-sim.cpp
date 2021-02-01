@@ -50,12 +50,13 @@ int main(){
 
     ndebug_print_yellow("Flushing remaining normal pkts");
     syndbSim.flushRemainingNormalPkts();
-    syndbSim.dumpTriggerInfoMap();
+    syndbSim.logTriggerInfoMap();
+    syndbSim.showLinkUtilizations();
 
     endTime = time(NULL);
     
 #ifdef DEBUG
-    checkRemainingQueuingAtLinks();
+    // checkRemainingQueuingAtLinks();
     // testNormalPktLatencies(0, 1);
     // testRingBufferOps();
     // showSimpleTopoRingBuffers(); 

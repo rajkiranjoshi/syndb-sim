@@ -5,6 +5,7 @@
 #include "utils/utils.hpp"
 #include "simulation/simulation.hpp"
 #include "simulation/config.hpp"
+#include "utils/types.hpp"
 
 
 Switch::Switch(switch_id_t id){
@@ -26,7 +27,7 @@ syndb_status_t Switch::intraRackRouteNormalPkt(normalpkt_p pkt, const sim_time_t
     if(search != this->neighborHostTable.end()){
         
         hostTorLink = search->second;
-        this->schedulePkt(pkt->size, pktArrivalTime, hostTorLink->speed, hostTorLink->next_idle_time_to_host);
+        this->schedulePkt(pkt->size, pktArrivalTime, hostTorLink->speed, hostTorLink->next_idle_time_to_host, hostTorLink->byte_count_to_host);
 
         rsinfo.nextSwitch = NULL; // next hop is a host
         rsinfo.pktNextForwardTime = hostTorLink->next_idle_time_to_host;
@@ -52,12 +53,12 @@ syndb_status_t Switch::scheduleToNextHopSwitch(const pkt_size_t pktsize, const s
         // Choose different queues on the nextLink based on the packet type
         if(ptype == PacketType::NormalPkt){
             // Schedule on the normal queue
-            schedulePkt(pktsize, pktArrivalTime, nextLink->speed, nextLink->next_idle_time[nextHopSwitch->id]);
+            schedulePkt(pktsize, pktArrivalTime, nextLink->speed, nextLink->next_idle_time[nextHopSwitch->id], nextLink->byte_count[nextHopSwitch->id]);
             rsinfo.pktNextForwardTime = nextLink->next_idle_time[nextHopSwitch->id];
         }
         else if (ptype == PacketType::TriggerPkt){
             // Schedule on the priority queue
-            schedulePkt(pktsize, pktArrivalTime, nextLink->speed, nextLink->next_idle_time_priority[nextHopSwitch->id]);
+            schedulePkt(pktsize, pktArrivalTime, nextLink->speed, nextLink->next_idle_time_priority[nextHopSwitch->id], nextLink->byte_count[nextHopSwitch->id]);
             rsinfo.pktNextForwardTime = nextLink->next_idle_time_priority[nextHopSwitch->id];
         }
 
@@ -75,7 +76,7 @@ syndb_status_t Switch::scheduleToNextHopSwitch(const pkt_size_t pktsize, const s
 }
 
 
-void Switch::schedulePkt(const pkt_size_t pktsize, const sim_time_t pktArrivalTime, const link_speed_gbps_t linkSpeed, sim_time_t &qNextIdleTime){
+void Switch::schedulePkt(const pkt_size_t pktsize, const sim_time_t pktArrivalTime, const link_speed_gbps_t linkSpeed, sim_time_t &qNextIdleTime, byte_count_t &byteCount){
     
     sim_time_t pktSendTime, timeAfterSwitchHop, pktNextSerializeStartTime;
 
@@ -90,6 +91,10 @@ void Switch::schedulePkt(const pkt_size_t pktsize, const sim_time_t pktArrivalTi
 
     // Schedule the packet on the link
     qNextIdleTime = pktSendTime;
+
+    // Update the byte_count
+    byteCount += pktsize;
+
 }
 
 
