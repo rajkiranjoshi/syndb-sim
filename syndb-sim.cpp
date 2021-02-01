@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <time.h>
 #include <fmt/core.h>
 #include <fmt/color.h>
 #include "utils/logger.hpp"
@@ -7,6 +8,10 @@
 #include "devtests/devtests.hpp"
 
 int main(){
+
+    time_t startTime, endTime;
+    
+    startTime = time(NULL); 
 
     syndbSim = Simulation();
 
@@ -46,6 +51,8 @@ int main(){
     ndebug_print_yellow("Flushing remaining normal pkts");
     syndbSim.flushRemainingNormalPkts();
     syndbSim.dumpTriggerInfoMap();
+
+    endTime = time(NULL);
     
 #ifdef DEBUG
     checkRemainingQueuingAtLinks();
@@ -56,6 +63,7 @@ int main(){
 #endif
 
     ndebug_print_yellow("End of main\n");
+    ndebug_print_yellow("Simulation run took {} seconds.", endTime - startTime);
     return 0;
 }
 
