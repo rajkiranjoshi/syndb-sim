@@ -94,7 +94,7 @@ void Switch::schedulePkt(const pkt_size_t pktsize, const sim_time_t pktArrivalTi
 
 
 void Switch::receiveNormalPkt(normalpkt_p pkt, sim_time_t rxTime){
-    this->ringBuffer.insertPrecord(pkt->id, rxTime);
+    // this->ringBuffer.insertPrecord(pkt->id, rxTime);
 
     // Prepare and insert switch INT into the packet
     switchINTInfo newInfo;
