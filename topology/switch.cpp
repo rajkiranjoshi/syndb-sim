@@ -93,7 +93,7 @@ void Switch::schedulePkt(const pkt_size_t pktsize, const sim_time_t pktArrivalTi
     qNextIdleTime = pktSendTime;
 
     // Update the byte_count
-    byteCount += pktsize;
+    byteCount += pktsize + 24; // +24 for on-wire PHY bits
 
 }
 

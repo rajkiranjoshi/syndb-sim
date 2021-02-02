@@ -56,7 +56,7 @@ int main(){
     endTime = time(NULL);
     
 #ifdef DEBUG
-    // checkRemainingQueuingAtLinks();
+    checkRemainingQueuingAtLinks();
     // testNormalPktLatencies(0, 1);
     // testRingBufferOps();
     // showSimpleTopoRingBuffers(); 

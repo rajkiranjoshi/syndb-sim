@@ -67,7 +67,7 @@ void Host::generateNextPkt(){
     this->torLink->next_idle_time_to_tor = this->nextPktTime;
 
     // Update the byte count
-    this->torLink->byte_count_to_tor += pktInfo.size;
+    this->torLink->byte_count_to_tor += pktInfo.size + 24; // +24 to account for on-wire PHY bits
 
     // Add appropriate INT data to the packet
     this->nextPkt->startTime = nextPktSerializeStart;
