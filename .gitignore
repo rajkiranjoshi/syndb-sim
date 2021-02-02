@@ -32,3 +32,5 @@
 *.app
 syndb-sim
 syndb-sim-debug
+data/*
+

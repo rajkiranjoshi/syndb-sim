@@ -26,6 +26,8 @@ Simulation::Simulation(){
     this->nextPktId = 0;
     this->nextTriggerPktId = 0;
 
+    this->pktDumper = std::unique_ptr<PktDumper>(new PktDumper(syndbConfig.numSwitches, syndbConfig.numHosts));
+
 }
 
 void Simulation::initTriggerGen(){
@@ -168,7 +170,7 @@ void Simulation::processNormalPktEvents(){
                 event->pkt->endTime = event->pktForwardTime;
 
                 // Dump the pkt with INT data to the disk
-                syndbSim.pktDumper.dumpPacket(event->pkt);
+                syndbSim.pktDumper->dumpPacket(event->pkt);
 
                 #ifdef DEBUG
                 /* debug_print_yellow("\nPkt ID {} dump:", event->pkt->id);
@@ -223,7 +225,7 @@ void Simulation::flushRemainingNormalPkts(){
         pktevent_p<normalpkt_p> event = *it;
 
         // Dump the pkt with INT data to the disk
-        syndbSim.pktDumper.dumpPacket(event->pkt);
+        syndbSim.pktDumper->dumpPacket(event->pkt);
 
         #ifdef DEBUG
         /* debug_print_yellow("\nPkt ID {} dump:", event->pkt->id);
@@ -251,7 +253,7 @@ void Simulation::logTriggerInfoMap(){
         originSwitch = it1->second.originSwitch;
         SwitchType switchType = syndbSim.topo->getSwitchTypeById(originSwitch);
 
-        syndbSim.pktDumper.dumpTriggerInfo(triggerId, it1->second, switchType);
+        syndbSim.pktDumper->dumpTriggerInfo(triggerId, it1->second, switchType);
 
         /* Below code is only for debugging. TODO: comment out later. */
 

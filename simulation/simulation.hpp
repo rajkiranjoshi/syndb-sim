@@ -31,7 +31,7 @@ typedef struct Simulation
 
     std::shared_ptr<TriggerGenerator> triggerGen;
 
-    PktDumper pktDumper;
+    std::unique_ptr<PktDumper> pktDumper;
 
     Simulation(); // default constructor
     
