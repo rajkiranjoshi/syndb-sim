@@ -1,4 +1,5 @@
 #include <stdexcept>
+#include <chrono>
 #include <fmt/core.h>
 #include "topology/switch.hpp"
 #include "utils/logger.hpp"
@@ -11,6 +12,13 @@
 Switch::Switch(switch_id_t id){
     this->id = id;
     this->hop_delay = syndbConfig.switchHopDelayNs;
+
+    #if HOP_DELAY_NOISE
+    uint64_t seed = std::chrono::high_resolution_clock::now().time_since_epoch().count();
+    std::default_random_engine generator(seed);
+    std::uniform_int_distribution<int> hopDelayDist(syndbConfig.minSwitchHopDelayNs, syndbConfig.maxSwitchHopDelayNs);
+    this->getRandomHopDelay = std::bind(hopDelayDist, generator);
+    #endif
 }
 
 
@@ -78,10 +86,17 @@ syndb_status_t Switch::scheduleToNextHopSwitch(const pkt_size_t pktsize, const s
 
 void Switch::schedulePkt(const pkt_size_t pktsize, const sim_time_t pktArrivalTime, const link_speed_gbps_t linkSpeed, sim_time_t &qNextIdleTime, byte_count_t &byteCount){
     
-    sim_time_t pktSendTime, timeAfterSwitchHop, pktNextSerializeStartTime;
+    sim_time_t pktSendTime, timeAfterSwitchHop, pktNextSerializeStartTime, hopDelay; 
+
+    #if HOP_DELAY_NOISE
+    hopDelay = this->getRandomHopDelay();
+    ndebug_print("[Switch {}]: {}ns", this->id, hopDelay);
+    #else
+    hopDelay = this->hop_delay;
+    #endif
 
     // *earliest* time when we can start serialization on the link
-    timeAfterSwitchHop = pktArrivalTime + this->hop_delay;
+    timeAfterSwitchHop = pktArrivalTime + hopDelay;
 
     // *actual* time when we can start serialization assuming FIFO queuing on the next link
     pktNextSerializeStartTime = std::max<sim_time_t>(timeAfterSwitchHop, qNextIdleTime);

@@ -5,14 +5,13 @@
 #include <cassert>
 #include "utils/types.hpp"
 
-#ifndef LOGGING
 #define LOGGING 0 
-#endif
+#define HOP_DELAY_NOISE 1
 
 typedef struct Config 
 {
     static const sim_time_t timeIncrementNs = 100;
-    const float totalTimeMSecs = 0.3;
+    const float totalTimeMSecs = 0.1;
 
     // IMPORTANT: update numHosts and numSwitches as per the topology
     
@@ -35,7 +34,7 @@ typedef struct Config
     const TrafficGenType trafficGenType = TrafficGenType::Continuous;
     const pkt_size_t fixedPktSizeForSimpleTrafficGen = 1500;
 
-    static const uint numTriggersPerSwitchType = 15;
+    static const uint numTriggersPerSwitchType = 5;
 
 
     const link_speed_gbps_t torLinkSpeedGbps = 100;
@@ -44,6 +43,8 @@ typedef struct Config
     const load_t hostTrafficGenLoadPercent = 100;
 
     const sim_time_t switchHopDelayNs = 1000;
+    const sim_time_t minSwitchHopDelayNs = 950;
+    const sim_time_t maxSwitchHopDelayNs = 1050;
 
     // SyNDB specific config options
     static const uint32_t ringBufferSize = 100; // large size for simulation "oracle"

@@ -4,6 +4,7 @@
 #include <memory>
 #include <unordered_map>
 #include <set>
+#include <functional>
 #include <fmt/core.h>
 #include "utils/types.hpp"
 #include "topology/link.hpp"
@@ -50,6 +51,7 @@ struct Switch
     sim_time_t hop_delay;
     neighbor_switch_table_t neighborSwitchTable;
     neighbor_host_table_t neighborHostTable;
+    std::function<int()> getRandomHopDelay;
 
     /* SyNDB specific members */
     RingBuffer ringBuffer;
