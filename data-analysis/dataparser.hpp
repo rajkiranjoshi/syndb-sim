@@ -4,7 +4,7 @@
 #include <fstream>
 #include <vector>
 #include <map>
-#include "types.hpp"
+#include "utils/types.hpp"
 
 struct PacketInfo {
     pkt_id_t id;
