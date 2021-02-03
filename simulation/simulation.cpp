@@ -311,16 +311,32 @@ void Simulation::logTriggerInfoMap(){
 
 void Simulation::showLinkUtilizations(){
 
-    ndebug_print_yellow("Utilization on ToR links:");
+    double util_to_tor, util_to_host;
+    double util1, util2;
+    double percent_util1, percent_util2;
+    double percent_util_to_tor, percent_util_to_host;
+    double torLinksPercentUtilSum = 0;
+    double networkLinksPercentUtilSum = 0;
+    link_id_t numTorLinks = 0; 
+    link_id_t numNetworkLinks = 0; 
+
+    debug_print_yellow("Utilization on ToR links:");
     for(auto it = syndbSim.topo->torLinkVector.begin(); it != syndbSim.topo->torLinkVector.end(); it++){
         
-        double util_to_tor = (double)((*it)->byte_count_to_tor * 8) / syndbSim.totalTime;
-        double util_to_host = (double)((*it)->byte_count_to_host * 8) / syndbSim.totalTime;
+        util_to_tor = (double)((*it)->byte_count_to_tor * 8) / syndbSim.totalTime;
+        util_to_host = (double)((*it)->byte_count_to_host * 8) / syndbSim.totalTime;
 
-        ndebug_print("Link ID {}: towards host: {} | towards tor: {}", (*it)->id, util_to_tor, util_to_tor);
+        percent_util_to_tor = (util_to_tor / syndbConfig.torLinkSpeedGbps) * 100.0;
+        percent_util_to_host = (util_to_host / syndbConfig.torLinkSpeedGbps) * 100.0;
+
+        debug_print("Link ID {}: towards host: {} | towards tor: {}", (*it)->id, percent_util_to_host, percent_util_to_tor);
+
+        torLinksPercentUtilSum += percent_util_to_tor;
+        torLinksPercentUtilSum += percent_util_to_host;
+        numTorLinks += 2;
     }
 
-    ndebug_print_yellow("Utilization on Network links:");
+    debug_print_yellow("Utilization on Network links:");
     for(auto it = syndbSim.topo->networkLinkVector.begin(); it != syndbSim.topo->networkLinkVector.end(); it++){
         
         auto map = (*it)->byte_count;
@@ -332,14 +348,26 @@ void Simulation::showLinkUtilizations(){
         switch_id_t sw2 = it_byte_count->first;
         byte_count_t byteCount2 = it_byte_count->second;
 
-        double util1 = (double)(byteCount1 * 8) / syndbSim.totalTime;
-        double util2 = (double)(byteCount2 * 8) / syndbSim.totalTime;
+        util1 = (double)(byteCount1 * 8) / syndbSim.totalTime;
+        util2 = (double)(byteCount2 * 8) / syndbSim.totalTime;
 
-        ndebug_print("Link ID {}: towards sw{}: {} | towards sw{}: {}", (*it)->id, sw1, util1, sw2, util2);
+        percent_util1 = (util1 / syndbConfig.networkLinkSpeedGbps) * 100.0;
+        percent_util2 = (util2 / syndbConfig.networkLinkSpeedGbps) * 100.0;
+
+        debug_print("Link ID {}: towards sw{}: {} | towards sw{}: {}", (*it)->id, sw1, util1, sw2, util2);
+
+        networkLinksPercentUtilSum += percent_util1;
+        networkLinksPercentUtilSum += percent_util2;
+        numNetworkLinks += 2;
     }
 
+    ndebug_print_yellow("#####  Network load summary  #####");
+    ndebug_print("ToR Links: {}", torLinksPercentUtilSum / numTorLinks);
+    ndebug_print("Network Links: {}", networkLinksPercentUtilSum / numNetworkLinks);
 
 }
+
+
 void Simulation::cleanUp(){
     
     // Why this is needed? When std::list is destroyed, if its members are pointers, only the pointers are destroyed, not the objects pointed by the pointers.
