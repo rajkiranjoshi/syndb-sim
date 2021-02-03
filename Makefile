@@ -15,11 +15,20 @@ SOURCES = $(wildcard $(CURR_DIR)/*.cpp) \
 		  $(wildcard $(CURR_DIR)/simulation/*.cpp) \
 		  $(wildcard $(CURR_DIR)/devtests/*.cpp)
 
+ANALYSIS_SOURCES = $(wildcard $(CURR_DIR)/data-analysis/*.cpp)
+
 OBJECTS = $(patsubst $(CURR_DIR)/%,$(BUILDDIR)/%,$(SOURCES:.cpp=.o))
 DEPENDS = $(patsubst $(CURR_DIR)/%,$(BUILDDIR)/%,$(SOURCES:.cpp=.d))
 
+ANALYSIS_OBJECTS = $(patsubst $(CURR_DIR)/%,$(BUILDDIR)/%,$(ANALYSIS_SOURCES:.cpp=.o))
+ANALYSIS_DEPENDS = $(patsubst $(CURR_DIR)/%,$(BUILDDIR)/%,$(ANALYSIS_SOURCES:.cpp=.d))
+
 RELEASE_BINARY := syndb-sim
 DEBUG_BINARY := syndb-sim-debug
+
+ANALYSIS_RELEASE_BINARY := syndb-analysis
+ANALYSIS_DEBUG_BINARY := syndb-analysis-debug
+
 
 LIB_BOOST_LOG := 
 
@@ -42,9 +51,11 @@ LDLIBS = -l$(LIB_BOOST_LOG) \
 ifeq ($(CONFIG), release)
 CXXFLAGS += -O3
 OUTPUT_BINARY := $(RELEASE_BINARY)
+ANALYSIS_BINARY := $(ANALYSIS_RELEASE_BINARY)
 else
 CXXFLAGS += -O0 -g3 -DDEBUG
 OUTPUT_BINARY := $(DEBUG_BINARY)
+ANALYSIS_BINARY := $(ANALYSIS_DEBUG_BINARY)
 endif
 
 
@@ -52,17 +63,24 @@ endif
 
 all: $(OUTPUT_BINARY)
 
+analysis: $(ANALYSIS_BINARY)
+
 clean:
 	@$(RM) -rf $(BUILDDIR)
 	@$(RM) $(OUTPUT_BINARY)
+	@$(RM) $(ANALYSIS_BINARY)
 
 cleaner:
 	@$(RM) -rf $(BASE_BUILDDIR)
 	@$(RM) $(RELEASE_BINARY) $(DEBUG_BINARY)
+	@$(RM) $(ANALYSIS_RELEASE_BINARY) $(ANALYSIS_DEBUG_BINARY)
 
 
 # Linking the executable from the object files
 $(OUTPUT_BINARY): $(OBJECTS)
+	$(CXX) $(CXXFLAGS) $^ -o $@ $(LDLIBS)
+
+$(ANALYSIS_BINARY): $(ANALYSIS_OBJECTS)
 	$(CXX) $(CXXFLAGS) $^ -o $@ $(LDLIBS)
 
 -include $(DEPENDS)
