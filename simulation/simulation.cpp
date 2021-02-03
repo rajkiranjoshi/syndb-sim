@@ -66,6 +66,13 @@ void Simulation::generateHostPktEvents(){
 
     for(auto it = this->topo->hostIDMap.begin(); it != this->topo->hostIDMap.end(); it++){
         host_p host = it->second;
+
+        #ifdef DEBUG
+        // Just for debug case when trafficGen is disabled
+        if (host->trafficGenDisabled)
+            continue;
+            
+        #endif
         
         while(host->nextPktTime <= syndbSim.currTime + syndbSim.timeIncrement){
             // Use the next scheduled packet on the host to create hostPktEvent
