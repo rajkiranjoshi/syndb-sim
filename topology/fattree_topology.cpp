@@ -3,16 +3,8 @@
 
 void Pod::buildPod(){
 
-    // Initialize the Aggr switches
-    racklocal_host_id_t localHostId = 0;
-    auto aggr_it = this->aggrSwitches.begin();
-    for(aggr_it; aggr_it != this->aggrSwitches.end(); aggr_it++){
-        *aggr_it = parentTopo.createNewSwitch(SwitchType::FtAggr);
-        std::dynamic_pointer_cast<SwitchFtAggr>(*aggr_it)->podId = this->id;
-    }
-
-
-    // Construct the racks and connect them to Aggr switches
+   
+    // Construct the racks
     auto tor_it = this->torSwitches.begin();
     for(tor_it; tor_it != this->torSwitches.end(); tor_it++){
         
@@ -28,14 +20,22 @@ void Pod::buildPod(){
             parentTopo.addHostToTor(h, *tor_it);
         }
 
-        // connect the ToR switch to the Aggr switches
-        auto aggr_it = this->aggrSwitches.begin();
-        for(aggr_it; aggr_it != this->aggrSwitches.end(); aggr_it++){
+    } // end of tor_it loop
+
+     // Initialize the Aggr switches
+    // racklocal_host_id_t localHostId = 0;
+    auto aggr_it = this->aggrSwitches.begin();
+    for(aggr_it; aggr_it != this->aggrSwitches.end(); aggr_it++){
+        *aggr_it = parentTopo.createNewSwitch(SwitchType::FtAggr);
+        std::dynamic_pointer_cast<SwitchFtAggr>(*aggr_it)->podId = this->id;
+
+        // connect the Aggr switch to the ToR switches
+        auto tor_it = this->torSwitches.begin();
+        for(tor_it; tor_it != this->torSwitches.end(); tor_it++){
             // Adds links, updates neighborSwitch tables on both the switches
             parentTopo.connectSwitchToSwitch(*tor_it, *aggr_it);
         }
-
-    } // end of tor_it loop
+    }
 
     
     // Populate routing tables for the ToR switches
