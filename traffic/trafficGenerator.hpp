@@ -1,6 +1,7 @@
 #ifndef TRAFFICGEN_H
 #define TRAFFICGEN_H
 
+#include <fstream>
 #include "utils/types.hpp"
 #include "traffic/packet.hpp"
 #include "randomGenCDF.hpp"
@@ -22,7 +23,9 @@ struct TrafficGenerator
     link_speed_gbps_t torLinkSpeed;
     load_t load;
     host_id_t parentHostId;
+    // std::fstream interPktGapFile;
 
+    ~TrafficGenerator();
     TrafficGenerator(link_speed_gbps_t linkSpeed, load_t load, host_id_t hostId);
     virtual packetInfo getNextPacket() = 0;
     virtual int loadTrafficDistribution(std::string packetsizeDistFile, std::string flowarrivalDistFile) = 0;
