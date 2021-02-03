@@ -170,7 +170,9 @@ void Simulation::processNormalPktEvents(){
                 event->pkt->endTime = event->pktForwardTime;
 
                 // Dump the pkt with INT data to the disk
+                #if LOGGING
                 syndbSim.pktDumper->dumpPacket(event->pkt);
+                #endif
 
                 #ifdef DEBUG
                 /* debug_print_yellow("\nPkt ID {} dump:", event->pkt->id);
@@ -225,7 +227,10 @@ void Simulation::flushRemainingNormalPkts(){
         pktevent_p<normalpkt_p> event = *it;
 
         // Dump the pkt with INT data to the disk
+        #if LOGGING
         syndbSim.pktDumper->dumpPacket(event->pkt);
+        #endif
+
 
         #ifdef DEBUG
         /* debug_print_yellow("\nPkt ID {} dump:", event->pkt->id);
@@ -253,7 +258,9 @@ void Simulation::logTriggerInfoMap(){
         originSwitch = it1->second.originSwitch;
         SwitchType switchType = syndbSim.topo->getSwitchTypeById(originSwitch);
 
+        #if LOGGING
         syndbSim.pktDumper->dumpTriggerInfo(triggerId, it1->second, switchType);
+        #endif
 
         /* Below code is only for debugging. TODO: comment out later. */
 
