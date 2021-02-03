@@ -14,6 +14,12 @@ PktEvent<T>::~PktEvent(){
     // debug_print(fmt::format("Event with packet id {} destructed!", this->pkt->id));
 }
 
+
+HostPktEvent::HostPktEvent(host_p host, normalpkt_p pkt){
+    this->host = host;
+    this->pkt = pkt;
+}
+
 /* 
     To avoid linking error for the template's methods,
     instantiating the template class with the two possible types

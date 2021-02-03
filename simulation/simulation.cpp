@@ -57,23 +57,52 @@ void Simulation::initHosts(){
     
 }
 
-void Simulation::processHosts(){
+void Simulation::generateHostPktEvents(){
+    
+    // HostPktEventList MUST be empty
+    assert((this->HostPktEventList.size() == 0) && "HostPktEventList is NOT empty!");
 
-    // debug_print_yellow("Inside process hosts");
-    // debug_print("Num hosts: {}", this->topo->hostIDMap.size());
-
-    auto it = this->topo->hostIDMap.begin();
-
-    while (it != this->topo->hostIDMap.end() )
-    {
-        host_p h = it->second;
-
-        if(this->currTime >= h->nextPktTime){
-            h->sendPkt();
-        }
+    for(auto it = this->topo->hostIDMap.begin(); it != this->topo->hostIDMap.end(); it++){
+        host_p host = it->second;
         
+        while(host->nextPktTime <= syndbSim.currTime + syndbSim.timeIncrement){
+            // Use the next scheduled packet on the host to create hostPktEvent
+            hostpktevent_p hostPktEvent = hostpktevent_p(new HostPktEvent(host, host->nextPkt));
 
-        it++;
+            // Insert the hostPktEvent into the map (sorted list)
+            this->HostPktEventList.insert(std::pair<sim_time_t, hostpktevent_p>(host->nextPktTime,hostPktEvent));
+
+            // Generate next scheduled packet on the host
+            host->generateNextPkt();
+        }
+
+    }
+
+}
+
+void Simulation::processHostPktEvents(){
+
+    normalpkt_p nextPkt;
+    sim_time_t nextPktTime;
+    host_p host;
+
+    auto it = this->HostPktEventList.begin();
+
+    while (it != this->HostPktEventList.end() )
+    {
+        nextPktTime = it->first;
+        host = it->second->host;
+        nextPkt = it->second->pkt;
+
+        if(this->currTime < nextPktTime){
+            std::string msg = fmt::format("Currtime: {}ns. HostPktEventList has pkt with nextPktTime {}ns", this->currTime, nextPktTime);
+            throw std::logic_error(msg);
+        }
+
+        host->sendPkt(nextPkt, nextPktTime);
+
+        it = this->HostPktEventList.erase(it); // erase and increment iterator
+
     }
 }
 
@@ -260,11 +289,8 @@ void Simulation::logTriggerInfoMap(){
 
         #if LOGGING
         syndbSim.pktDumper->dumpTriggerInfo(triggerId, it1->second, switchType);
-        #endif
-
+        #else
         /* Below code is only for debugging. TODO: comment out later. */
-
-        
         triggerOriginTime = it1->second.triggerOrigTime;
         
         
@@ -277,6 +303,8 @@ void Simulation::logTriggerInfoMap(){
 
             ndebug_print("{} --> {}: {}ns", originSwitch, rxSwitch, rxTime - triggerOriginTime);
         } // end of iterating over rxSwitchTimes
+        #endif
+
 
     } // end of iterating over TriggerPktLatencyMap
 }

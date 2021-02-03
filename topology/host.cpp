@@ -75,40 +75,37 @@ void Host::generateNextPkt(){
 
 }
 
-void Host::sendPkt(){
+void Host::sendPkt(normalpkt_p nextPkt, sim_time_t nextPktTime){
     
     routeScheduleInfo rsinfo;
 
     if(this->trafficGenDisabled)
         return;
-    else if (this->nextPkt->dstHost == this->id){ // loopback pkt
+    else if (nextPkt->dstHost == this->id){ // loopback pkt
         return;
     }
     
     // For quick testing of AlltoAll traffic pattern
-    // ndebug_print("sendPkt(): {} --> {}", this->id, this->nextPkt->dstHost);
+    // ndebug_print("sendPkt(): {} --> {}", this->id, nextPkt->dstHost);
 
     // Step 1: Pass the pkt to ToR for its own processing
-    this->torSwitch->receiveNormalPkt(this->nextPkt, this->nextPktTime); // can parallelize switch's processing?
+    this->torSwitch->receiveNormalPkt(nextPkt, nextPktTime); // can parallelize switch's processing?
 
-    // Step 2: Call the routing on the ToR switch to get rsinfo
-    syndb_status_t s = this->torSwitch->routeScheduleNormalPkt(this->nextPkt, this->nextPktTime, rsinfo); 
+    // Step 2: Call the routing + scheduling on the ToR switch to get rsinfo
+    syndb_status_t s = this->torSwitch->routeScheduleNormalPkt(nextPkt, nextPktTime, rsinfo); 
 
     if(s != syndb_status_t::success){
-        std::string msg = fmt::format("Host {} failed to send Pkt to host {} since routing on the ToR failed!", this->id, this->nextPkt->dstHost);
+        std::string msg = fmt::format("Host {} failed to send Pkt to host {} since routing on the ToR failed!", this->id, nextPkt->dstHost);
         throw std::logic_error(msg);
     }
 
     // Create, fill and add a new normal pkt event
     pktevent_p<normalpkt_p> newPktEvent = pktevent_p<normalpkt_p>(new PktEvent<normalpkt_p>());
-    newPktEvent->pkt = this->nextPkt;
+    newPktEvent->pkt = nextPkt;
     newPktEvent->pktForwardTime = rsinfo.pktNextForwardTime;
     newPktEvent->currSwitch = this->torSwitch;
     newPktEvent->nextSwitch = rsinfo.nextSwitch;
 
     syndbSim.NormalPktEventList.push_front(newPktEvent);
-
-    // Generate next pkt to send from the host
-    this->generateNextPkt();
 
 }
