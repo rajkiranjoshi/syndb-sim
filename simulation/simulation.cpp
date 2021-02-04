@@ -26,6 +26,10 @@ Simulation::Simulation(){
     this->nextPktId = 0;
     this->nextTriggerPktId = 0;
 
+    #if LOGGING
+    this->pktDumper = std::unique_ptr<PktDumper>(new PktDumper(syndbConfig.numSwitches, syndbConfig.numHosts));
+    #endif
+    
 }
 
 void Simulation::initTriggerGen(){
@@ -46,6 +50,11 @@ void Simulation::initHosts(){
     while (it != this->topo->hostIDMap.end() )
     {
         host_p h = it->second;
+
+        if(syndbConfig.trafficPatternType == TrafficPatternType::FtMixed){
+            std::dynamic_pointer_cast<FtMixedTrafficPattern>(h->trafficPattern)->initTopoInfo();
+        }
+
         h->generateNextPkt();
 
         it++;
@@ -55,23 +64,59 @@ void Simulation::initHosts(){
     
 }
 
-void Simulation::processHosts(){
+void Simulation::generateHostPktEvents(){
+    
+    // HostPktEventList MUST be empty
+    assert((this->HostPktEventList.size() == 0) && "HostPktEventList is NOT empty!");
 
-    // debug_print_yellow("Inside process hosts");
-    // debug_print("Num hosts: {}", this->topo->hostIDMap.size());
+    for(auto it = this->topo->hostIDMap.begin(); it != this->topo->hostIDMap.end(); it++){
+        host_p host = it->second;
 
-    auto it = this->topo->hostIDMap.begin();
-
-    while (it != this->topo->hostIDMap.end() )
-    {
-        host_p h = it->second;
-
-        if(this->currTime >= h->nextPktTime){
-            h->sendPkt();
-        }
+        #ifdef DEBUG
+        // Just for debug case when trafficGen is disabled
+        if (host->trafficGenDisabled)
+            continue;
+            
+        #endif
         
+        while(host->nextPktTime <= syndbSim.currTime + syndbSim.timeIncrement){
+            // Use the next scheduled packet on the host to create hostPktEvent
+            hostpktevent_p hostPktEvent = hostpktevent_p(new HostPktEvent(host, host->nextPkt));
 
-        it++;
+            // Insert the hostPktEvent into the map (sorted list)
+            this->HostPktEventList.insert(std::pair<sim_time_t, hostpktevent_p>(host->nextPktTime,hostPktEvent));
+
+            // Generate next scheduled packet on the host
+            host->generateNextPkt();
+        }
+
+    }
+
+}
+
+void Simulation::processHostPktEvents(){
+
+    normalpkt_p nextPkt;
+    sim_time_t nextPktTime;
+    host_p host;
+
+    auto it = this->HostPktEventList.begin();
+
+    while (it != this->HostPktEventList.end() )
+    {
+        nextPktTime = it->first;
+        host = it->second->host;
+        nextPkt = it->second->pkt;
+
+        if(this->currTime < nextPktTime){
+            std::string msg = fmt::format("Currtime: {}ns. HostPktEventList has pkt with nextPktTime {}ns", this->currTime, nextPktTime);
+            throw std::logic_error(msg);
+        }
+
+        host->sendPkt(nextPkt, nextPktTime);
+
+        it = this->HostPktEventList.erase(it); // erase and increment iterator
+
     }
 }
 
@@ -168,15 +213,17 @@ void Simulation::processNormalPktEvents(){
                 event->pkt->endTime = event->pktForwardTime;
 
                 // Dump the pkt with INT data to the disk
-                syndbSim.pktDumper.dumpPacket(event->pkt);
+                #if LOGGING
+                syndbSim.pktDumper->dumpPacket(event->pkt);
+                #endif
 
                 #ifdef DEBUG
-                /* debug_print_yellow("\nPkt ID {} dump:", event->pkt->id);
+                debug_print_yellow("\nPkt ID {} dump:", event->pkt->id);
                 debug_print("h{} --> h{}: {} ns (Start: {} ns | End: {} ns)", event->pkt->srcHost, event->pkt->dstHost, event->pkt->endTime - event->pkt->startTime, event->pkt->startTime, event->pkt->endTime);
                 auto it1 = event->pkt->switchINTInfoList.begin();
                 for(it1; it1 != event->pkt->switchINTInfoList.end(); it1++){
                     debug_print("Rx on s{} at {} ns", it1->swId, it1->rxTime);
-                } */
+                }
                 #endif
             }
             // Handling the case that the next hop is a switch (intermediate or dstTor)
@@ -223,7 +270,10 @@ void Simulation::flushRemainingNormalPkts(){
         pktevent_p<normalpkt_p> event = *it;
 
         // Dump the pkt with INT data to the disk
-        syndbSim.pktDumper.dumpPacket(event->pkt);
+        #if LOGGING
+        syndbSim.pktDumper->dumpPacket(event->pkt);
+        #endif
+
 
         #ifdef DEBUG
         /* debug_print_yellow("\nPkt ID {} dump:", event->pkt->id);
@@ -237,7 +287,7 @@ void Simulation::flushRemainingNormalPkts(){
 
 }
 
-void Simulation::dumpTriggerInfoMap(){
+void Simulation::logTriggerInfoMap(){
     sim_time_t triggerOriginTime, rxTime; 
     trigger_id_t triggerId;
     switch_id_t originSwitch, rxSwitch;
@@ -251,11 +301,10 @@ void Simulation::dumpTriggerInfoMap(){
         originSwitch = it1->second.originSwitch;
         SwitchType switchType = syndbSim.topo->getSwitchTypeById(originSwitch);
 
-        syndbSim.pktDumper.dumpTriggerInfo(triggerId, it1->second, switchType);
-
+        #if LOGGING
+        syndbSim.pktDumper->dumpTriggerInfo(triggerId, it1->second, switchType);
+        #else
         /* Below code is only for debugging. TODO: comment out later. */
-
-        
         triggerOriginTime = it1->second.triggerOrigTime;
         
         
@@ -268,8 +317,68 @@ void Simulation::dumpTriggerInfoMap(){
 
             ndebug_print("{} --> {}: {}ns", originSwitch, rxSwitch, rxTime - triggerOriginTime);
         } // end of iterating over rxSwitchTimes
+        #endif
+
 
     } // end of iterating over TriggerPktLatencyMap
+}
+
+void Simulation::showLinkUtilizations(){
+
+    double util_to_tor, util_to_host;
+    double util1, util2;
+    double percent_util1, percent_util2;
+    double percent_util_to_tor, percent_util_to_host;
+    double torLinksPercentUtilSum = 0;
+    double networkLinksPercentUtilSum = 0;
+    link_id_t numTorLinks = 0; 
+    link_id_t numNetworkLinks = 0; 
+
+    debug_print_yellow("Utilization on ToR links:");
+    for(auto it = syndbSim.topo->torLinkVector.begin(); it != syndbSim.topo->torLinkVector.end(); it++){
+        
+        util_to_tor = (double)((*it)->byte_count_to_tor * 8) / syndbSim.totalTime;
+        util_to_host = (double)((*it)->byte_count_to_host * 8) / syndbSim.totalTime;
+
+        percent_util_to_tor = (util_to_tor / syndbConfig.torLinkSpeedGbps) * 100.0;
+        percent_util_to_host = (util_to_host / syndbConfig.torLinkSpeedGbps) * 100.0;
+
+        debug_print("Link ID {}: towards host: {} | towards tor: {}", (*it)->id, percent_util_to_host, percent_util_to_tor);
+
+        torLinksPercentUtilSum += percent_util_to_tor;
+        torLinksPercentUtilSum += percent_util_to_host;
+        numTorLinks += 2;
+    }
+
+    debug_print_yellow("Utilization on Network links:");
+    for(auto it = syndbSim.topo->networkLinkVector.begin(); it != syndbSim.topo->networkLinkVector.end(); it++){
+        
+        auto map = (*it)->byte_count;
+        auto it_byte_count = map.begin();
+
+        switch_id_t sw1 = it_byte_count->first;
+        byte_count_t byteCount1 = it_byte_count->second;
+        it_byte_count++;
+        switch_id_t sw2 = it_byte_count->first;
+        byte_count_t byteCount2 = it_byte_count->second;
+
+        util1 = (double)(byteCount1 * 8) / syndbSim.totalTime;
+        util2 = (double)(byteCount2 * 8) / syndbSim.totalTime;
+
+        percent_util1 = (util1 / syndbConfig.networkLinkSpeedGbps) * 100.0;
+        percent_util2 = (util2 / syndbConfig.networkLinkSpeedGbps) * 100.0;
+
+        debug_print("Link ID {}: towards sw{}: {} | towards sw{}: {}", (*it)->id, sw1, util1, sw2, util2);
+
+        networkLinksPercentUtilSum += percent_util1;
+        networkLinksPercentUtilSum += percent_util2;
+        numNetworkLinks += 2;
+    }
+
+    ndebug_print_yellow("#####  Network load summary  #####");
+    ndebug_print("ToR Links: {}", torLinksPercentUtilSum / numTorLinks);
+    ndebug_print("Network Links: {}", networkLinksPercentUtilSum / numNetworkLinks);
+
 }
 
 

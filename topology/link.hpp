@@ -19,8 +19,9 @@ typedef struct Link
 /* NetworkLink struct */
 typedef struct NetworkLink : Link
 {
-    std::unordered_map<sim_time_t, sim_time_t> next_idle_time;
-    std::unordered_map<sim_time_t, sim_time_t> next_idle_time_priority;
+    std::unordered_map<switch_id_t, sim_time_t> next_idle_time;
+    std::unordered_map<switch_id_t, sim_time_t> next_idle_time_priority;
+    std::unordered_map<switch_id_t, byte_count_t> byte_count;
 
     NetworkLink(link_id_t id, link_speed_gbps_t speed, switch_id_t sw1, switch_id_t sw2);
 
@@ -30,6 +31,8 @@ typedef struct HostTorLink : Link
 {
     sim_time_t next_idle_time_to_tor;
     sim_time_t next_idle_time_to_host;
+    byte_count_t byte_count_to_tor;
+    byte_count_t byte_count_to_host;
 
     HostTorLink(link_id_t id, link_speed_gbps_t speed);
 } HostTorLink;
@@ -37,9 +40,5 @@ typedef struct HostTorLink : Link
 /* Shared pointer to a Link struct object */
 typedef std::shared_ptr<NetworkLink> network_link_p;
 typedef std::shared_ptr<HostTorLink> host_tor_link_p;
-
-
-
-
 
 #endif

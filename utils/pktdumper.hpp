@@ -2,6 +2,10 @@
 #define PACKETDUMPER_H
 
 #include <map>
+#include <vector>
+#include <ctime>
+#include <fstream>
+#include <time.h>
 #include "traffic/packet.hpp"
 #include "topology/switch.hpp"
 
@@ -13,7 +17,15 @@ struct triggerInfo {
 
 typedef struct PktDumper
 {
-    /* data */
+    std::string prefixStringForFileName;
+
+    std::fstream triggerFilePointer;
+    std::vector<std::fstream> switchFilePointers;
+    std::vector<std::fstream> hostFilePointers;
+
+    ~PktDumper();
+    PktDumper() = default;
+    PktDumper(switch_id_t numberOfSwitches, host_id_t numberOfHosts);
 
     void dumpPacket(normalpkt_p pkt);
     void dumpTriggerInfo(trigger_id_t triggerId, triggerInfo tinfo, SwitchType switchType);

@@ -19,6 +19,7 @@ typedef uint16_t switch_id_t;
 /* Link Related Types */
 typedef uint8_t link_speed_gbps_t;
 typedef uint32_t link_id_t;
+typedef uint64_t byte_count_t;
 
 /* TrafficGen Related Types */
 typedef uint8_t load_t;
@@ -41,7 +42,8 @@ typedef union {
 enum class syndb_status_t {success, failure};
 
 enum class TopologyType {Simple, FatTree}; 
-enum class TrafficPatternType {SimpleTopo, AlltoAll, FtUniform};
+enum class TrafficPatternType {SimpleTopo, AlltoAll, FtUniform, FtMixed};
 enum class TrafficGenType {Continuous, Distribution};
+enum class TrafficDstType {IntraRack, InterRack};
 
 #endif

@@ -1,4 +1,5 @@
 #include <random>
+#include <chrono>
 #include <functional>
 #include "simulation/simulation.hpp"
 #include "traffic/triggerGenerator.hpp"
@@ -27,7 +28,8 @@ TriggerGenerator::TriggerGenerator(sim_time_t switchToSwitchOWD, uint16_t totalT
 
     sim_time_t totalExtraTime = availableTime - ((this->totalTriggers + 1) * this->baseIncrement);
     sim_time_t extraTimePerTrigger = totalExtraTime / this->totalTriggers;
-    std::default_random_engine generator(std::random_device{}());
+    uint64_t seed = std::chrono::high_resolution_clock::now().time_since_epoch().count();
+    std::default_random_engine generator(seed);
     std::uniform_int_distribution<int> extraTimeDist(0, extraTimePerTrigger);
     this->getRandomExtraTime = std::bind(extraTimeDist, generator);
 
@@ -63,7 +65,8 @@ TriggerGeneratorSimpleTopo::TriggerGeneratorSimpleTopo():TriggerGenerator::Trigg
     sim_time_t nextTime;
     switch_id_t nextSwitch;
 
-    std::default_random_engine generator(std::random_device{}());
+    uint64_t seed = std::chrono::high_resolution_clock::now().time_since_epoch().count();
+    std::default_random_engine generator(seed);
     std::uniform_int_distribution<int> switchSelectDist(0, syndbSim.topo->nextSwitchId-1);
     auto getRandomSwitchId = std::bind(switchSelectDist, std::ref(generator));
 
@@ -119,7 +122,8 @@ TriggerGeneratorFatTreeTopo::TriggerGeneratorFatTreeTopo():TriggerGenerator::Tri
     sim_time_t nextTime;
     switch_id_t nextSwitch;
 
-    std::default_random_engine generator(std::random_device{}());
+    uint64_t seed = std::chrono::high_resolution_clock::now().time_since_epoch().count();
+    std::default_random_engine generator(seed);
     std::uniform_int_distribution<int> torSelectDist(0, torSwitches.size()-1);
     std::uniform_int_distribution<int> aggrSelectDist(0, aggrSwitches.size()-1);
     std::uniform_int_distribution<int> coreSelectDist(0, coreSwitches.size()-1);
