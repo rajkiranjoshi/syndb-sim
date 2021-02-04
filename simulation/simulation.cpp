@@ -29,7 +29,7 @@ Simulation::Simulation(){
     #if LOGGING
     this->pktDumper = std::unique_ptr<PktDumper>(new PktDumper(syndbConfig.numSwitches, syndbConfig.numHosts));
     #endif
-
+    
 }
 
 void Simulation::initTriggerGen(){
@@ -50,6 +50,11 @@ void Simulation::initHosts(){
     while (it != this->topo->hostIDMap.end() )
     {
         host_p h = it->second;
+
+        if(syndbConfig.trafficPatternType == TrafficPatternType::FtMixed){
+            std::dynamic_pointer_cast<FtMixedTrafficPattern>(h->trafficPattern)->initTopoInfo();
+        }
+
         h->generateNextPkt();
 
         it++;
@@ -213,12 +218,12 @@ void Simulation::processNormalPktEvents(){
                 #endif
 
                 #ifdef DEBUG
-                /* debug_print_yellow("\nPkt ID {} dump:", event->pkt->id);
+                debug_print_yellow("\nPkt ID {} dump:", event->pkt->id);
                 debug_print("h{} --> h{}: {} ns (Start: {} ns | End: {} ns)", event->pkt->srcHost, event->pkt->dstHost, event->pkt->endTime - event->pkt->startTime, event->pkt->startTime, event->pkt->endTime);
                 auto it1 = event->pkt->switchINTInfoList.begin();
                 for(it1; it1 != event->pkt->switchINTInfoList.end(); it1++){
                     debug_print("Rx on s{} at {} ns", it1->swId, it1->rxTime);
-                } */
+                }
                 #endif
             }
             // Handling the case that the next hop is a switch (intermediate or dstTor)

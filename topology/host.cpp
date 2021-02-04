@@ -34,6 +34,9 @@ Host::Host(host_id_t id, bool disableTrafficGen){
         case TrafficPatternType::FtUniform:
             this->trafficPattern = std::shared_ptr<TrafficPattern>(new FtUniformTrafficPattern(this->id));
             break;
+        case TrafficPatternType::FtMixed:
+            this->trafficPattern = std::shared_ptr<TrafficPattern>(new FtMixedTrafficPattern(this->id));
+            break;
         default:
             std::string msg = fmt::format("Host constructor failed. No way to initialize the specified traffic pattern: {}", syndbConfig.trafficPatternType);
             throw std::logic_error(msg);
