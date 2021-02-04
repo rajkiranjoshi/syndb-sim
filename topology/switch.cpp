@@ -14,11 +14,16 @@ Switch::Switch(switch_id_t id){
     this->hop_delay = syndbConfig.switchHopDelayNs;
 
     #if HOP_DELAY_NOISE
+    this->hop_delay_variation = syndbConfig.maxSwitchHopDelayNs - syndbConfig.minSwitchHopDelayNs;
     uint64_t seed = std::chrono::high_resolution_clock::now().time_since_epoch().count();
-    std::default_random_engine generator(seed);
-    std::uniform_int_distribution<int> hopDelayDist(syndbConfig.minSwitchHopDelayNs, syndbConfig.maxSwitchHopDelayNs);
-    this->getRandomHopDelay = std::bind(hopDelayDist, generator);
+    this->randHopDelay = std::default_random_engine(seed);
     #endif
+}
+
+sim_time_t Switch::getRandomHopDelay(){
+    uint_fast32_t randval = this->randHopDelay() % this->hop_delay_variation;
+
+    return syndbConfig.minSwitchHopDelayNs + randval;
 }
 
 
@@ -90,7 +95,6 @@ void Switch::schedulePkt(const pkt_size_t pktsize, const sim_time_t pktArrivalTi
 
     #if HOP_DELAY_NOISE
     hopDelay = this->getRandomHopDelay();
-    ndebug_print("[Switch {}]: {}ns", this->id, hopDelay);
     #else
     hopDelay = this->hop_delay;
     #endif
