@@ -2,8 +2,10 @@
 #define SWITCH_H
 
 #include <memory>
+#include <random>
 #include <unordered_map>
 #include <set>
+#include <functional>
 #include <fmt/core.h>
 #include "utils/types.hpp"
 #include "topology/link.hpp"
@@ -48,8 +50,10 @@ struct Switch
     switch_id_t id;
     SwitchType type;
     sim_time_t hop_delay;
+    sim_time_t hop_delay_variation;
     neighbor_switch_table_t neighborSwitchTable;
     neighbor_host_table_t neighborHostTable;
+    std::default_random_engine randHopDelay;
 
     /* SyNDB specific members */
     RingBuffer ringBuffer;
@@ -71,6 +75,7 @@ struct Switch
     syndb_status_t scheduleToNextHopSwitch(const pkt_size_t pktsize, const sim_time_t pktArrivalTime, const switch_p nextHopSwitch, routeScheduleInfo &rsinfo, PacketType ptype);
     void schedulePkt(const pkt_size_t pktsize, const sim_time_t pktArrivalTime, const link_speed_gbps_t linkSpeed, sim_time_t &qNextIdleTime, byte_count_t &byte_count);
 
+    sim_time_t getRandomHopDelay();
     
     Switch() = default; 
     Switch(switch_id_t id);

@@ -31,13 +31,13 @@ int main(){
     ndebug_print("Time increment is {}", syndbSim.timeIncrement);
 
 
-    // Main simulation loop
+    // Main simulation loop: at time = 0; all event lists are empty. Only step 4 does some work.
     for ( ; syndbSim.currTime <= syndbSim.totalTime; syndbSim.currTime += syndbSim.timeIncrement)
     {
         debug_print_yellow("########  Simulation Time: {} ########", syndbSim.currTime); 
         
-        // Step 1: Process all hosts
-        syndbSim.processHosts();
+        // Step 1: Process all hostPktEvents
+        syndbSim.processHostPktEvents();
         
         // Step 2: Generate (as per schedule) and process triggerPktEvents
         syndbSim.triggerGen->generateTrigger();
@@ -45,6 +45,9 @@ int main(){
 
         // Step 3: Process all normalPktEvents
         syndbSim.processNormalPktEvents();
+
+        // Step 4: Generate hostPktEvents for the next timeIncrement slot
+        syndbSim.generateHostPktEvents();
 
     } // end of main simulation loop
 

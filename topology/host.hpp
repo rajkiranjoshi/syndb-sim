@@ -25,7 +25,7 @@ typedef struct Host
     Host(host_id_t id, bool disableTrafficGen = false);
 
     void generateNextPkt();
-    void sendPkt();
+    void sendPkt(normalpkt_p nextPkt, sim_time_t nextPktTime);
 
 } Host;
 

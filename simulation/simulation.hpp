@@ -21,7 +21,8 @@ typedef struct Simulation
     // packets-related
     pkt_id_t nextPktId;
     pkt_id_t nextTriggerPktId;
-     
+    
+    std::multimap<sim_time_t, hostpktevent_p> HostPktEventList;
     std::list<pktevent_p<normalpkt_p>> NormalPktEventList;
     std::list<pktevent_p<triggerpkt_p>> TriggerPktEventList;
 
@@ -41,7 +42,8 @@ typedef struct Simulation
     inline void buildTopo(){ this->topo->buildTopo(); };
     void initTriggerGen();
     void initHosts();
-    void processHosts();
+    void generateHostPktEvents();
+    void processHostPktEvents();
     void processTriggerPktEvents();
     void processNormalPktEvents();
     void flushRemainingNormalPkts();

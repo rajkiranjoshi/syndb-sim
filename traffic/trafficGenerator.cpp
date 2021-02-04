@@ -16,8 +16,14 @@ TrafficGenerator::TrafficGenerator(link_speed_gbps_t linkSpeed, load_t load, swi
     this->torLinkSpeed = linkSpeed;
     this->load = load;
     this->parentHostId = hostId;
+
+    // std::fstream file (fmt::format("./interPktGaps_h{}.txt", this->parentHostId), std::fstream::out);
+    // this->interPktGapFile = std::move(file);
 }
 
+TrafficGenerator::~TrafficGenerator(){
+    // this->interPktGapFile.close();
+}
 
 /* Data-ceter Traffic generator based on   */
 /* Load variation: return pkt_size 0, if no packet is to be sent. */
@@ -27,6 +33,7 @@ packetInfo DcTrafficGenerator::getNextPacket(){
     pkt_size_t pkt_size = myRandomFromCDF.getNextPacketSize(); 
     sim_time_t sendDelay = myRandomFromCDF.getNextPacketDelay();
     
+    // this->interPktGapFile << sendDelay << std::endl;
 
     sim_time_t serializeDelay = getSerializationDelay(pkt_size, this->torLinkSpeed);
 
