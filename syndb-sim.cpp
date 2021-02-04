@@ -51,7 +51,10 @@ int main(){
         // Step 3: Process all normalPktEvents
         syndbSim.processNormalPktEvents();
 
-        // Step 4: Generate hostPktEvents for the next timeIncrement slot
+        // Step 4: Generate (rather modify) (as per schedule) incast pkts on certain hosts
+        syndbSim.incastGen->generateIncast(); // these pkts would be picked-up first in step 5
+
+        // Step 5: Generate hostPktEvents for the next timeIncrement slot
         syndbSim.generateHostPktEvents();
 
     } // end of main simulation loop

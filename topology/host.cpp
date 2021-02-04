@@ -62,6 +62,7 @@ void Host::generateNextPkt(){
     // Get the dstHost from the TrafficPattern
     pktInfo.pkt->dstHost = this->trafficPattern->applyTrafficPattern();
     this->nextPkt = pktInfo.pkt;
+    this->nextPktSendDelay = pktInfo.sendDelay;
     
     sim_time_t pktGenSendTime = this->nextPktTime + pktInfo.sendDelay;
     sim_time_t nextPktSerializeStart = std::max<sim_time_t>(pktGenSendTime, this->torLink->next_idle_time_to_tor);

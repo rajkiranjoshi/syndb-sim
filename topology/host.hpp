@@ -17,6 +17,7 @@ typedef struct Host
 
     normalpkt_p nextPkt;
     sim_time_t nextPktTime;
+    sim_time_t nextPktSendDelay;
 
     std::shared_ptr<TrafficGenerator> trafficGen;
     std::shared_ptr<TrafficPattern> trafficPattern;

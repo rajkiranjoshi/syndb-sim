@@ -38,6 +38,11 @@ typedef struct Config
 
     static const uint numTriggersPerSwitchType = 5;
 
+    /* Incast Related Params */
+    const uint8_t percentIncastTime = 10;
+    const host_id_t incastFanInRatio = 100;
+    const host_id_t percentTargetIncastHosts = 30;
+
 
     const link_speed_gbps_t torLinkSpeedGbps = 100;
     const link_speed_gbps_t networkLinkSpeedGbps = 100;
