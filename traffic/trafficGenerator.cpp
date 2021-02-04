@@ -46,7 +46,7 @@ int DcTrafficGenerator::loadTrafficDistribution (std::string packetsizeDistFile,
     sim_time_t min_delay_ns = (size_on_wire * 8) / this->torLinkSpeed;
 
 
-    myRandomFromCDF.loadCDFs("traffic-dist/fb_webserver_packetsizedist_cdf.csv", "traffic-dist/fb_webserver_flowinterarrival_ns_cdf.csv", min_delay_ns);
+    myRandomFromCDF.loadCDFs("traffic-dist/fb_webserver_packetsizedist_cdf.csv", "traffic-dist/packetinterarrival_ns_cdf.csv");
     return 0;
 }
 
@@ -74,14 +74,11 @@ int SimpleTrafficGenerator::loadTrafficDistribution (std::string packetsizeDistF
 }
 
 // int main () {
-//     RandomFromCDF myRandomFromCDF;
-//     myRandomFromCDF.loadCDFs("../traffic-dist/fb_webserver_packetsizedist_cdf.csv", "../traffic-dist/fb_webserver_flowinterarrival_ns_cdf.csv");
-//     for (int i=0;i<10;i++) {
-//         cout<<myRandomFromCDF.getNextPacketSize()<<"\n";
-//     }
-
-//     for (int i=0;i<10;i++) {
-//         cout<<myRandomFromCDF.getNextFlowDelay()<<"\n";
+//     TrafficGenerator *myGen = new  DcTrafficGenerator(100, 100, 1);
+//     myGen->loadTrafficDistribution("../traffic-dist/fb_webserver_packetsizedist_cdf.csv", "../traffic-dist/fb_webserver_flowinterarrival_ns_cdf.csv");
+//     for (int i=0;i<100;i++) {
+//         packetInfo pktinfo = myGen->getNextPacket();
+//         printf("Pkt Size = %d, sendDelay=%ld\n", pktinfo.size, pktinfo.sendDelay);
 //     }
 //     return 0;
 // }
