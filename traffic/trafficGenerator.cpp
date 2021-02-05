@@ -64,7 +64,7 @@ packetInfo SimpleTrafficGenerator::getNextPacket(){
     pkt_size_t size = syndbConfig.fixedPktSizeForSimpleTrafficGen;
     
     sim_time_t serializeDelay = getSerializationDelay(size, this->torLinkSpeed);
-    sim_time_t sendDelay = 0;
+    sim_time_t sendDelay = 121;
 
     pkt_id_t pktId = syndbSim.getNextPktId();
     normalpkt_p pkt = normalpkt_p(new NormalPkt(pktId, size));
