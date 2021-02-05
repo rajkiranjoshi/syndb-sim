@@ -3,7 +3,7 @@
 #include "utils/pktdumper.hpp"
 
 
-PktDumper::PktDumper(switch_id_t numberOfSwitches, host_id_t numberOfHosts) {
+void PktDumper::openFiles(switch_id_t numberOfSwitches, host_id_t numberOfHosts) {
 
     // create prefix file name consisting of current hour, minute and seconds
     time_t currentTime;
@@ -43,9 +43,9 @@ PktDumper::~PktDumper() {
         this->switchFilePointers[i].close();
     }
 
-    for (int i = 0; i < this->hostFilePointers.size(); i++) {
-        this->hostFilePointers[i].close();
-    }
+    // for (int i = 0; i < this->hostFilePointers.size(); i++) {
+    //     this->hostFilePointers[i].close();
+    // }
 }
 
 
@@ -53,8 +53,8 @@ PktDumper::~PktDumper() {
 
 void PktDumper::dumpPacket(normalpkt_p pkt){
     
-    ndebug_print_yellow("--------   HOSTS   ----------");
-    ndebug_print("Start Time: {}", pkt->startTime);
+    // ndebug_print_yellow("--------   HOSTS   ----------");
+    // ndebug_print("Start Time: {}", pkt->startTime);
     // this->hostFilePointers[pkt->srcHost] << pkt->startTime << "\t" << pkt->id << std::endl;
 
     // if (pkt->endTime != 0) {
@@ -62,10 +62,11 @@ void PktDumper::dumpPacket(normalpkt_p pkt){
     //     this->hostFilePointers[pkt->dstHost] << pkt->endTime << "\t" << pkt->id << std::endl;
     // }
 
-    ndebug_print_yellow("-------   SWITCHES   ---------");
+    // ndebug_print_yellow("-------   SWITCHES   ---------");
     std::list<switchINTInfo>::iterator switchTimeStampsIterator;
     for (switchTimeStampsIterator = pkt->switchINTInfoList.begin(); switchTimeStampsIterator != pkt->switchINTInfoList.end(); switchTimeStampsIterator++) {
-        ndebug_print("ID: {} \t Time: {}",switchTimeStampsIterator->swId, switchTimeStampsIterator->rxTime);
+        if (switchTimeStampsIterator->swId == 0) 
+            ndebug_print("ID: {} \t Time: {}",switchTimeStampsIterator->swId, switchTimeStampsIterator->rxTime);
         this->switchFilePointers[switchTimeStampsIterator->swId] << switchTimeStampsIterator->rxTime << "\t" << pkt->id << "\t";
         this->switchFilePointers[switchTimeStampsIterator->swId] << pkt->srcHost << "\t" << pkt->dstHost << std::endl;
     }

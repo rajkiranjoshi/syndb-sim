@@ -27,7 +27,7 @@ Simulation::Simulation(){
     this->nextTriggerPktId = 0;
 
     #if LOGGING
-    this->pktDumper = std::unique_ptr<PktDumper>(new PktDumper(syndbConfig.numSwitches, syndbConfig.numHosts));
+    this->pktDumper = std::unique_ptr<PktDumper>(new PktDumper());
     #endif
     
 }

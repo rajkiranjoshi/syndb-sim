@@ -25,8 +25,8 @@ typedef struct PktDumper
 
     ~PktDumper();
     PktDumper() = default;
-    PktDumper(switch_id_t numberOfSwitches, host_id_t numberOfHosts);
-
+    
+    void openFiles(switch_id_t numberOfSwitches, host_id_t numberOfHosts);
     void dumpPacket(normalpkt_p pkt);
     void dumpTriggerInfo(trigger_id_t triggerId, triggerInfo tinfo, SwitchType switchType);
 } PktDumper;

@@ -27,6 +27,11 @@ int main(){
     syndbSim.initHosts();
     ndebug_print("Done init hosts");
 
+    // Init Step 4: Open files for logging
+    #if LOGGING
+    syndbSim.pktDumper->openFiles(syndbConfig.numSwitches, syndbConfig.numHosts);
+    #endif
+
     ndebug_print("Running simulation for {}ns ...",syndbSim.totalTime);
     ndebug_print("Time increment is {}", syndbSim.timeIncrement);
 
