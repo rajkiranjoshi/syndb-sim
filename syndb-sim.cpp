@@ -39,7 +39,9 @@ int main(){
     // Main simulation loop: at time = 0; all event lists are empty. Only step 4 does some work.
     for ( ; syndbSim.currTime <= syndbSim.totalTime; syndbSim.currTime += syndbSim.timeIncrement)
     {
-        debug_print_yellow("########  Simulation Time: {} ########", syndbSim.currTime); 
+        debug_print_yellow("########  Simulation Time: {} ########", syndbSim.currTime);
+        if(syndbSim.currTime % 100000 == 0)
+            ndebug_print_yellow("########  Simulation Time: {} ########", syndbSim.currTime);
         
         // Step 1: Process all hostPktEvents
         syndbSim.processHostPktEvents();

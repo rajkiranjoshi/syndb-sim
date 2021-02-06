@@ -65,8 +65,6 @@ void PktDumper::dumpPacket(normalpkt_p pkt){
     // ndebug_print_yellow("-------   SWITCHES   ---------");
     std::list<switchINTInfo>::iterator switchTimeStampsIterator;
     for (switchTimeStampsIterator = pkt->switchINTInfoList.begin(); switchTimeStampsIterator != pkt->switchINTInfoList.end(); switchTimeStampsIterator++) {
-        if (switchTimeStampsIterator->swId == 0) 
-            ndebug_print("ID: {} \t Time: {}",switchTimeStampsIterator->swId, switchTimeStampsIterator->rxTime);
         this->switchFilePointers[switchTimeStampsIterator->swId] << switchTimeStampsIterator->rxTime << "\t" << pkt->id << "\t";
         this->switchFilePointers[switchTimeStampsIterator->swId] << pkt->srcHost << "\t" << pkt->dstHost << std::endl;
     }
