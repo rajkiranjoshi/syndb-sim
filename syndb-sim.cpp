@@ -20,10 +20,14 @@ int main(){
     ndebug_print("Done building topo");
 
     // Init Step 2: Init the triggerGen schedule
+    #if TRIGGERS_ENABLED
     syndbSim.initTriggerGen();
     syndbSim.triggerGen->printTriggerSchedule();
+    #endif
+    #if INCASTS_ENABLED
     syndbSim.initIncastGen();
     syndbSim.incastGen->printIncastSchedule();
+    #endif
     
     // Init Step 3: Initialize the hosts
     syndbSim.initHosts();
@@ -35,7 +39,7 @@ int main(){
     #endif
 
     ndebug_print("Running simulation for {}ns ...",syndbSim.totalTime);
-    ndebug_print("Time increment is {}", syndbSim.timeIncrement);
+    ndebug_print("Time increment is {}ns", syndbSim.timeIncrement);
 
 
     // Main simulation loop: at time = 0; all event lists are empty. Only step 4 does some work.
@@ -49,14 +53,18 @@ int main(){
         syndbSim.processHostPktEvents();
         
         // Step 2: Generate (as per schedule) and process triggerPktEvents
+        #if TRIGGERS_ENABLED
         syndbSim.triggerGen->generateTrigger();
         syndbSim.processTriggerPktEvents();
+        #endif
 
         // Step 3: Process all normalPktEvents
         syndbSim.processNormalPktEvents();
 
         // Step 4: Generate (rather modify) (as per schedule) incast pkts on certain hosts
+        #if INCASTS_ENABLED
         syndbSim.incastGen->generateIncast(); // these pkts would be picked-up first in step 5
+        #endif
 
         // Step 5: Generate hostPktEvents for the next timeIncrement slot
         syndbSim.generateHostPktEvents();

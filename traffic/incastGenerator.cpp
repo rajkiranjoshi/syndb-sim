@@ -119,7 +119,7 @@ void IncastGenerator::generateIncast(){
             host->nextPktTime = newNextPktTime;
             host->torLink->next_idle_time_to_tor = newNextPktTime;
 
-            ndebug_print("Incast pkt ID: {}", host->nextPkt->id);
+            // ndebug_print("Incast pkt ID: {}", host->nextPkt->id);
         }
 
         this->updateNextIncast();

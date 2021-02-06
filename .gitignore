@@ -35,4 +35,4 @@ syndb-sim-debug
 syndb-analysis
 syndb-analysis-debug
 data/*
-
+output.txt

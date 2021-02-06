@@ -8,11 +8,13 @@
 #define LOGGING 0
 #define HOP_DELAY_NOISE 1
 #define RING_BUFFER 0
+#define TRIGGERS_ENABLED 1
+#define INCASTS_ENABLED 1
 
 typedef struct Config 
 {
     static const sim_time_t timeIncrementNs = 100;
-    const float totalTimeMSecs = 100;
+    const float totalTimeMSecs = 1;
 
     // IMPORTANT: update numHosts and numSwitches as per the topology
     

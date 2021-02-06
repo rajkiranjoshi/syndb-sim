@@ -93,12 +93,12 @@ TriggerGeneratorSimpleTopo::TriggerGeneratorSimpleTopo():TriggerGenerator::Trigg
 
 
 void TriggerGenerator::printTriggerSchedule(){
-    ndebug_print_yellow("Showing schedule for {} triggers", this->triggerSchedule.size());
+    ndebug_print_yellow("Trigger schedule: {} total triggers", this->triggerSchedule.size());
 
     auto it = this->triggerSchedule.begin();
 
     for(it; it != this->triggerSchedule.end(); it++){
-        ndebug_print("{} {}", it->time, it->switchId);
+        debug_print("{} {}", it->time, it->switchId);
     }
 
 }
