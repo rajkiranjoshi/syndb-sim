@@ -42,6 +42,7 @@ typedef struct Simulation
     inline pkt_id_t getNextTriggerPktId() { return this->nextTriggerPktId++; }; 
     inline void buildTopo(){ this->topo->buildTopo(); };
     void initTriggerGen();
+    void initIncastGen();
     void initHosts();
     void generateHostPktEvents();
     void processHostPktEvents();

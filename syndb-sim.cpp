@@ -22,6 +22,8 @@ int main(){
     // Init Step 2: Init the triggerGen schedule
     syndbSim.initTriggerGen();
     syndbSim.triggerGen->printTriggerSchedule();
+    syndbSim.initIncastGen();
+    syndbSim.incastGen->printIncastSchedule();
     
     // Init Step 3: Initialize the hosts
     syndbSim.initHosts();

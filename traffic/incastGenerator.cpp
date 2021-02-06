@@ -5,6 +5,10 @@
 #include <algorithm>    // std::random_shuffle
 #include "traffic/incastGenerator.hpp"
 #include "simulation/config.hpp"
+#include "simulation/simulation.hpp"
+#include "utils/utils.hpp"
+#include "utils/logger.hpp"
+#include "topology/host.hpp"
 
 IncastGenerator::IncastGenerator(){
 
@@ -12,30 +16,31 @@ IncastGenerator::IncastGenerator(){
 
     sim_time_t totalTime = (sim_time_t)(syndbConfig.totalTimeMSecs * (float)1000000);
 
-    sim_time_t totalTicks = totalTime / syndbConfig.timeIncrementNs;
+    sim_time_t fullUtilTimeNeeded = ((double)syndbConfig.percentIncastTime / 100.0) * (double) totalTime;
 
-    sim_time_t fullUtilTicksNeeded = ((double)syndbConfig.percentIncastTime / 100.0) * (double) totalTicks;
-
-    /* ASSUMPTION: 
-       Each incast pkt is small enough and timeIncrement is big enough such that in one timeIncrement, one incast pkt can serialize over the target host's ToR link.
-
-       syndbConfig.percentIncastTime we want *each* target link to face queuing.
-
-       Time for which one incast keeps a link fully utilized = syndbConfig.incastFanInRatio (# of time ticks)
+    /* ASSUMPTION:
+       We are going to change/override packet sizes to 1500B. Time for which one incast keeps a link fully utilized = serialization time of 1550B pkt x syndbConfig.incastFanInRatio
     */
-    sim_time_t fullUtilTicksPerIncast = syndbConfig.incastFanInRatio;
-
-    sim_time_t incastsPerTargetLink = fullUtilTicksNeeded / fullUtilTicksPerIncast;
+    sim_time_t fullUtilTimePerIncast = syndbConfig.incastFanInRatio * getSerializationDelay(1500, syndbConfig.torLinkSpeedGbps); 
+    sim_time_t incastsPerTargetLink = fullUtilTimeNeeded / fullUtilTimePerIncast;
 
     host_id_t numTargetHosts = ((double)syndbConfig.percentTargetIncastHosts / 100.0) * syndbConfig.numHosts;
-
     sim_time_t totalIncasts = numTargetHosts * incastsPerTargetLink;
-
-    /* Scheduling the incasts over time */
+    this->totalIncasts = totalIncasts;
+/* 
+    // Single test trigger
+    incastScheduleInfo_p newIncast = std::shared_ptr<incastScheduleInfo>(new incastScheduleInfo());
+    newIncast->time = 25000;
+    newIncast->targetHostId = 0;
+    for(int i=1; i < syndbConfig.numHosts; i++){
+        newIncast->sourceHosts.push_back(i);
+    }
+    this->incastSchedule.push_back(newIncast);
+*/
+    // Here OnWard: Scheduling the incasts over time
     sim_time_t availableTime = totalTime - this->initialDelay;
 
-
-    /* Pick randomly numTargetHosts number of unique hosts */
+    // Pick randomly numTargetHosts number of unique hosts
     std::set<host_id_t> targetHosts;
     uint64_t seed = std::chrono::high_resolution_clock::now().time_since_epoch().count();
     std::default_random_engine randTargetHosts(seed);
@@ -46,8 +51,8 @@ IncastGenerator::IncastGenerator(){
         targetHosts.insert(host);
     }
 
+    // Fill the vector with repeated host IDs
     std::vector<host_id_t> targetHostsVector;
-
     for(auto it = targetHosts.begin(); it != targetHosts.end(); it++){
         host_id_t host = *it;
         for(int i=0; i < incastsPerTargetLink; i++){
@@ -56,9 +61,95 @@ IncastGenerator::IncastGenerator(){
     }
     std::random_shuffle(targetHostsVector.begin(), targetHostsVector.end()); 
 
-    /* TODO: Generate the schedule and add hosts from targetHostsVector sequentially */
+    // Generate the schedule and add hosts from targetHostsVector sequentially
+    sim_time_t interIncastGap = availableTime / (totalIncasts + 1);
+    sim_time_t halfSimTimeIncrement = syndbSim.timeIncrement / 2;
     
+    // Align the interIncastGap to sim timeIncr
+    interIncastGap = ((interIncastGap + halfSimTimeIncrement) / syndbSim.timeIncrement) * syndbSim.timeIncrement;
+
+    seed = std::chrono::high_resolution_clock::now().time_since_epoch().count();
+    std::default_random_engine randSourceHosts(seed);
+    sim_time_t currTime = this->initialDelay + interIncastGap;
+    host_id_t srcHost;
+
+    for(auto it = targetHostsVector.begin(); it != targetHostsVector.end(); it++){
+       
+        incastScheduleInfo_p newIncast = std::shared_ptr<incastScheduleInfo>(new incastScheduleInfo()); 
+        newIncast->time = currTime;
+        newIncast->targetHostId = *it;
+
+        while (newIncast->sourceHosts.size() != syndbConfig.incastFanInRatio)
+        {
+            srcHost = randSourceHosts() % syndbConfig.numHosts;
+            if(srcHost != newIncast->targetHostId)
+                newIncast->sourceHosts.insert(srcHost);
+        }
+        
+        this->incastSchedule.push_back(newIncast);
+
+        currTime += interIncastGap; // update for next incast
+    }
+    // update nextIncast pointers from the schedule
+    this->updateNextIncast();
+}
 
 
+void IncastGenerator::updateNextIncast(){
+    if(this->incastSchedule.size() > 0){
+        this->nextIncast = *this->incastSchedule.begin();
+        this->nextIncastTime = this->nextIncast->time;
+        this->incastSchedule.pop_front();
+    }
+}
 
+void IncastGenerator::generateIncast(){
+
+    if(syndbSim.currTime == this->nextIncastTime){ // it MUST be equal
+
+        host_id_t targetHost = this->nextIncast->targetHostId;
+
+        for(auto it = this->nextIncast->sourceHosts.begin(); it != this->nextIncast->sourceHosts.end(); it++){
+            host_p host = syndbSim.topo->getHostById(*it);
+
+            host->nextPkt->size = 1500;
+            host->nextPkt->dstHost = targetHost;
+
+            sim_time_t newNextPktTime = host->prevPktTime + getSerializationDelay(1500, syndbConfig.torLinkSpeedGbps);
+            host->nextPktTime = newNextPktTime;
+            host->torLink->next_idle_time_to_tor = newNextPktTime;
+
+            ndebug_print("Incast pkt ID: {}", host->nextPkt->id);
+        }
+
+        this->updateNextIncast();
+    }
+    
+}
+
+void IncastGenerator::printIncastSchedule(){
+    
+    ndebug_print_yellow("Incast Schedule: {} total incasts", this->totalIncasts);
+    
+    // Print the lined-up incast first
+    this->nextIncast->printScheduleInfo();
+
+    // Then print the rest
+
+    for(auto it = this->incastSchedule.begin(); it != this->incastSchedule.end(); it++){
+        (*it)->printScheduleInfo();
+    }
+
+}
+
+void incastScheduleInfo::printScheduleInfo(){
+    #ifdef DEBUG
+    host_id_t targetHost = this->targetHostId;
+    sim_time_t incastTime = this->time;
+    std::string srcHosts = "";
+    for(auto it = this->sourceHosts.begin(); it != this->sourceHosts.end(); it++){
+        srcHosts.append(fmt::format("{} ", *it));            
+    }
+    debug_print("Time: {}\tTarget: {} | Sources: {}", incastTime, targetHost, srcHosts); 
+    #endif
 }

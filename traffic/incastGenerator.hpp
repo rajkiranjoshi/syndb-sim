@@ -1,6 +1,7 @@
 #ifndef INCASTGENERATOR_H
 #define INCASTGENERATOR_H
 
+#include <memory>
 #include <functional>
 #include <list>
 #include "utils/types.hpp"
@@ -10,17 +11,22 @@ struct incastScheduleInfo{
     sim_time_t time;
     host_id_t targetHostId;
 
-    std::list<host_id_t> sourceHosts;
+    std::set<host_id_t> sourceHosts;
+
+    void printScheduleInfo();
 };
+
+typedef std::shared_ptr<incastScheduleInfo> incastScheduleInfo_p;
 
 struct IncastGenerator
 {
-    std::list<incastScheduleInfo> incastSchedule;    
+    std::list<incastScheduleInfo_p> incastSchedule;    
     const sim_time_t initialDelay = 10000; // 10us - for both topologies
     
     uint16_t totalIncasts;
     
     sim_time_t nextIncastTime;
+    incastScheduleInfo_p nextIncast;
   
     IncastGenerator();
     void generateIncast();

@@ -11,6 +11,7 @@ Host::Host(host_id_t id, bool disableTrafficGen){
     this->torSwitch = NULL;
     this->nextPkt = NULL;
     this->nextPktTime = 0;
+    this->prevPktTime = 0;
 
     this->id = id;
     this->trafficGenDisabled = disableTrafficGen;
@@ -62,7 +63,7 @@ void Host::generateNextPkt(){
     // Get the dstHost from the TrafficPattern
     pktInfo.pkt->dstHost = this->trafficPattern->applyTrafficPattern();
     this->nextPkt = pktInfo.pkt;
-    this->nextPktSendDelay = pktInfo.sendDelay;
+    this->prevPktTime = this->nextPktTime; // save curr next time to prev
     
     sim_time_t pktGenSendTime = this->nextPktTime + pktInfo.sendDelay;
     sim_time_t nextPktSerializeStart = std::max<sim_time_t>(pktGenSendTime, this->torLink->next_idle_time_to_tor);

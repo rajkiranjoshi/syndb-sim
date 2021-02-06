@@ -43,6 +43,10 @@ void Simulation::initTriggerGen(){
     }
 }
 
+void Simulation::initIncastGen(){
+    this->incastGen = std::shared_ptr<IncastGenerator>(new IncastGenerator());
+}
+
 void Simulation::initHosts(){
 
     auto it = this->topo->hostIDMap.begin();
