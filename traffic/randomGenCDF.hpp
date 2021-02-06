@@ -17,8 +17,6 @@ typedef struct randomCDF
     std::vector<int> packetSizeDist;
     std::vector<int> packetArrivalDist;
 
-    unsigned mySeed;
-
     std::default_random_engine generator;
     std::default_random_engine generator2;
 

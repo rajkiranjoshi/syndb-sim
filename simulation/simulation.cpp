@@ -305,8 +305,9 @@ void Simulation::logTriggerInfoMap(){
         syndbSim.pktDumper->dumpTriggerInfo(triggerId, it1->second, switchType);
         #else
         /* Below code is only for debugging. TODO: comment out later. */
+
+        /*
         triggerOriginTime = it1->second.triggerOrigTime;
-        
         
         ndebug_print_yellow("Trigger ID {} (origin switch: {} {})", triggerId, originSwitch, switchTypeToString(switchType));
         auto it2 = it1->second.rxSwitchTimes.begin();
@@ -317,6 +318,7 @@ void Simulation::logTriggerInfoMap(){
 
             ndebug_print("{} --> {}: {}ns", originSwitch, rxSwitch, rxTime - triggerOriginTime);
         } // end of iterating over rxSwitchTimes
+         */
         #endif
 
 
