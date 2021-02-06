@@ -7,7 +7,7 @@
 #include "simulation/event.hpp"
 #include "utils/pktdumper.hpp"
 #include "traffic/triggerGenerator.hpp"
-
+#include "traffic/incastGenerator.hpp"
 
 typedef struct Simulation
 {
@@ -31,6 +31,7 @@ typedef struct Simulation
 
 
     std::shared_ptr<TriggerGenerator> triggerGen;
+    std::shared_ptr<IncastGenerator> incastGen;
 
     std::unique_ptr<PktDumper> pktDumper;
 
@@ -41,6 +42,7 @@ typedef struct Simulation
     inline pkt_id_t getNextTriggerPktId() { return this->nextTriggerPktId++; }; 
     inline void buildTopo(){ this->topo->buildTopo(); };
     void initTriggerGen();
+    void initIncastGen();
     void initHosts();
     void generateHostPktEvents();
     void processHostPktEvents();

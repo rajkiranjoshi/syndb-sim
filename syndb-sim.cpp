@@ -22,6 +22,8 @@ int main(){
     // Init Step 2: Init the triggerGen schedule
     syndbSim.initTriggerGen();
     syndbSim.triggerGen->printTriggerSchedule();
+    syndbSim.initIncastGen();
+    syndbSim.incastGen->printIncastSchedule();
     
     // Init Step 3: Initialize the hosts
     syndbSim.initHosts();
@@ -39,7 +41,9 @@ int main(){
     // Main simulation loop: at time = 0; all event lists are empty. Only step 4 does some work.
     for ( ; syndbSim.currTime <= syndbSim.totalTime; syndbSim.currTime += syndbSim.timeIncrement)
     {
-        debug_print_yellow("########  Simulation Time: {} ########", syndbSim.currTime); 
+        debug_print_yellow("########  Simulation Time: {} ########", syndbSim.currTime);
+        if(syndbSim.currTime % 100000 == 0)
+            ndebug_print_yellow("########  Simulation Time: {} ########", syndbSim.currTime);
         
         // Step 1: Process all hostPktEvents
         syndbSim.processHostPktEvents();
@@ -51,7 +55,10 @@ int main(){
         // Step 3: Process all normalPktEvents
         syndbSim.processNormalPktEvents();
 
-        // Step 4: Generate hostPktEvents for the next timeIncrement slot
+        // Step 4: Generate (rather modify) (as per schedule) incast pkts on certain hosts
+        syndbSim.incastGen->generateIncast(); // these pkts would be picked-up first in step 5
+
+        // Step 5: Generate hostPktEvents for the next timeIncrement slot
         syndbSim.generateHostPktEvents();
 
     } // end of main simulation loop

@@ -118,7 +118,9 @@ void Switch::schedulePkt(const pkt_size_t pktsize, const sim_time_t pktArrivalTi
 
 
 void Switch::receiveNormalPkt(normalpkt_p pkt, sim_time_t rxTime){
+    #if RING_BUFFER
     this->ringBuffer.insertPrecord(pkt->id, rxTime);
+    #endif
 
     // Prepare and insert switch INT into the packet
     switchINTInfo newInfo;
@@ -160,7 +162,9 @@ void Switch::receiveTriggerPkt(triggerpkt_p pkt, sim_time_t rxTime){
     syndbSim.TriggerInfoMap[pkt->triggerId].rxSwitchTimes[this->id] = rxTime;
 
     // Flush the current RingBuffer
+    #if RING_BUFFER
     this->snapshotRingBuffer(rxTime);
+    #endif
 
     // Broadcast forward to neighbors with source pruning
     switch_id_t srcSwitch = pkt->srcSwitchId;
