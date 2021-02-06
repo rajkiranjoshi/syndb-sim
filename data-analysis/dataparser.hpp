@@ -6,6 +6,7 @@
 #include <map>
 #include "utils/types.hpp"
 
+#define PREFIX_STRING_FOR_DATA_FILES "dump_16_5_18_"
 struct PacketInfo {
     pkt_id_t id;
     host_id_t srcHost;
@@ -27,7 +28,7 @@ struct DataParser {
     DataParser() = default;
     DataParser(std::string prefixStringForFileName, switch_id_t numberOfSwitches, host_id_t numberOfHosts);
 
-    std::map<sim_time_t, PacketInfo> getWindowForSwitch(switch_id_t switchID, sim_time_t triggerTime, pkt_id_t windowSize);
+    std::map<pkt_id_t, PacketInfo> getWindowForSwitch(switch_id_t switchID, sim_time_t triggerTime, pkt_id_t windowSize);
     float getCorrelationBetweenPrecordWindows(std::map<pkt_id_t, PacketInfo> precordWindowForTriggerSwitch, std::map<pkt_id_t, PacketInfo> precordWindowForCurrentSwitch);
 };
 

@@ -96,19 +96,20 @@ int main(){
     
 
     // Ignore parameters for now
-    switch_id_t triggerSwitchID = 1;
-    sim_time_t triggerTime = 65801;
-    pkt_id_t windowSize = 150;
+    switch_id_t triggerSwitchID = 687;
+    sim_time_t triggerTime = 22562;
+    pkt_id_t windowSize = 10;
 
     // get p-record window for trigger switch
     std::map<pkt_id_t, PacketInfo> pRecordWindowForTriggerSwitch = dataparser.getWindowForSwitch(triggerSwitchID, triggerTime, windowSize);
     std::map<pkt_id_t, PacketInfo>::iterator iteratorForpRecordWindowForTriggerSwitch = pRecordWindowForTriggerSwitch.begin();
 
-    // for (; iteratorForpRecordWindowForTriggerSwitch != pRecordWindowForTriggerSwitch.end(); iteratorForpRecordWindowForTriggerSwitch++) {
-    //     std::cout << iteratorForpRecordWindowForTriggerSwitch->first << "\t" << iteratorForpRecordWindowForTriggerSwitch->second.switchIngressTime << std::endl;
-    // }
-
     std::cout<< "-----------------------" << std::endl;
+    for (; iteratorForpRecordWindowForTriggerSwitch != pRecordWindowForTriggerSwitch.end(); iteratorForpRecordWindowForTriggerSwitch++) {
+        std::cout << iteratorForpRecordWindowForTriggerSwitch->first << "\t" << iteratorForpRecordWindowForTriggerSwitch->second.switchIngressTime << std::endl;
+    }
+
+/*     std::cout<< "-----------------------" << std::endl;
     for (int iteratorForAllSwitches=0; iteratorForAllSwitches < syndbConfig.numSwitches; iteratorForAllSwitches++) {
         if (iteratorForAllSwitches == triggerSwitchID) {
             continue;
@@ -122,7 +123,7 @@ int main(){
         
         float correlation = dataparser.getCorrelationBetweenPrecordWindows(pRecordWindowForTriggerSwitch, pRecordWindowForCurrentSwitch);
         std::cout<< "Correlation between Switch " << triggerSwitchID << " (trigger) and Switch " << iteratorForAllSwitches << " is: " << correlation << std::endl;
-    }
+    } */
 
     return 0;
 }
