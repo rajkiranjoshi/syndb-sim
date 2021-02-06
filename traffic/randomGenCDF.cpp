@@ -1,3 +1,4 @@
+#include <chrono>
 #include "randomGenCDF.hpp"
 using namespace std;
 
