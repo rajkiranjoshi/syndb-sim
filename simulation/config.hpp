@@ -12,7 +12,7 @@
 typedef struct Config 
 {
     static const sim_time_t timeIncrementNs = 100;
-    const float totalTimeMSecs = 0.1;
+    const float totalTimeMSecs = 100;
 
     // IMPORTANT: update numHosts and numSwitches as per the topology
     
@@ -45,7 +45,7 @@ typedef struct Config
     // const TrafficGenType trafficGenType = TrafficGenType::Continuous;
     /* Do NOT comment out */ const pkt_size_t fixedPktSizeForSimpleTrafficGen = 1500;
 
-    static const uint numTriggersPerSwitchType = 5;
+    static const uint numTriggersPerSwitchType = 10;
 
     /* Incast Related Params */
     const uint8_t percentIncastTime = 10;
