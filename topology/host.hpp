@@ -13,7 +13,7 @@ typedef struct Host
 {
     host_id_t id;
     host_tor_link_p torLink;
-    switch_p torSwitch;
+    Switch* torSwitch;
 
     normalpkt_p nextPkt;
     sim_time_t nextPktTime;
@@ -26,7 +26,7 @@ typedef struct Host
     Host(host_id_t id, bool disableTrafficGen = false);
 
     void generateNextPkt();
-    void sendPkt(normalpkt_p nextPkt, sim_time_t nextPktTime);
+    void sendPkt(normalpkt_p &nextPkt, sim_time_t nextPktTime);
 
 } Host;
 

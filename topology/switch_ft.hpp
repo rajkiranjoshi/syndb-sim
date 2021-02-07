@@ -14,7 +14,7 @@ struct SwitchFtTorAggr : Switch
     std::unordered_map<racklocal_host_id_t, switch_id_t> routingTable; 
 
     /* Functions specific to ToR/Aggr switch's routing */
-    switch_p getNextHop(host_id_t dstHostId);
+    Switch* getNextHop(host_id_t dstHostId);
 
     inline SwitchFtTorAggr(switch_id_t id) : Switch(id){
         this->fatTreeScaleK = syndbConfig.fatTreeTopoK;
@@ -28,7 +28,7 @@ struct SwitchFtTor : SwitchFtTorAggr
     using SwitchFtTorAggr::SwitchFtTorAggr;
 
     /* Overriding the virtual function of the base class */
-    syndb_status_t routeScheduleNormalPkt(normalpkt_p pkt, const sim_time_t pktArrivalTime, routeScheduleInfo &rsinfo);
+    syndb_status_t routeScheduleNormalPkt(normalpkt_p &pkt, const sim_time_t pktArrivalTime, routeScheduleInfo &rsinfo);
     
 };
 
@@ -39,7 +39,7 @@ struct SwitchFtAggr : SwitchFtTorAggr
     using SwitchFtTorAggr::SwitchFtTorAggr;
     
     /* Overriding the virtual function of the base class */
-    syndb_status_t routeScheduleNormalPkt(normalpkt_p pkt, const sim_time_t pktArrivalTime, routeScheduleInfo &rsinfo);
+    syndb_status_t routeScheduleNormalPkt(normalpkt_p &pkt, const sim_time_t pktArrivalTime, routeScheduleInfo &rsinfo);
 
 };
 
@@ -51,9 +51,9 @@ struct SwitchFtCore : Switch
     std::unordered_map<pod_id_t, switch_id_t> routingTable;
 
     /* Overriding the virtual function of the base class */
-    syndb_status_t routeScheduleNormalPkt(normalpkt_p pkt, const sim_time_t pktArrivalTime, routeScheduleInfo &rsinfo);
+    syndb_status_t routeScheduleNormalPkt(normalpkt_p &pkt, const sim_time_t pktArrivalTime, routeScheduleInfo &rsinfo);
 
-    switch_p getNextHop(host_id_t dstHostId);
+    Switch* getNextHop(host_id_t dstHostId);
 
     inline SwitchFtCore(switch_id_t id) : Switch(id) {
         this->fatTreeScaleK = syndbConfig.fatTreeTopoK;

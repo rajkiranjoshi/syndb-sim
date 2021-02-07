@@ -13,8 +13,8 @@
 #include "traffic/packet.hpp"
 
 
-typedef std::unordered_map<switch_id_t, network_link_p> neighbor_switch_table_t;
-typedef std::unordered_map<host_id_t, host_tor_link_p> neighbor_host_table_t;
+typedef std::unordered_map<switch_id_t, NetworkLink*> neighbor_switch_table_t;
+typedef std::unordered_map<host_id_t, HostTorLink*> neighbor_host_table_t;
 
 enum class SwitchType {Simple, FtTor, FtAggr, FtCore};
 
@@ -62,19 +62,19 @@ struct Switch
     std::set<trigger_id_t> triggerHistory;
 
     /* Switch's processing on receiving a pkt: logging, SyNDB, etc. */
-    void receiveNormalPkt(normalpkt_p pkt, sim_time_t rxTime);
+    void receiveNormalPkt(normalpkt_p &pkt, sim_time_t rxTime);
     void receiveTriggerPkt(triggerpkt_p pkt, sim_time_t rxTime);
     void generateTrigger();
     void createSendTriggerPkt(switch_id_t dstSwitchId, trigger_id_t triggerId, switch_id_t originSwitchId, sim_time_t origTriggerTime, sim_time_t pktArrivalTime);
     void snapshotRingBuffer(sim_time_t triggerPktRcvTime);
 
     /* Fills rinfo. Returns Success or Failure */
-    syndb_status_t routeScheduleTriggerPkt(triggerpkt_p pkt, const sim_time_t pktArrivalTime, routeScheduleInfo &rsinfo);
-    virtual syndb_status_t routeScheduleNormalPkt(normalpkt_p pkt, const sim_time_t pktArrivalTime, routeScheduleInfo &rsinfo) = 0; // <--- pure virtual. Impl by derived classes
+    syndb_status_t routeScheduleTriggerPkt(triggerpkt_p &pkt, const sim_time_t pktArrivalTime, routeScheduleInfo &rsinfo);
+    virtual syndb_status_t routeScheduleNormalPkt(normalpkt_p &pkt, const sim_time_t pktArrivalTime, routeScheduleInfo &rsinfo) = 0; // <--- pure virtual. Impl by derived classes
     
-    syndb_status_t intraRackRouteNormalPkt(normalpkt_p pkt, const sim_time_t pktArrivalTime, routeScheduleInfo &rsinfo);
+    syndb_status_t intraRackRouteNormalPkt(normalpkt_p &pkt, const sim_time_t pktArrivalTime, routeScheduleInfo &rsinfo);
     /* Inter-switch scheduling  */ 
-    syndb_status_t scheduleToNextHopSwitch(const pkt_size_t pktsize, const sim_time_t pktArrivalTime, const switch_p nextHopSwitch, routeScheduleInfo &rsinfo, PacketType ptype);
+    syndb_status_t scheduleToNextHopSwitch(const pkt_size_t pktsize, const sim_time_t pktArrivalTime, Switch* nextHopSwitch, routeScheduleInfo &rsinfo, PacketType ptype);
     void schedulePkt(const pkt_size_t pktsize, const sim_time_t pktArrivalTime, const link_speed_gbps_t linkSpeed, sim_time_t &qNextIdleTime, byte_count_t &byte_count);
 
     sim_time_t getRandomHopDelay();
@@ -89,10 +89,10 @@ struct SimpleSwitch : Switch{
     std::unordered_map<switch_id_t, switch_id_t> routingTable;
 
     /* Overriding the virtual functions of the base class */
-    syndb_status_t routeScheduleNormalPkt(normalpkt_p pkt, const sim_time_t pktArrivalTime, routeScheduleInfo &rsinfo);
+    syndb_status_t routeScheduleNormalPkt(normalpkt_p &pkt, const sim_time_t pktArrivalTime, routeScheduleInfo &rsinfo);
     
 
-    switch_p getNextHop(switch_id_t dstSwitchId);
+    Switch* getNextHop(switch_id_t dstSwitchId);
 
     SimpleSwitch(switch_id_t id):Switch(id) {};
 
@@ -100,7 +100,7 @@ struct SimpleSwitch : Switch{
 
 struct routeScheduleInfo
 {
-    switch_p nextSwitch;
+    Switch* nextSwitch;
     sim_time_t pktNextForwardTime;
 };
 

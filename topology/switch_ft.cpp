@@ -3,10 +3,10 @@
 #include "topology/switch_ft.hpp"
 
 
-switch_p SwitchFtTorAggr::getNextHop(host_id_t dstHostId){
+Switch* SwitchFtTorAggr::getNextHop(host_id_t dstHostId){
     switch_id_t nextHopSwitchId;
     racklocal_host_id_t rackLocalHostId;
-    switch_p nextHopSwitch;
+    Switch* nextHopSwitch;
 
     rackLocalHostId = dstHostId % (this->fatTreeScaleK / 2);
 
@@ -24,7 +24,7 @@ switch_p SwitchFtTorAggr::getNextHop(host_id_t dstHostId){
     return nextHopSwitch;
 }
 
-syndb_status_t SwitchFtTor::routeScheduleNormalPkt(normalpkt_p pkt, const sim_time_t pktArrivalTime, routeScheduleInfo &rsinfo){
+syndb_status_t SwitchFtTor::routeScheduleNormalPkt(normalpkt_p &pkt, const sim_time_t pktArrivalTime, routeScheduleInfo &rsinfo){
 
     switch_id_t dstTorId;
 
@@ -35,7 +35,7 @@ syndb_status_t SwitchFtTor::routeScheduleNormalPkt(normalpkt_p pkt, const sim_ti
     } // end of intra-rack routing case
     else // inter-rack routing
     {
-        switch_p nextHopSwitch;
+        Switch* nextHopSwitch;
         nextHopSwitch = this->getNextHop(pkt->dstHost);
 
         // call the switch-to-switch scheduling since we know the nextHopSwitch
@@ -45,9 +45,9 @@ syndb_status_t SwitchFtTor::routeScheduleNormalPkt(normalpkt_p pkt, const sim_ti
 }
 
 
-syndb_status_t SwitchFtAggr::routeScheduleNormalPkt(normalpkt_p pkt, const sim_time_t pktArrivalTime, routeScheduleInfo &rsinfo){
+syndb_status_t SwitchFtAggr::routeScheduleNormalPkt(normalpkt_p &pkt, const sim_time_t pktArrivalTime, routeScheduleInfo &rsinfo){
     switch_id_t dstTorId;
-    switch_p nextHopSwitch;
+    Switch* nextHopSwitch;
     dstTorId = syndbSim.topo->getTorId(pkt->dstHost);
 
     // find if dstTor is in the neighbors (if intra-pod routing)
@@ -67,8 +67,8 @@ syndb_status_t SwitchFtAggr::routeScheduleNormalPkt(normalpkt_p pkt, const sim_t
 }
 
 
-switch_p SwitchFtCore::getNextHop(host_id_t dstHostId){
-    switch_p nextHopSwitch;
+Switch* SwitchFtCore::getNextHop(host_id_t dstHostId){
+    Switch* nextHopSwitch;
     pod_id_t podId;
     ft_scale_t kBy2 = this->fatTreeScaleK / 2;
     
@@ -88,9 +88,9 @@ switch_p SwitchFtCore::getNextHop(host_id_t dstHostId){
 
 }
 
-syndb_status_t SwitchFtCore::routeScheduleNormalPkt(normalpkt_p pkt, const sim_time_t pktArrivalTime, routeScheduleInfo &rsinfo){
+syndb_status_t SwitchFtCore::routeScheduleNormalPkt(normalpkt_p &pkt, const sim_time_t pktArrivalTime, routeScheduleInfo &rsinfo){
 
-    switch_p nextHopSwitch;
+    Switch* nextHopSwitch;
     nextHopSwitch = this->getNextHop(pkt->dstHost);
 
     // call the switch-to-switch scheduling since we know the nextHopSwitch

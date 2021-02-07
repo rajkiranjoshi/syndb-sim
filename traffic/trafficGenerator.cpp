@@ -5,7 +5,7 @@
 #include "utils/utils.hpp"
 
 
-packetInfo::packetInfo(normalpkt_p pkt, pkt_size_t size, time_t sendDelay, time_t serializeDelay){
+packetInfo::packetInfo(normalpkt_p &pkt, pkt_size_t size, time_t sendDelay, time_t serializeDelay){
     this->pkt = pkt;
     this->size = size;
     this->sendDelay = sendDelay;

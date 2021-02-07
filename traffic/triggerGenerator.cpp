@@ -38,7 +38,7 @@ TriggerGenerator::TriggerGenerator(sim_time_t switchToSwitchOWD, uint16_t totalT
 void TriggerGenerator::generateTrigger(){
 
     if(this->nextTriggerTime ==  syndbSim.currTime){ // it MUST be equal
-        switch_p currSwitch = syndbSim.topo->getSwitchById(this->nextSwitchId);
+        Switch* currSwitch = syndbSim.topo->getSwitchById(this->nextSwitchId);
         currSwitch->generateTrigger(); 
 
         this->updateNextTrigger();
