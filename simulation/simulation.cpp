@@ -238,7 +238,7 @@ void Simulation::processNormalPktEvents(){
             else{
                 
                 // Pass the pkt to the next switch to handle
-                event->nextSwitch->receiveNormalPkt(event->pkt, event->pktForwardTime); // can parallelize switch's processing?
+                event->nextSwitch->receiveNormalPkt(event->pkt, event->pktForwardTime); // thread-safe
 
                 // Call routing on the next switch
                 syndb_status_t status = event->nextSwitch->routeScheduleNormalPkt(event->pkt, event->pktForwardTime, rsinfo);
