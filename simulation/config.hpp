@@ -5,7 +5,7 @@
 #include <cassert>
 #include "utils/types.hpp"
 
-#define LOGGING 0
+#define LOGGING 1
 #define HOP_DELAY_NOISE 1
 #define RING_BUFFER 0
 #define TRIGGERS_ENABLED 1
@@ -14,7 +14,7 @@
 typedef struct Config 
 {
     static const sim_time_t timeIncrementNs = 100;
-    const float totalTimeMSecs = 1;
+    const float totalTimeMSecs = 0.1;
 
     // IMPORTANT: update numHosts and numSwitches as per the topology
     
@@ -35,6 +35,8 @@ typedef struct Config
 
     const uint8_t ftMixedPatternPercentIntraRack = 75;
 
+    static const uint numTriggersPerSwitchType = 5;
+
     const TrafficGenType trafficGenType = TrafficGenType::Distribution;
     /* 
     targetBaseNetworkLoadPercent -> observed network load
@@ -47,7 +49,7 @@ typedef struct Config
     // const TrafficGenType trafficGenType = TrafficGenType::Continuous;
     /* Do NOT comment out */ const pkt_size_t fixedPktSizeForSimpleTrafficGen = 1500;
 
-    static const uint numTriggersPerSwitchType = 10;
+    
 
     /* Incast Related Params */
     const uint8_t percentIncastTime = 10;

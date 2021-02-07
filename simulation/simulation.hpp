@@ -21,6 +21,7 @@ typedef struct Simulation
     // packets-related
     pkt_id_t nextPktId;
     pkt_id_t nextTriggerPktId;
+    pkt_id_t totalPktsDelivered;
     
     std::multimap<sim_time_t, hostpktevent_p> HostPktEventList;
     std::list<pktevent_p<normalpkt_p>> NormalPktEventList;
@@ -34,6 +35,8 @@ typedef struct Simulation
     std::shared_ptr<IncastGenerator> incastGen;
 
     std::unique_ptr<PktDumper> pktDumper;
+
+    time_t startTime, endTime;
 
     Simulation(); // default constructor
     
@@ -52,6 +55,7 @@ typedef struct Simulation
     void logTriggerInfoMap();
     void showLinkUtilizations();
 
+    void printSimulationStats();
     void cleanUp();
 
 } Simulation;

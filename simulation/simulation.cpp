@@ -1,4 +1,5 @@
 #include <string>
+#include <time.h>
 #include <fmt/core.h>
 
 #include "simulation/config.hpp"
@@ -12,6 +13,7 @@ Simulation syndbSim;
 
 Simulation::Simulation(){
 
+    this->startTime = time(NULL); 
     this->currTime = 0;
     this->timeIncrement = syndbConfig.timeIncrementNs;
     this->totalTime = (sim_time_t)(syndbConfig.totalTimeMSecs * (float)1000000);
@@ -25,6 +27,7 @@ Simulation::Simulation(){
 
     this->nextPktId = 0;
     this->nextTriggerPktId = 0;
+    this->totalPktsDelivered = 0;
 
     #if LOGGING
     this->pktDumper = std::unique_ptr<PktDumper>(new PktDumper());
@@ -64,7 +67,7 @@ void Simulation::initHosts(){
         it++;
     }
 
-    debug_print(fmt::format("Initialized {} hosts!", this->topo->hostIDMap.size()));
+    ndebug_print(fmt::format("Initialized {} hosts", this->topo->hostIDMap.size()));
     
 }
 
@@ -220,6 +223,7 @@ void Simulation::processNormalPktEvents(){
                 #if LOGGING
                 syndbSim.pktDumper->dumpPacket(event->pkt);
                 #endif
+                this->totalPktsDelivered += 1;
 
                 #ifdef DEBUG
                 debug_print_yellow("\nPkt ID {} dump:", event->pkt->id);
@@ -298,7 +302,7 @@ void Simulation::logTriggerInfoMap(){
 
     auto it1 = syndbSim.TriggerInfoMap.begin();
 
-    ndebug_print_yellow("\nTrigger pkt latencies between switches");
+    debug_print_yellow("\nTrigger pkt latencies between switches");
     for(it1; it1 != syndbSim.TriggerInfoMap.end(); it1++){
         
         triggerId = it1->first;
@@ -387,14 +391,22 @@ void Simulation::showLinkUtilizations(){
 
 }
 
+void Simulation::printSimulationStats(){
+    syndbSim.showLinkUtilizations();
+    ndebug_print_yellow("#####  Total Pkts Summary  #####");
+    ndebug_print("Generated: {} | Delivered: {}", this->nextPktId, this->totalPktsDelivered);
+}
 
 void Simulation::cleanUp(){
-    
-    // Why this is needed? When std::list is destroyed, if its members are pointers, only the pointers are destroyed, not the objects pointed by the pointers.
-    // BUT for shared_ptrs, when they are deleted, they do destruct the member objects.
-    // SO this function is actually NOT really required.
 
-    // Clean-up the members of the syndbSim
+    ndebug_print_yellow("Flushing remaining normal pkts");
+    this->flushRemainingNormalPkts();
+    ndebug_print_yellow("Flushing trigger pkts info");
+    this->logTriggerInfoMap();
 
-    // Clean-up the topo
+    this->printSimulationStats();
+
+    this->endTime = time(NULL);
+    ndebug_print_yellow("\nSimulation run took {} seconds.", this->endTime - this->startTime);
+
 }

@@ -56,7 +56,9 @@ struct Switch
     std::default_random_engine randHopDelay;
 
     /* SyNDB specific members */
+    #if RING_BUFFER
     RingBuffer ringBuffer;
+    #endif
     std::set<trigger_id_t> triggerHistory;
 
     /* Switch's processing on receiving a pkt: logging, SyNDB, etc. */

@@ -1,5 +1,5 @@
 #include <stdio.h>
-#include <time.h>
+#include <signal.h>
 #include <fmt/core.h>
 #include <fmt/color.h>
 #include "utils/logger.hpp"
@@ -7,17 +7,23 @@
 #include "simulation/simulation.hpp"
 #include "devtests/devtests.hpp"
 
+void signalHandler(int signum){
+    ndebug_print_yellow("\nCaught signal {}", signum);
+
+    syndbSim.cleanUp();
+
+    exit(signum);
+}
+
 int main(){
 
-    time_t startTime, endTime;
-    
-    startTime = time(NULL); 
+    signal(SIGINT, signalHandler);
+    signal(SIGTERM, signalHandler);
 
     syndbSim = Simulation();
 
     // Init Step 1: Build the topology
     syndbSim.buildTopo();
-    ndebug_print("Done building topo");
 
     // Init Step 2: Init the triggerGen schedule
     #if TRIGGERS_ENABLED
@@ -31,23 +37,21 @@ int main(){
     
     // Init Step 3: Initialize the hosts
     syndbSim.initHosts();
-    ndebug_print("Done init hosts");
 
     // Init Step 4: Open files for logging
     #if LOGGING
     syndbSim.pktDumper->openFiles(syndbConfig.numSwitches, syndbConfig.numHosts);
     #endif
 
-    ndebug_print("Running simulation for {}ns ...",syndbSim.totalTime);
     ndebug_print("Time increment is {}ns", syndbSim.timeIncrement);
-
+    ndebug_print("Running simulation for {}ns ...",syndbSim.totalTime);
 
     // Main simulation loop: at time = 0; all event lists are empty. Only step 4 does some work.
     for ( ; syndbSim.currTime <= syndbSim.totalTime; syndbSim.currTime += syndbSim.timeIncrement)
     {
-        debug_print_yellow("########  Simulation Time: {} ########", syndbSim.currTime);
+        debug_print_yellow("########  Simulation Time: {}  ########", syndbSim.currTime);
         if(syndbSim.currTime % 100000 == 0)
-            ndebug_print_yellow("########  Simulation Time: {} ########", syndbSim.currTime);
+            ndebug_print_yellow("########  Simulation Time: {}  ########", syndbSim.currTime);
         
         // Step 1: Process all hostPktEvents
         syndbSim.processHostPktEvents();
@@ -71,12 +75,8 @@ int main(){
 
     } // end of main simulation loop
 
-    ndebug_print_yellow("Flushing remaining normal pkts");
-    syndbSim.flushRemainingNormalPkts();
-    syndbSim.logTriggerInfoMap();
-    syndbSim.showLinkUtilizations();
+    syndbSim.cleanUp();
 
-    endTime = time(NULL);
     
 #ifdef DEBUG
     checkRemainingQueuingAtLinks();
@@ -86,8 +86,7 @@ int main(){
     // showFatTreeTopoRoutingTables();
 #endif
 
-    ndebug_print_yellow("End of main\n");
-    ndebug_print_yellow("Simulation run took {} seconds.", endTime - startTime);
+    
     return 0;
 }
 

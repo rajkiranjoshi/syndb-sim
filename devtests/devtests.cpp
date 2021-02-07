@@ -50,6 +50,7 @@ void showFatTreeTopoRoutingTables(){
 
 
 void showSimpleTopoRingBuffers(){
+    #if RING_BUFFER
     switch_p s0, s1, s2;
     
     s0 = syndbSim.topo->getSwitchById(0);
@@ -73,9 +74,11 @@ void showSimpleTopoRingBuffers(){
 
     debug_print_yellow("\nActual Ring buffer for s2:");
     s2->ringBuffer.printActualRingBuffer(5);
+    #endif
 }
 
 void testRingBufferOps(){
+    #if RING_BUFFER
     switch_p s0 = syndbSim.topo->getSwitchById(0);
 
     for(int i=1; i <= 8; i++){
@@ -83,6 +86,7 @@ void testRingBufferOps(){
     }
 
     s0->ringBuffer.printActualRingBuffer(10); 
+    #endif
 }
 
 void addTriggerPkts(){

@@ -24,6 +24,10 @@ IncastGenerator::IncastGenerator(){
     sim_time_t fullUtilTimePerIncast = syndbConfig.incastFanInRatio * getSerializationDelay(1500, syndbConfig.torLinkSpeedGbps); 
     sim_time_t incastsPerTargetLink = fullUtilTimeNeeded / fullUtilTimePerIncast;
 
+    // Handle the case that simulation time is much small such that fullUtilTimeNeeded > fullUtilTimePerIncast
+    // Guarantee that at least 1 incast per target link
+    incastsPerTargetLink = std::max<sim_time_t>(incastsPerTargetLink, 1);
+
     host_id_t numTargetHosts = ((double)syndbConfig.percentTargetIncastHosts / 100.0) * syndbConfig.numHosts;
     sim_time_t totalIncasts = numTargetHosts * incastsPerTargetLink;
     this->totalIncasts = totalIncasts;

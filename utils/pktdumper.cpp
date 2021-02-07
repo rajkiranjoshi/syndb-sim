@@ -13,20 +13,20 @@ void PktDumper::openFiles(switch_id_t numberOfSwitches, host_id_t numberOfHosts)
     this->prefixStringForFileName = "dump_" + std::to_string(calendarTime->tm_hour) + "_" + 
                                     std::to_string(calendarTime->tm_min) + "_" + 
                                     std::to_string(calendarTime->tm_sec) + "_";
-    ndebug_print("{}", this->prefixStringForFileName);
+    ndebug_print("PktDump file prefix: {}", this->prefixStringForFileName);
 
     // open all file pointers in write/output mode
     std::string triggerFileName = "./data/" + prefixStringForFileName + "trigger.txt";
     this->triggerFilePointer.open(triggerFileName, std::fstream::out);
 
-    ndebug_print("Number of Switches: {}", numberOfSwitches);
+    debug_print("Number of Switches: {}", numberOfSwitches);
     for (int i = 0; i < numberOfSwitches; i++) {
         std::string fileName = prefixStringForFileName + "switch_" + std::to_string(i) + ".txt";
         std::fstream file ("./data/" + fileName, std::fstream::out);
         this->switchFilePointers.push_back(std::move(file));
     }
 
-    ndebug_print("Number of Hosts: {}", numberOfHosts);
+    debug_print("Number of Hosts: {}", numberOfHosts);
     // for (int i = 0; i < numberOfHosts; i++) {
     //     std::string fileName = prefixStringForFileName + "host_" + std::to_string(i) + ".txt";
     //     std::fstream file ("./data/" + fileName, std::fstream::out);

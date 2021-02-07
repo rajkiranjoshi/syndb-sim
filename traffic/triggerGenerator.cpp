@@ -93,7 +93,7 @@ TriggerGeneratorSimpleTopo::TriggerGeneratorSimpleTopo():TriggerGenerator::Trigg
 
 
 void TriggerGenerator::printTriggerSchedule(){
-    ndebug_print_yellow("Trigger schedule: {} total triggers", this->triggerSchedule.size());
+    ndebug_print_yellow("Trigger Schedule: {} total triggers", this->triggerSchedule.size());
 
     auto it = this->triggerSchedule.begin();
 

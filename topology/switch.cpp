@@ -256,9 +256,11 @@ syndb_status_t Switch::routeScheduleTriggerPkt(triggerpkt_p pkt, const sim_time_
 
 
 void Switch::snapshotRingBuffer(sim_time_t triggerPktRcvTime){
+    #if RING_BUFFER
     ndebug_print("### Ring Buffer for Switch {} ###", this->id);
     ndebug_print("Time: {}ns", triggerPktRcvTime);
     this->ringBuffer.printRingBuffer();
+    #endif
 }
 
 /****************************************/
