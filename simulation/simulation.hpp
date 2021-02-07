@@ -27,6 +27,7 @@ typedef struct Simulation
     std::list<pktevent_p<normalpkt_p>> NormalPktEventList;
     std::list<pktevent_p<normalpkt_p>> freeNormalPktEvents; // to reuse shared_ptrs
     std::list<pktevent_p<triggerpkt_p>> TriggerPktEventList;
+    std::list<normalpkt_p> freeNormalPkts;
 
     // For tracking and logging triggerInfo
     std::map<trigger_id_t, triggerInfo> TriggerInfoMap;
@@ -46,6 +47,7 @@ typedef struct Simulation
     inline pkt_id_t getNextTriggerPktId() { return this->nextTriggerPktId++; };
     inline void buildTopo(){ this->topo->buildTopo(); };
     pktevent_p<normalpkt_p> getNewNormalPktEvent();
+    normalpkt_p getNewNormalPkt(pkt_id_t pktId, pkt_size_t pktSize);
     void initTriggerGen();
     void initIncastGen();
     void initHosts();

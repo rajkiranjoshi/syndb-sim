@@ -11,7 +11,10 @@ PktEvent<T>::PktEvent(){
 
 template<>
 PktEvent<normalpkt_p>::~PktEvent(){
-    // debug_print(fmt::format("Normal Pkt Event with packet id {} destructed!", this->pkt->id));
+    /* if(this->pkt != NULL)
+        debug_print(fmt::format("Normal Pkt Event with packet id {} destructed!", this->pkt->id));
+    else
+        debug_print(fmt::format("Normal Pkt Event (empty) destructed!")); */
 }
 
 template<>

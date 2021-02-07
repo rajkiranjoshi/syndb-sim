@@ -38,7 +38,9 @@ packetInfo DcTrafficGenerator::getNextPacket(){
     sim_time_t serializeDelay = getSerializationDelay(pkt_size, this->torLinkSpeed);
 
     pkt_id_t pktId = syndbSim.getNextPktId();
-    normalpkt_p pkt = normalpkt_p(new NormalPkt(pktId, pkt_size));
+    // normalpkt_p pkt = normalpkt_p(new NormalPkt(pktId, pkt_size));
+    // normalpkt_p pkt = std::make_shared<NormalPkt>(pktId, pkt_size);
+    normalpkt_p pkt = std::move(syndbSim.getNewNormalPkt(pktId, pkt_size));
     
     pkt->srcHost = this->parentHostId;
 
@@ -67,7 +69,9 @@ packetInfo SimpleTrafficGenerator::getNextPacket(){
     sim_time_t sendDelay = 0;
 
     pkt_id_t pktId = syndbSim.getNextPktId();
-    normalpkt_p pkt = normalpkt_p(new NormalPkt(pktId, size));
+    // normalpkt_p pkt = normalpkt_p(new NormalPkt(pktId, size));
+    // normalpkt_p pkt = std::make_shared<NormalPkt>(pktId, size);
+    normalpkt_p pkt = std::move(syndbSim.getNewNormalPkt(pktId, size));
     
     pkt->srcHost = this->parentHostId;
        
