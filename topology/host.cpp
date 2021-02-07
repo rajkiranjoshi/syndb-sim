@@ -1,5 +1,6 @@
 #include <algorithm>
 #include <fmt/core.h>
+#include <memory>
 #include "topology/host.hpp"
 #include "simulation/config.hpp"
 #include "simulation/simulation.hpp"
@@ -105,7 +106,8 @@ void Host::sendPkt(normalpkt_p nextPkt, sim_time_t nextPktTime){
     }
 
     // Create, fill and add a new normal pkt event
-    pktevent_p<normalpkt_p> newPktEvent = pktevent_p<normalpkt_p>(new PktEvent<normalpkt_p>());
+    // pktevent_p<normalpkt_p> newPktEvent = pktevent_p<normalpkt_p>(new PktEvent<normalpkt_p>());
+    pktevent_p<normalpkt_p> newPktEvent = std::move(syndbSim.getNewNormalPktEvent());
     newPktEvent->pkt = nextPkt;
     newPktEvent->pktForwardTime = rsinfo.pktNextForwardTime;
     newPktEvent->currSwitch = this->torSwitch;

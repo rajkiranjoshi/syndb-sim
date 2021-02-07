@@ -15,12 +15,11 @@
 #include <cassert>
 #include "utils/types.hpp"
 
-
 #define LOGGING 0
-#define HOP_DELAY_NOISE 1
+#define HOP_DELAY_NOISE 0
 #define RING_BUFFER 0
-#define TRIGGERS_ENABLED 1
-#define INCASTS_ENABLED 1
+#define TRIGGERS_ENABLED 0
+#define INCASTS_ENABLED 0
 
 typedef struct Config 
 {
@@ -30,25 +29,25 @@ typedef struct Config
     // IMPORTANT: update numHosts and numSwitches as per the topology
     
     /* SimpleTopo Params */
-    // const TopologyType topoType = TopologyType::Simple;
-    // static const switch_id_t numSwitches = 3;
-    // static const uint numHosts = 4;
-    // const TrafficPatternType trafficPatternType = TrafficPatternType::SimpleTopo;
+    const TopologyType topoType = TopologyType::Simple;
+    static const switch_id_t numSwitches = 3;
+    static const uint numHosts = 4;
+    const TrafficPatternType trafficPatternType = TrafficPatternType::SimpleTopo;
     
     /* FatTree Topo Params */
-    /* Do NOT comment out */ static const ft_scale_t fatTreeTopoK = 24; // Fat Tree scale k
-    const TopologyType topoType = TopologyType::FatTree;
-    static const host_id_t numHosts = (fatTreeTopoK * fatTreeTopoK * fatTreeTopoK)/4;
-    static const switch_id_t numSwitches = (fatTreeTopoK * fatTreeTopoK) + ((fatTreeTopoK * fatTreeTopoK)/4);   
+    /* Do NOT comment out */ static const ft_scale_t fatTreeTopoK = 4; // Fat Tree scale k
+    // const TopologyType topoType = TopologyType::FatTree;
+    // static const host_id_t numHosts = (fatTreeTopoK * fatTreeTopoK * fatTreeTopoK)/4;
+    // static const switch_id_t numSwitches = (fatTreeTopoK * fatTreeTopoK) + ((fatTreeTopoK * fatTreeTopoK)/4);   
     // const TrafficPatternType trafficPatternType = TrafficPatternType::AlltoAll;
     // const TrafficPatternType trafficPatternType = TrafficPatternType::FtUniform;
-    const TrafficPatternType trafficPatternType = TrafficPatternType::FtMixed;
+    // const TrafficPatternType trafficPatternType = TrafficPatternType::FtMixed;
 
     const uint8_t ftMixedPatternPercentIntraRack = 75;
 
     static const uint numTriggersPerSwitchType = 15;
 
-    const TrafficGenType trafficGenType = TrafficGenType::Distribution;
+    // const TrafficGenType trafficGenType = TrafficGenType::Distribution;
     /* 
     targetBaseNetworkLoadPercent -> observed network load
         30 -> 25% 
@@ -57,7 +56,7 @@ typedef struct Config
     */
     const uint8_t targetBaseNetworkLoadPercent = 40;
     
-    // const TrafficGenType trafficGenType = TrafficGenType::Continuous;
+    const TrafficGenType trafficGenType = TrafficGenType::Continuous;
     /* Do NOT comment out */ const pkt_size_t fixedPktSizeForSimpleTrafficGen = 1500;
 
     

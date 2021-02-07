@@ -35,6 +35,22 @@ Simulation::Simulation(){
     
 }
 
+
+pktevent_p<normalpkt_p> Simulation::getNewNormalPktEvent(){
+    
+    pktevent_p<normalpkt_p> newNormalPktEvent;
+
+    if(this->freeNormalPktEvents.size() > 0){
+        newNormalPktEvent = std::move(*this->freeNormalPktEvents.begin()); // retrieve
+        this->freeNormalPktEvents.pop_front(); // remove
+    }
+    else{
+        newNormalPktEvent = std::make_shared<PktEvent<normalpkt_p>>();
+    }
+
+    return newNormalPktEvent;
+}
+
 void Simulation::initTriggerGen(){
     switch(syndbConfig.topoType){
         case TopologyType::Simple:
@@ -215,7 +231,6 @@ void Simulation::processNormalPktEvents(){
                 // Mark the event for deletion
                 toDelete.push_back(it);
                 
-
                 // Add end time INT data to the packet
                 event->pkt->endTime = event->pktForwardTime;
 
@@ -262,6 +277,7 @@ void Simulation::processNormalPktEvents(){
     auto it2 = toDelete.begin();
 
     while (it2 != toDelete.end()){
+        this->freeNormalPktEvents.push_back(std::move(**it2));
         NormalPktEventList.erase(*it2);
         it2++;
     }
