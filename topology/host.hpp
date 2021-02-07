@@ -15,6 +15,7 @@ typedef struct Host
     host_tor_link_p torLink;
     Switch* torSwitch;
 
+    packetInfo nextPktInfo;
     normalpkt_p nextPkt;
     sim_time_t nextPktTime;
     sim_time_t prevPktTime;
