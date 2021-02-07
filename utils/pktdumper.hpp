@@ -19,9 +19,8 @@ typedef struct PktDumper
 {
     std::string prefixStringForFileName;
 
-    std::fstream triggerFilePointer;
+    std::fstream triggerFilePointer, sourceDestinationFilePointer;
     std::vector<std::fstream> switchFilePointers;
-    std::vector<std::fstream> hostFilePointers;
 
     ~PktDumper();
     PktDumper() = default;
