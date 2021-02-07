@@ -6,8 +6,14 @@
 #include <ctime>
 #include <fstream>
 #include <time.h>
+
 #include "traffic/packet.hpp"
 #include "topology/switch.hpp"
+#include "utils/logger.hpp"
+
+// need to declare logger.hpp first because of conflict in fmt
+#include <spdlog/async.h>
+#include <spdlog/sinks/basic_file_sink.h>
 
 struct triggerInfo {
     sim_time_t triggerOrigTime;
@@ -19,8 +25,8 @@ typedef struct PktDumper
 {
     std::string prefixStringForFileName;
 
-    std::fstream triggerFilePointer, sourceDestinationFilePointer;
-    std::vector<std::fstream> switchFilePointers;
+    std::shared_ptr<spdlog::logger> triggerFilePointer, sourceDestinationFilePointer;
+    std::vector<std::shared_ptr<spdlog::logger>> switchFilePointers;
 
     ~PktDumper();
     PktDumper() = default;

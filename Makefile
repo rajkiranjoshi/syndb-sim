@@ -48,7 +48,8 @@ CXXFLAGS  = -DBOOST_LOG_DYN_LINK \
 
 LDLIBS = -l$(LIB_BOOST_LOG) \
 		 -lpthread \
-		 -lfmt
+		 -lfmt \
+		 -lspdlog
 
 ifeq ($(CONFIG), release)
 CXXFLAGS += -O3

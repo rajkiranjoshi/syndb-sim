@@ -1,6 +1,9 @@
 #include <iostream>
-#include "utils/logger.hpp"
+#include <typeinfo>
+
 #include "utils/pktdumper.hpp"
+#include "spdlog/cfg/env.h"
+
 
 
 void PktDumper::openFiles(switch_id_t numberOfSwitches, host_id_t numberOfHosts) {
@@ -8,6 +11,10 @@ void PktDumper::openFiles(switch_id_t numberOfSwitches, host_id_t numberOfHosts)
     time_t currentTime;
     time(&currentTime);
     const std::tm *calendarTime = std::localtime(&currentTime);
+
+    // clear stpdlog default pattern
+    spdlog::set_pattern("%v");
+    debug_print("Clearing default spdlog dump pattern.");
     
     this->prefixStringForFileName = "dump_" + std::to_string(calendarTime->tm_hour) + "_" + 
                                     std::to_string(calendarTime->tm_min) + "_" + 
@@ -16,15 +23,15 @@ void PktDumper::openFiles(switch_id_t numberOfSwitches, host_id_t numberOfHosts)
 
     // open all file pointers in write/output mode
     std::string triggerFileName = "./data/" + prefixStringForFileName + "trigger.txt";
-    this->triggerFilePointer.open(triggerFileName, std::fstream::out);
+    this->triggerFilePointer = spdlog::basic_logger_mt<spdlog::async_factory>("trigger", triggerFileName);
 
-    std::string sourceDestinatoinFileName = "./data/" + prefixStringForFileName + "sourceDestination.txt";
-    this->sourceDestinationFilePointer.open(sourceDestinatoinFileName, std::fstream::out);
+    std::string sourceDestinationFile = "./data/" + prefixStringForFileName + "sourceDestination.txt";
+    this->sourceDestinationFilePointer = spdlog::basic_logger_mt<spdlog::async_factory>("sourceDestination", sourceDestinationFile);
 
     debug_print("Number of Switches: {}", numberOfSwitches);
     for (int i = 0; i < numberOfSwitches; i++) {
-        std::string fileName = prefixStringForFileName + "switch_" + std::to_string(i) + ".txt";
-        std::fstream file ("./data/" + fileName, std::fstream::out);
+        std::string fileName = "./data/"+ prefixStringForFileName + "switch_" + std::to_string(i) + ".txt";
+        auto file = spdlog::basic_logger_mt<spdlog::async_factory>("switch_" + std::to_string(i), fileName);
         this->switchFilePointers.push_back(std::move(file));
     }
 
@@ -34,12 +41,12 @@ void PktDumper::openFiles(switch_id_t numberOfSwitches, host_id_t numberOfHosts)
 
 PktDumper::~PktDumper() {
     // close all file pointers
-    this->triggerFilePointer.close();
-    this->sourceDestinationFilePointer.close();
+    // this->triggerFilePointer.close();
+    // this->sourceDestinationFilePointer.close();
 
-    for (int i = 0; i < this->switchFilePointers.size(); i++) {
-        this->switchFilePointers[i].close();
-    }
+    // for (int i = 0; i < this->switchFilePointers.size(); i++) {
+    //     this->switchFilePointers[i].close();
+    // }
 
 }
 
@@ -49,12 +56,12 @@ void PktDumper::dumpPacket(normalpkt_p pkt){
     debug_print_yellow("--------   HOSTS   ----------");
     debug_print("Start Time: {}", pkt->startTime);
     debug_print("End Time: {}", pkt->endTime);
-    this->sourceDestinationFilePointer << pkt->id << "\t" << pkt->srcHost << "\t" << pkt->dstHost << std::endl;
+    this->sourceDestinationFilePointer->info("{}\t{}\t{}", pkt->id, pkt->srcHost, pkt->dstHost);
 
     debug_print_yellow("-------   SWITCHES   ---------");
     std::list<switchINTInfo>::iterator switchTimeStampsIterator;
     for (switchTimeStampsIterator = pkt->switchINTInfoList.begin(); switchTimeStampsIterator != pkt->switchINTInfoList.end(); switchTimeStampsIterator++) {
-        this->switchFilePointers[switchTimeStampsIterator->swId] << switchTimeStampsIterator->rxTime << "\t" << pkt->id << std::endl;
+        this->switchFilePointers[switchTimeStampsIterator->swId]->info("{}\t{}", switchTimeStampsIterator->rxTime, pkt->id);
     }
 
 }
@@ -62,13 +69,12 @@ void PktDumper::dumpPacket(normalpkt_p pkt){
 
 void PktDumper::dumpTriggerInfo(trigger_id_t triggerId, triggerInfo tinfo, SwitchType switchType){
 
-    this->triggerFilePointer << triggerId << "\t";
-    this->triggerFilePointer << tinfo.triggerOrigTime << "\t" << tinfo.originSwitch;
-
+    std::string stringForTriggerFile = std::to_string(triggerId) + "\t" + std::to_string(tinfo.triggerOrigTime) + "\t" + std::to_string(tinfo.originSwitch);
+    
     std::map<switch_id_t, sim_time_t>::iterator rxSwitchTimesIterator = tinfo.rxSwitchTimes.begin();
     for (; rxSwitchTimesIterator != tinfo.rxSwitchTimes.end(); rxSwitchTimesIterator++) {
-        this->triggerFilePointer << "\t" << rxSwitchTimesIterator->first << "\t" << rxSwitchTimesIterator->second;
+        stringForTriggerFile += "\t" + std::to_string(rxSwitchTimesIterator->first) + "\t" + std::to_string(rxSwitchTimesIterator->second);
     }
 
-    this->triggerFilePointer << "\n";
+    this->triggerFilePointer->info("{}", stringForTriggerFile);
 }
