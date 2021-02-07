@@ -28,7 +28,7 @@ struct HostPktEvent
     Host* host;
     normalpkt_p pkt;
 
-    HostPktEvent(Host* host, normalpkt_p pkt);
+    HostPktEvent(Host* host, normalpkt_p &pkt);
 
 };
 

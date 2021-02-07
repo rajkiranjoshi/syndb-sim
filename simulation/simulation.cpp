@@ -48,7 +48,7 @@ pktevent_p<normalpkt_p> Simulation::getNewNormalPktEvent(){
         newNormalPktEvent = std::make_shared<PktEvent<normalpkt_p>>();
     }
 
-    return newNormalPktEvent;
+    return std::move(newNormalPktEvent);
 }
 
 normalpkt_p Simulation::getNewNormalPkt(pkt_id_t pktId, pkt_size_t pktSize){
@@ -66,7 +66,7 @@ normalpkt_p Simulation::getNewNormalPkt(pkt_id_t pktId, pkt_size_t pktSize){
         newNormalPkt = std::make_shared<NormalPkt>(pktId, pktSize);
     }
 
-    return newNormalPkt;
+    return std::move(newNormalPkt);
 }
 
 void Simulation::initTriggerGen(){
