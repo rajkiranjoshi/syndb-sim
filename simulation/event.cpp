@@ -23,7 +23,7 @@ PktEvent<triggerpkt_p>::~PktEvent(){
 }
 
 
-HostPktEvent::HostPktEvent(host_p host, normalpkt_p pkt){
+HostPktEvent::HostPktEvent(Host* host, normalpkt_p pkt){
     this->host = host;
     this->pkt = pkt;
 }

@@ -90,7 +90,7 @@ void Simulation::initHosts(){
 
     while (it != this->topo->hostIDMap.end() )
     {
-        host_p h = it->second;
+        Host* h = it->second.get();
 
         if(syndbConfig.trafficPatternType == TrafficPatternType::FtMixed){
             std::dynamic_pointer_cast<FtMixedTrafficPattern>(h->trafficPattern)->initTopoInfo();
@@ -111,7 +111,7 @@ void Simulation::generateHostPktEvents(){
     assert((this->HostPktEventList.size() == 0) && "HostPktEventList is NOT empty!");
 
     for(auto it = this->topo->hostIDMap.begin(); it != this->topo->hostIDMap.end(); it++){
-        host_p host = it->second;
+        Host* host = it->second.get();
 
         #ifdef DEBUG
         // Just for debug case when trafficGen is disabled
@@ -122,10 +122,10 @@ void Simulation::generateHostPktEvents(){
         
         while(host->nextPktTime <= syndbSim.currTime + syndbSim.timeIncrement){
             // Use the next scheduled packet on the host to create hostPktEvent
-            hostpktevent_p hostPktEvent = hostpktevent_p(new HostPktEvent(host, host->nextPkt));
+            // hostpktevent_p hostPktEvent = hostpktevent_p(new HostPktEvent(host, host->nextPkt));
 
             // Insert the hostPktEvent into the map (sorted list)
-            this->HostPktEventList.insert(std::pair<sim_time_t, hostpktevent_p>(host->nextPktTime,hostPktEvent));
+            this->HostPktEventList.insert(std::pair<sim_time_t, HostPktEvent>(host->nextPktTime, HostPktEvent(host, host->nextPkt)));
 
             // Generate next scheduled packet on the host
             host->generateNextPkt();
@@ -139,15 +139,15 @@ void Simulation::processHostPktEvents(){
 
     normalpkt_p nextPkt;
     sim_time_t nextPktTime;
-    host_p host;
+    Host* host;
 
     auto it = this->HostPktEventList.begin();
 
     while (it != this->HostPktEventList.end() )
     {
         nextPktTime = it->first;
-        host = it->second->host;
-        nextPkt = it->second->pkt;
+        host = it->second.host;
+        nextPkt = std::move(it->second.pkt);
 
         if(this->currTime < nextPktTime){
             std::string msg = fmt::format("Currtime: {}ns. HostPktEventList has pkt with nextPktTime {}ns", this->currTime, nextPktTime);
@@ -239,7 +239,7 @@ void Simulation::processNormalPktEvents(){
 
     while (it != this->NormalPktEventList.end())
     {
-        pktevent_p<normalpkt_p> event = *it;
+        PktEvent<normalpkt_p>* event = (*it).get();
 
         if(this->currTime >= event->pktForwardTime){
 

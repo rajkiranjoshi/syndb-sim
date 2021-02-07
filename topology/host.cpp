@@ -63,7 +63,7 @@ void Host::generateNextPkt(){
     packetInfo pktInfo = this->trafficGen->getNextPacket();
     // Get the dstHost from the TrafficPattern
     pktInfo.pkt->dstHost = this->trafficPattern->applyTrafficPattern();
-    this->nextPkt = pktInfo.pkt;
+    this->nextPkt = std::move(pktInfo.pkt);
     this->prevPktTime = this->nextPktTime; // save curr next time to prev
     
     sim_time_t pktGenSendTime = this->nextPktTime + pktInfo.sendDelay;
@@ -81,7 +81,7 @@ void Host::generateNextPkt(){
 
 }
 
-void Host::sendPkt(normalpkt_p nextPkt, sim_time_t nextPktTime){
+void Host::sendPkt(normalpkt_p &nextPkt, sim_time_t nextPktTime){
     
     routeScheduleInfo rsinfo;
 

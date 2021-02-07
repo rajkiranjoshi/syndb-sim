@@ -114,7 +114,7 @@ void IncastGenerator::generateIncast(){
         host_id_t targetHost = this->nextIncast->targetHostId;
 
         for(auto it = this->nextIncast->sourceHosts.begin(); it != this->nextIncast->sourceHosts.end(); it++){
-            host_p host = syndbSim.topo->getHostById(*it);
+            Host* host = syndbSim.topo->getHostById(*it);
 
             host->nextPkt->size = 1500;
             host->nextPkt->dstHost = targetHost;

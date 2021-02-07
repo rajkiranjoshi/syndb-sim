@@ -23,7 +23,7 @@ typedef struct Simulation
     pkt_id_t nextTriggerPktId;
     pkt_id_t totalPktsDelivered;
     
-    std::multimap<sim_time_t, hostpktevent_p> HostPktEventList;
+    std::multimap<sim_time_t, HostPktEvent> HostPktEventList;
     std::list<pktevent_p<normalpkt_p>> NormalPktEventList;
     std::list<pktevent_p<normalpkt_p>> freeNormalPktEvents; // to reuse shared_ptrs
     std::list<pktevent_p<triggerpkt_p>> TriggerPktEventList;
