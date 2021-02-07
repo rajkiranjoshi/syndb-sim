@@ -9,8 +9,8 @@ Pkt::Pkt(pkt_size_t size){
     // debug_print(fmt::format("[Sim Time {}ns] Packet {} constructed!", syndbSim.currTime, id));
 }
 
-Pkt::~Pkt(){
-    // debug_print(fmt::format("[Sim Time {}ns] Packet {} destructed!", syndbSim.currTime, this->id));
+NormalPkt::~NormalPkt(){
+    // debug_print(fmt::format("[Sim Time {}ns] Normal Packet {} destructed!", syndbSim.currTime, this->id));
 }
 
 

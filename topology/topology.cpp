@@ -104,8 +104,8 @@ void SimpleTopology::buildTopo(){
     // Create all hosts
     h0 = this->createNewHost();
     h1 = this->createNewHost();
-    h2 = this->createNewHost();
-    h3 = this->createNewHost();
+    // h2 = this->createNewHost();
+    // h3 = this->createNewHost();
     
     // Create all switches
     s0 = this->createNewSwitch(SwitchType::Simple); 
@@ -113,9 +113,9 @@ void SimpleTopology::buildTopo(){
     s2 = this->createNewSwitch(SwitchType::Simple); 
 
     this->addHostToTor(h0, s0);
-    this->addHostToTor(h2, s0);
+    // this->addHostToTor(h2, s0);
     this->addHostToTor(h1, s1);
-    this->addHostToTor(h3, s1);
+    // this->addHostToTor(h3, s1);
 
     connectSwitchToSwitch(s0, s2);
     connectSwitchToSwitch(s1, s2);

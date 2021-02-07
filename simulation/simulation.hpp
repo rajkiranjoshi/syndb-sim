@@ -25,6 +25,7 @@ typedef struct Simulation
     
     std::multimap<sim_time_t, hostpktevent_p> HostPktEventList;
     std::list<pktevent_p<normalpkt_p>> NormalPktEventList;
+    std::list<pktevent_p<normalpkt_p>> freeNormalPktEvents; // to reuse shared_ptrs
     std::list<pktevent_p<triggerpkt_p>> TriggerPktEventList;
 
     // For tracking and logging triggerInfo
@@ -42,8 +43,9 @@ typedef struct Simulation
     
     // needs to be thread-safe when parallelizing
     inline pkt_id_t getNextPktId() { return this->nextPktId++; }; 
-    inline pkt_id_t getNextTriggerPktId() { return this->nextTriggerPktId++; }; 
+    inline pkt_id_t getNextTriggerPktId() { return this->nextTriggerPktId++; };
     inline void buildTopo(){ this->topo->buildTopo(); };
+    pktevent_p<normalpkt_p> getNewNormalPktEvent();
     void initTriggerGen();
     void initIncastGen();
     void initHosts();
