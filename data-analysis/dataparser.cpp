@@ -3,8 +3,6 @@
 #include "data-analysis/dataparser.hpp"
 
 
-
-
 DataParser::DataParser(std::string prefixStringForFileName, switch_id_t numberOfSwitches, host_id_t numberOfHosts) {
 
     // open all file pointers in write/output mode
@@ -34,12 +32,12 @@ DataParser::~DataParser() {
 }
 
 
-std::map<sim_time_t, PacketInfo> DataParser::getWindowForSwitch(switch_id_t switchID, sim_time_t triggerTime, pkt_id_t windowSize) {
+std::map<pkt_id_t, PacketInfo> DataParser::getWindowForSwitch(switch_id_t switchID, sim_time_t triggerTime, pkt_id_t windowSize) {
 
     this->switchFilePointers[switchID].clear();
     this->switchFilePointers[switchID].seekg(0);
 
-    std::map<sim_time_t, PacketInfo> ingressTimeToPktIDMap;
+    std::multimap<sim_time_t, PacketInfo> ingressTimeToPktIDMap;
     std::map<pkt_id_t, PacketInfo> pRecordWindow;
 
     while (! this->switchFilePointers[switchID].eof()) {
@@ -48,19 +46,20 @@ std::map<sim_time_t, PacketInfo> DataParser::getWindowForSwitch(switch_id_t swit
         // std::cout << currentPacket.switchIngressTime << "\t" << currentPacket.id << "\t" << currentPacket.srcHost << "\t" << currentPacket.dstHost << std::endl;
         
         // store in sorted map <ingressTime, pktID> where ingressTime <= triggerTime
-        if (currentPacket.switchIngressTime < triggerTime) {
+        if (currentPacket.switchIngressTime <= triggerTime) {
             ingressTimeToPktIDMap.insert(std::pair<sim_time_t, PacketInfo>(currentPacket.switchIngressTime, currentPacket));
         }
     }
 
     // from stored index to index-windowSize put all pktID in list/vector
     pkt_id_t numberOfPacketsAddedTopRecordWindow = 0;
-    std::map<sim_time_t, PacketInfo>::iterator iteratorForingressTimeToPktIDMap = ingressTimeToPktIDMap.end();
+    std::multimap<sim_time_t, PacketInfo>::iterator iteratorForingressTimeToPktIDMap = ingressTimeToPktIDMap.end();
     iteratorForingressTimeToPktIDMap--;     // end()-1 is last element
 
-    while (numberOfPacketsAddedTopRecordWindow < windowSize) {
-        // std::cout << iteratorForingressTimeToPktIDMap->first << "\t" << iteratorForingressTimeToPktIDMap->second << std::endl;
-        pRecordWindow.insert(std::pair<sim_time_t, PacketInfo>(iteratorForingressTimeToPktIDMap->second.id, iteratorForingressTimeToPktIDMap->second));
+    while (numberOfPacketsAddedTopRecordWindow < windowSize+5) {
+        std::cout << iteratorForingressTimeToPktIDMap->first << "\t" << iteratorForingressTimeToPktIDMap->second.id << std::endl;
+        if (numberOfPacketsAddedTopRecordWindow < windowSize)
+            pRecordWindow.insert(std::pair<sim_time_t, PacketInfo>(iteratorForingressTimeToPktIDMap->second.id, iteratorForingressTimeToPktIDMap->second));
 
         if (iteratorForingressTimeToPktIDMap == ingressTimeToPktIDMap.begin()) {
             break;
