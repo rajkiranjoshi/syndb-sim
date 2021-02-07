@@ -25,9 +25,11 @@ ANALYSIS_DEPENDS = $(patsubst $(CURR_DIR)/%,$(BUILDDIR)/%,$(ANALYSIS_SOURCES:.cp
 
 RELEASE_BINARY := syndb-sim
 DEBUG_BINARY := syndb-sim-debug
+PROFILE_BINARY := syndb-sim-prof
 
 ANALYSIS_RELEASE_BINARY := syndb-analysis
 ANALYSIS_DEBUG_BINARY := syndb-analysis-debug
+ANALYSIS_PROFILE_BINARY := syndb-analysis-profile
 
 
 LIB_BOOST_LOG := 
@@ -52,12 +54,19 @@ ifeq ($(CONFIG), release)
 CXXFLAGS += -O3
 OUTPUT_BINARY := $(RELEASE_BINARY)
 ANALYSIS_BINARY := $(ANALYSIS_RELEASE_BINARY)
-else
+endif
+
+ifeq ($(CONFIG), debug)
 CXXFLAGS += -O0 -g3 -DDEBUG
 OUTPUT_BINARY := $(DEBUG_BINARY)
 ANALYSIS_BINARY := $(ANALYSIS_DEBUG_BINARY)
 endif
 
+ifeq ($(CONFIG), profile)
+CXXFLAGS += -O3 -pg
+OUTPUT_BINARY := $(PROFILE_BINARY)
+ANALYSIS_BINARY := $(ANALYSIS_PROFILE_BINARY)
+endif
 
 .PHONY: all clean cleaner
 
@@ -72,8 +81,8 @@ clean:
 
 cleaner:
 	@$(RM) -rf $(BASE_BUILDDIR)
-	@$(RM) $(RELEASE_BINARY) $(DEBUG_BINARY)
-	@$(RM) $(ANALYSIS_RELEASE_BINARY) $(ANALYSIS_DEBUG_BINARY)
+	@$(RM) $(RELEASE_BINARY) $(DEBUG_BINARY) $(PROFILE_BINARY)
+	@$(RM) $(ANALYSIS_RELEASE_BINARY) $(ANALYSIS_DEBUG_BINARY) $(ANALYSIS_PROFILE_BINARY)
 
 
 # Linking the executable from the object files
