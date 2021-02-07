@@ -51,6 +51,24 @@ pktevent_p<normalpkt_p> Simulation::getNewNormalPktEvent(){
     return newNormalPktEvent;
 }
 
+normalpkt_p Simulation::getNewNormalPkt(pkt_id_t pktId, pkt_size_t pktSize){
+    normalpkt_p newNormalPkt;
+
+    if(this->freeNormalPkts.size() > 0){
+        newNormalPkt = std::move(*this->freeNormalPkts.begin()); // retrieve
+        this->freeNormalPkts.pop_front(); // remove
+
+        newNormalPkt->id = pktId;
+        newNormalPkt->size = pktSize;
+        newNormalPkt->switchINTInfoList.clear();
+    }
+    else{
+        newNormalPkt = std::make_shared<NormalPkt>(pktId, pktSize);
+    }
+
+    return newNormalPkt;
+}
+
 void Simulation::initTriggerGen(){
     switch(syndbConfig.topoType){
         case TopologyType::Simple:
@@ -277,6 +295,8 @@ void Simulation::processNormalPktEvents(){
     auto it2 = toDelete.begin();
 
     while (it2 != toDelete.end()){
+        this->freeNormalPkts.push_back(std::move((**it2)->pkt)); // this makes pkt inside the event as NULL
+        //TODO: other members of the PktEvent?
         this->freeNormalPktEvents.push_back(std::move(**it2));
         NormalPktEventList.erase(*it2);
         it2++;
