@@ -15,6 +15,8 @@
 #include <spdlog/async.h>
 #include <spdlog/sinks/basic_file_sink.h>
 
+#define QUEUE_SIZE 32768 * 2
+
 struct triggerInfo {
     sim_time_t triggerOrigTime;
     switch_id_t originSwitch;

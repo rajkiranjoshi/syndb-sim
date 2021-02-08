@@ -14,6 +14,7 @@ void PktDumper::openFiles(switch_id_t numberOfSwitches, host_id_t numberOfHosts)
 
     // clear stpdlog default pattern
     spdlog::set_pattern("%v");
+    spdlog::init_thread_pool(QUEUE_SIZE, 1);
     debug_print("Clearing default spdlog dump pattern.");
     
     this->prefixStringForFileName = "dump_" + std::to_string(calendarTime->tm_hour) + "_" + 
@@ -47,7 +48,7 @@ PktDumper::~PktDumper() {
     // for (int i = 0; i < this->switchFilePointers.size(); i++) {
     //     this->switchFilePointers[i].close();
     // }
-
+    // spdlog::shutdown();
 }
 
 
