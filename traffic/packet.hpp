@@ -40,7 +40,8 @@ typedef struct NormalPkt : Pkt {
 
 } NormalPkt;
 
-typedef std::shared_ptr<NormalPkt> normalpkt_p;
+// typedef std::shared_ptr<NormalPkt> normalpkt_p;
+typedef NormalPkt* normalpkt_p;
 
 /* triggerPkt Struct */
 typedef struct TriggerPkt : Pkt {

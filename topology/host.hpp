@@ -25,7 +25,8 @@ typedef struct Host
     bool trafficGenDisabled;
 
     Host(host_id_t id, bool disableTrafficGen = false);
-
+    ~Host();
+    
     void generateNextPkt();
     void sendPkt(normalpkt_p &nextPkt, sim_time_t nextPktTime);
 

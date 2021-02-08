@@ -117,7 +117,7 @@ void Switch::schedulePkt(const pkt_size_t pktsize, const sim_time_t pktArrivalTi
 }
 
 
-void Switch::receiveNormalPkt(normalpkt_p &pkt, sim_time_t rxTime){
+void Switch::receiveNormalPkt(normalpkt_p pkt, sim_time_t rxTime){
     #if RING_BUFFER
     this->ringBuffer.insertPrecord(pkt->id, rxTime);
     #endif

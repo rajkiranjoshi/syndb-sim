@@ -29,7 +29,6 @@ struct HostPktEvent
     normalpkt_p pkt;
 
     HostPktEvent(Host* host, normalpkt_p &pkt);
-
 };
 
 typedef std::shared_ptr<HostPktEvent> hostpktevent_p;
