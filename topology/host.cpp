@@ -120,3 +120,8 @@ void Host::sendPkt(normalpkt_p &nextPkt, sim_time_t nextPktTime){
     syndbSim.NormalPktEventList.push_front(newPktEvent);
 
 }
+
+Host::~Host(){
+    if(this->nextPkt != NULL)
+        delete this->nextPkt;
+}

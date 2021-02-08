@@ -55,7 +55,7 @@ normalpkt_p Simulation::getNewNormalPkt(pkt_id_t pktId, pkt_size_t pktSize){
     normalpkt_p newNormalPkt;
 
     if(this->freeNormalPkts.size() > 0){
-        newNormalPkt = std::move(*this->freeNormalPkts.begin()); // retrieve
+        newNormalPkt = *this->freeNormalPkts.begin(); // retrieve
         this->freeNormalPkts.pop_front(); // remove
 
         newNormalPkt->id = pktId;
@@ -63,10 +63,10 @@ normalpkt_p Simulation::getNewNormalPkt(pkt_id_t pktId, pkt_size_t pktSize){
         newNormalPkt->switchINTInfoList.clear();
     }
     else{
-        newNormalPkt = std::make_shared<NormalPkt>(pktId, pktSize);
+        newNormalPkt = new NormalPkt(pktId, pktSize);
     }
 
-    return std::move(newNormalPkt);
+    return newNormalPkt;
 }
 
 void Simulation::initTriggerGen(){
@@ -147,7 +147,7 @@ void Simulation::processHostPktEvents(){
     {
         nextPktTime = it->first;
         host = it->second.host;
-        nextPkt = std::move(it->second.pkt);
+        nextPkt = it->second.pkt;
 
         if(this->currTime < nextPktTime){
             std::string msg = fmt::format("Currtime: {}ns. HostPktEventList has pkt with nextPktTime {}ns", this->currTime, nextPktTime);
@@ -295,7 +295,7 @@ void Simulation::processNormalPktEvents(){
     auto it2 = toDelete.begin();
 
     while (it2 != toDelete.end()){
-        this->freeNormalPkts.push_back(std::move((**it2)->pkt)); // this makes pkt inside the event as NULL
+        this->freeNormalPkts.push_back((**it2)->pkt); // this makes pkt inside the event as NULL
         //TODO: other members of the PktEvent?
         this->freeNormalPktEvents.push_back(std::move(**it2));
         NormalPktEventList.erase(*it2);
@@ -439,6 +439,28 @@ void Simulation::cleanUp(){
     this->flushRemainingNormalPkts();
     ndebug_print_yellow("Flushing trigger pkts info");
     this->logTriggerInfoMap();
+
+    /* Free NormalPkts from everywhere */
+    // 1. From the Hosts. Implemented in the destructor ~Host(). Should be freed there.
+    // 2. From the HostPktEventList. Do NOT free in the destructor of HostPktEvent. It is destroyed in runtime.
+    for(auto it=this->HostPktEventList.begin(); it != this->HostPktEventList.end(); it++){
+        if(it->second.pkt != NULL)
+            delete it->second.pkt;
+    }
+    // 3. From the NormalPktEvents only. NOT the freeNormalPktEvents!
+    for(auto it=this->NormalPktEventList.begin(); it != this->NormalPktEventList.end(); it++){
+        if((*it)->pkt != NULL)
+            delete (*it)->pkt;
+    }
+    // 4. From the freeNormalPkts list. These are pkts from the freeNormalPktEvents
+    ndebug_print_yellow("Cleaning up freeNormalPkts ...");
+    for(auto it=this->freeNormalPkts.begin(); it != this->freeNormalPkts.end(); it++){
+        if(*it != NULL)
+            delete *it;
+    }
+    
+     
+
 
     this->printSimulationStats();
 

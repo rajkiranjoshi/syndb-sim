@@ -62,7 +62,7 @@ struct Switch
     std::set<trigger_id_t> triggerHistory;
 
     /* Switch's processing on receiving a pkt: logging, SyNDB, etc. */
-    void receiveNormalPkt(normalpkt_p &pkt, sim_time_t rxTime);
+    void receiveNormalPkt(normalpkt_p pkt, sim_time_t rxTime);
     void receiveTriggerPkt(triggerpkt_p pkt, sim_time_t rxTime);
     void generateTrigger();
     void createSendTriggerPkt(switch_id_t dstSwitchId, trigger_id_t triggerId, switch_id_t originSwitchId, sim_time_t origTriggerTime, sim_time_t pktArrivalTime);
