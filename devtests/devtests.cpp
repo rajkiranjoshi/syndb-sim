@@ -95,7 +95,7 @@ void addTriggerPkts(){
         const sim_time_t increment = 3000;
         static sim_time_t nextSendTime = 0;
 
-        switch_p srcSwitch = syndbSim.topo->getSwitchById(0); 
+        Switch* srcSwitch = syndbSim.topo->getSwitchById(0); 
 
         if(syndbSim.currTime >= nextSendTime){
 

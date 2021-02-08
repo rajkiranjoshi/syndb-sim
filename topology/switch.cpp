@@ -27,14 +27,14 @@ sim_time_t Switch::getRandomHopDelay(){
 }
 
 
-syndb_status_t Switch::intraRackRouteNormalPkt(normalpkt_p pkt, const sim_time_t pktArrivalTime, routeScheduleInfo &rsinfo){
+syndb_status_t Switch::intraRackRouteNormalPkt(normalpkt_p &pkt, const sim_time_t pktArrivalTime, routeScheduleInfo &rsinfo){
 
     // intra-rack routing
     // Figure-out the link + queue and call schedulePkt() --> updates the q_next_idle_time
     // nextSwitch is NULL (since host)
     // Update the rsinfo struct
 
-    host_tor_link_p hostTorLink;
+    HostTorLink* hostTorLink;
 
     auto search = this->neighborHostTable.find(pkt->dstHost);
     if(search != this->neighborHostTable.end()){
@@ -55,9 +55,9 @@ syndb_status_t Switch::intraRackRouteNormalPkt(normalpkt_p pkt, const sim_time_t
 
 }
 
-syndb_status_t Switch::scheduleToNextHopSwitch(const pkt_size_t pktsize, const sim_time_t pktArrivalTime, switch_p nextHopSwitch, routeScheduleInfo &rsinfo, PacketType ptype){
+syndb_status_t Switch::scheduleToNextHopSwitch(const pkt_size_t pktsize, const sim_time_t pktArrivalTime, Switch* nextHopSwitch, routeScheduleInfo &rsinfo, PacketType ptype){
     
-    network_link_p nextLink;
+    NetworkLink* nextLink;
 
     auto search = this->neighborSwitchTable.find(nextHopSwitch->id);
     if(search != this->neighborSwitchTable.end()){
@@ -246,8 +246,8 @@ void Switch::createSendTriggerPkt(switch_id_t dstSwitchId, trigger_id_t triggerI
     syndbSim.TriggerPktEventList.push_back(newEvent);
 }
 
-syndb_status_t Switch::routeScheduleTriggerPkt(triggerpkt_p pkt, const sim_time_t pktArrivalTime, routeScheduleInfo &rsinfo){
-    switch_p nextHopSwitch;
+syndb_status_t Switch::routeScheduleTriggerPkt(triggerpkt_p &pkt, const sim_time_t pktArrivalTime, routeScheduleInfo &rsinfo) {
+    Switch* nextHopSwitch;
 
     nextHopSwitch = syndbSim.topo->getSwitchById(pkt->dstSwitchId); // since triggerPkts sent to neighbors only
 
@@ -267,7 +267,7 @@ void Switch::snapshotRingBuffer(sim_time_t triggerPktRcvTime){
 /*        SimpleSwitch Methods          */
 /****************************************/
 
-syndb_status_t SimpleSwitch::routeScheduleNormalPkt(normalpkt_p pkt, const sim_time_t pktArrivalTime, routeScheduleInfo &rsinfo){
+syndb_status_t SimpleSwitch::routeScheduleNormalPkt(normalpkt_p &pkt, const sim_time_t pktArrivalTime, routeScheduleInfo &rsinfo){
     // Two steps for updating the rsinfo struct
     // Step 1: Do the routing: determines nextSwitch, nextLink, nextLink's queue (correct next_idle_time)
     // Step 2: (common) Do the scheduling: determines the pktNextForwardTime for the correct nextLink's queue
@@ -281,7 +281,7 @@ syndb_status_t SimpleSwitch::routeScheduleNormalPkt(normalpkt_p pkt, const sim_t
     } // end of intra-rack routing case
     else // inter-rack routing
     {
-        switch_p nextHopSwitch;
+        Switch* nextHopSwitch;
         nextHopSwitch = this->getNextHop(dstTorId);
         
         // call the switch-to-switch scheduling since we know the nextHopSwitch
@@ -291,7 +291,7 @@ syndb_status_t SimpleSwitch::routeScheduleNormalPkt(normalpkt_p pkt, const sim_t
 
 }
 
-switch_p SimpleSwitch::getNextHop(switch_id_t dstSwitchId){
+Switch* SimpleSwitch::getNextHop(switch_id_t dstSwitchId){
     
     // First, find if the dstSwitchId is in the neighbor switch list
 

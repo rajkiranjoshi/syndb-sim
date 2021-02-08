@@ -72,7 +72,7 @@ void FtMixedTrafficPattern::initTopoInfo(){
     host_id_t rackHostId;
     
     switch_id_t torId = syndbSim.topo->getTorId(this->parentHostId);
-    switch_p tor = syndbSim.topo->getSwitchById(torId);
+    const Switch* tor = syndbSim.topo->getSwitchById(torId);
 
     for(auto it = tor->neighborHostTable.begin(); it != tor->neighborHostTable.end(); it++){
         rackHostId = it->first;

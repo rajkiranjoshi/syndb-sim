@@ -13,8 +13,9 @@ typedef struct Host
 {
     host_id_t id;
     host_tor_link_p torLink;
-    switch_p torSwitch;
+    Switch* torSwitch;
 
+    packetInfo nextPktInfo;
     normalpkt_p nextPkt;
     sim_time_t nextPktTime;
     sim_time_t prevPktTime;
@@ -24,9 +25,10 @@ typedef struct Host
     bool trafficGenDisabled;
 
     Host(host_id_t id, bool disableTrafficGen = false);
-
+    ~Host();
+    
     void generateNextPkt();
-    void sendPkt(normalpkt_p nextPkt, sim_time_t nextPktTime);
+    void sendPkt(normalpkt_p &nextPkt, sim_time_t nextPktTime);
 
 } Host;
 

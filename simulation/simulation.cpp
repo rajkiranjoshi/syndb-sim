@@ -35,6 +35,40 @@ Simulation::Simulation(){
     
 }
 
+
+pktevent_p<normalpkt_p> Simulation::getNewNormalPktEvent(){
+    
+    pktevent_p<normalpkt_p> newNormalPktEvent;
+
+    if(this->freeNormalPktEvents.size() > 0){
+        newNormalPktEvent = std::move(*this->freeNormalPktEvents.begin()); // retrieve
+        this->freeNormalPktEvents.pop_front(); // remove
+    }
+    else{
+        newNormalPktEvent = std::make_shared<PktEvent<normalpkt_p>>();
+    }
+
+    return std::move(newNormalPktEvent);
+}
+
+normalpkt_p Simulation::getNewNormalPkt(pkt_id_t pktId, pkt_size_t pktSize){
+    normalpkt_p newNormalPkt;
+
+    if(this->freeNormalPkts.size() > 0){
+        newNormalPkt = *this->freeNormalPkts.begin(); // retrieve
+        this->freeNormalPkts.pop_front(); // remove
+
+        newNormalPkt->id = pktId;
+        newNormalPkt->size = pktSize;
+        newNormalPkt->switchINTInfoList.clear();
+    }
+    else{
+        newNormalPkt = new NormalPkt(pktId, pktSize);
+    }
+
+    return newNormalPkt;
+}
+
 void Simulation::initTriggerGen(){
     switch(syndbConfig.topoType){
         case TopologyType::Simple:
@@ -56,7 +90,7 @@ void Simulation::initHosts(){
 
     while (it != this->topo->hostIDMap.end() )
     {
-        host_p h = it->second;
+        Host* h = it->second.get();
 
         if(syndbConfig.trafficPatternType == TrafficPatternType::FtMixed){
             std::dynamic_pointer_cast<FtMixedTrafficPattern>(h->trafficPattern)->initTopoInfo();
@@ -77,7 +111,7 @@ void Simulation::generateHostPktEvents(){
     assert((this->HostPktEventList.size() == 0) && "HostPktEventList is NOT empty!");
 
     for(auto it = this->topo->hostIDMap.begin(); it != this->topo->hostIDMap.end(); it++){
-        host_p host = it->second;
+        Host* host = it->second.get();
 
         #ifdef DEBUG
         // Just for debug case when trafficGen is disabled
@@ -88,10 +122,10 @@ void Simulation::generateHostPktEvents(){
         
         while(host->nextPktTime <= syndbSim.currTime + syndbSim.timeIncrement){
             // Use the next scheduled packet on the host to create hostPktEvent
-            hostpktevent_p hostPktEvent = hostpktevent_p(new HostPktEvent(host, host->nextPkt));
+            // hostpktevent_p hostPktEvent = hostpktevent_p(new HostPktEvent(host, host->nextPkt));
 
             // Insert the hostPktEvent into the map (sorted list)
-            this->HostPktEventList.insert(std::pair<sim_time_t, hostpktevent_p>(host->nextPktTime,hostPktEvent));
+            this->HostPktEventList.insert(std::pair<sim_time_t, HostPktEvent>(host->nextPktTime, HostPktEvent(host, host->nextPkt)));
 
             // Generate next scheduled packet on the host
             host->generateNextPkt();
@@ -105,15 +139,15 @@ void Simulation::processHostPktEvents(){
 
     normalpkt_p nextPkt;
     sim_time_t nextPktTime;
-    host_p host;
+    Host* host;
 
     auto it = this->HostPktEventList.begin();
 
     while (it != this->HostPktEventList.end() )
     {
         nextPktTime = it->first;
-        host = it->second->host;
-        nextPkt = it->second->pkt;
+        host = it->second.host;
+        nextPkt = it->second.pkt;
 
         if(this->currTime < nextPktTime){
             std::string msg = fmt::format("Currtime: {}ns. HostPktEventList has pkt with nextPktTime {}ns", this->currTime, nextPktTime);
@@ -205,7 +239,7 @@ void Simulation::processNormalPktEvents(){
 
     while (it != this->NormalPktEventList.end())
     {
-        pktevent_p<normalpkt_p> event = *it;
+        PktEvent<normalpkt_p>* event = (*it).get();
 
         if(this->currTime >= event->pktForwardTime){
 
@@ -215,7 +249,6 @@ void Simulation::processNormalPktEvents(){
                 // Mark the event for deletion
                 toDelete.push_back(it);
                 
-
                 // Add end time INT data to the packet
                 event->pkt->endTime = event->pktForwardTime;
 
@@ -262,6 +295,9 @@ void Simulation::processNormalPktEvents(){
     auto it2 = toDelete.begin();
 
     while (it2 != toDelete.end()){
+        this->freeNormalPkts.push_back((**it2)->pkt); // this makes pkt inside the event as NULL
+        //TODO: other members of the PktEvent?
+        this->freeNormalPktEvents.push_back(std::move(**it2));
         NormalPktEventList.erase(*it2);
         it2++;
     }
@@ -403,6 +439,28 @@ void Simulation::cleanUp(){
     this->flushRemainingNormalPkts();
     ndebug_print_yellow("Flushing trigger pkts info");
     this->logTriggerInfoMap();
+
+    /* Free NormalPkts from everywhere */
+    // 1. From the Hosts. Implemented in the destructor ~Host(). Should be freed there.
+    // 2. From the HostPktEventList. Do NOT free in the destructor of HostPktEvent. It is destroyed in runtime.
+    for(auto it=this->HostPktEventList.begin(); it != this->HostPktEventList.end(); it++){
+        if(it->second.pkt != NULL)
+            delete it->second.pkt;
+    }
+    // 3. From the NormalPktEvents only. NOT the freeNormalPktEvents!
+    for(auto it=this->NormalPktEventList.begin(); it != this->NormalPktEventList.end(); it++){
+        if((*it)->pkt != NULL)
+            delete (*it)->pkt;
+    }
+    // 4. From the freeNormalPkts list. These are pkts from the freeNormalPktEvents
+    ndebug_print_yellow("Cleaning up freeNormalPkts ...");
+    for(auto it=this->freeNormalPkts.begin(); it != this->freeNormalPkts.end(); it++){
+        if(*it != NULL)
+            delete *it;
+    }
+    
+     
+
 
     this->printSimulationStats();
 
