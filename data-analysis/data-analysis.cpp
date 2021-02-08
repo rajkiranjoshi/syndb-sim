@@ -5,6 +5,8 @@
 #include "simulation/config.hpp"
 #include "data-analysis/dataparser.hpp"
 
+#define WINDOW_SIZE 100000
+
 std::vector<switch_id_t> getRoute (host_id_t source, host_id_t destination, ft_scale_t fatTreeTopoK) {
     std::vector<switch_id_t> route;
 
@@ -87,43 +89,87 @@ std::vector<switch_id_t> getRoute (host_id_t source, host_id_t destination, ft_s
 
 int main(){
 
-    ndebug_print_yellow("Welcome to data analysis!");
+    ndebug_print_yellow("Welcome to data analysis of {}!", PREFIX_FILE_PATH);
 
     Config syndbConfig;
-    DataParser dataparser(PREFIX_STRING_FOR_DATA_FILES, syndbConfig.numSwitches, syndbConfig.numHosts);
-
-    // getRoute(2688,0,24);
+    DataParser dataparser(PREFIX_FILE_PATH, PREFIX_STRING_FOR_DATA_FILES, syndbConfig.numSwitches, syndbConfig.numHosts);
+    dataparser.getTriggerInfo(syndbConfig.numSwitches);
     
+    pkt_id_t windowSize = WINDOW_SIZE;
+    
+    auto iteratorForTrigger = dataparser.listOfTriggers.begin();
+    for (; iteratorForTrigger < dataparser.listOfTriggers.end(); iteratorForTrigger++) {
 
-    // Ignore parameters for now
-    switch_id_t triggerSwitchID = 687;
-    sim_time_t triggerTime = 22562;
-    pkt_id_t windowSize = 10;
+        switch_id_t triggerSwitchID = iteratorForTrigger->originSwitch;
+        // switch_id_t triggerSwitchID = 0;
+        sim_time_t triggerTime = iteratorForTrigger->triggerTime;
+        ndebug_print_yellow("Trigger ID: {} Switch: {} Time: {}", iteratorForTrigger->triggerId, triggerSwitchID, triggerTime);
 
-    // get p-record window for trigger switch
-    std::map<pkt_id_t, PacketInfo> pRecordWindowForTriggerSwitch = dataparser.getWindowForSwitch(triggerSwitchID, triggerTime, windowSize);
-    std::map<pkt_id_t, PacketInfo>::iterator iteratorForpRecordWindowForTriggerSwitch = pRecordWindowForTriggerSwitch.begin();
-
-    std::cout<< "-----------------------" << std::endl;
-    for (; iteratorForpRecordWindowForTriggerSwitch != pRecordWindowForTriggerSwitch.end(); iteratorForpRecordWindowForTriggerSwitch++) {
-        std::cout << iteratorForpRecordWindowForTriggerSwitch->first << "\t" << iteratorForpRecordWindowForTriggerSwitch->second.switchIngressTime << std::endl;
-    }
-
-/*     std::cout<< "-----------------------" << std::endl;
-    for (int iteratorForAllSwitches=0; iteratorForAllSwitches < syndbConfig.numSwitches; iteratorForAllSwitches++) {
-        if (iteratorForAllSwitches == triggerSwitchID) {
-            continue;
-        }
-        std::map<pkt_id_t, PacketInfo> pRecordWindowForCurrentSwitch = dataparser.getWindowForSwitch(iteratorForAllSwitches, triggerTime, windowSize);
-        std::map<pkt_id_t, PacketInfo>::iterator iteratorForpRecordWindowForCurrentSwitch = pRecordWindowForCurrentSwitch.begin();
-        // for (; iteratorForpRecordWindowForCurrentSwitch != pRecordWindowForCurrentSwitch.end(); iteratorForpRecordWindowForCurrentSwitch++) {
-        //     std::cout << iteratorForpRecordWindowForCurrentSwitch->first << "\t" << iteratorForpRecordWindowForCurrentSwitch->second.switchIngressTime << std::endl;
-        // }
-
+        // get p-record window for trigger switch
+        std::map<pkt_id_t, PacketInfo> pRecordWindowForTriggerSwitch = dataparser.getWindowForSwitch(triggerSwitchID, triggerTime, windowSize, true);
         
-        float correlation = dataparser.getCorrelationBetweenPrecordWindows(pRecordWindowForTriggerSwitch, pRecordWindowForCurrentSwitch);
-        std::cout<< "Correlation between Switch " << triggerSwitchID << " (trigger) and Switch " << iteratorForAllSwitches << " is: " << correlation << std::endl;
-    } */
+        auto iteratorForpRecordWindowForTriggerSwitch = pRecordWindowForTriggerSwitch.begin();
+        ndebug_print_yellow("-----------------------");
+        #ifdef DEBUG
+        for (; iteratorForpRecordWindowForTriggerSwitch != pRecordWindowForTriggerSwitch.end(); iteratorForpRecordWindowForTriggerSwitch++) {
+            ndebug_print("{}\t{}\t{}\t{}", iteratorForpRecordWindowForTriggerSwitch->first,
+                                    iteratorForpRecordWindowForTriggerSwitch->second.switchIngressTime, 
+                                    iteratorForpRecordWindowForTriggerSwitch->second.srcHost, 
+                                    iteratorForpRecordWindowForTriggerSwitch->second.dstHost);
+        }
+        #endif
+
+
+        for (int switchID = 0; switchID < syndbConfig.numSwitches; switchID++) {
+        // for (int switchID = 0; switchID < 20; switchID++) {
+            double numberOfExpectedPackets = 0.0, numberOfCommonPackets = 0.0;
+            if (switchID == triggerSwitchID) {
+                continue;
+            }
+
+            // get precord window for switch when it receives the trigger packet
+            sim_time_t timeForTriggerPacket = iteratorForTrigger->mapOfSwitchTriggerTime.find(switchID)->second;
+            // sim_time_t timeForTriggerPacket = triggerTime;
+            debug_print("\tSwitch: {}\t Trigger Packet Time: {}", switchID, timeForTriggerPacket);
+            std::map<pkt_id_t, PacketInfo> pRecordWindowForCurrentSwitch = dataparser.getWindowForSwitch(switchID, timeForTriggerPacket, windowSize, false);
+            debug_print("Size of precord window: {}", pRecordWindowForCurrentSwitch.size());
+
+            #ifdef DEBUG
+            auto iteratorForpRecordWindowForCurrentSwitch = pRecordWindowForCurrentSwitch.begin();
+            ndebug_print("-----------------------");
+            for (; iteratorForpRecordWindowForCurrentSwitch != pRecordWindowForCurrentSwitch.end(); iteratorForpRecordWindowForCurrentSwitch++) {
+                debug_print("{}\t{}", iteratorForpRecordWindowForCurrentSwitch->first,
+                                        iteratorForpRecordWindowForCurrentSwitch->second.switchIngressTime);
+            }
+            #endif
+
+            // for each packet in the trigger switch precord window find the packet in current switch ID
+            auto iteratorForpRecordWindowForTriggerSwitch = pRecordWindowForTriggerSwitch.begin();
+
+            for (; iteratorForpRecordWindowForTriggerSwitch != pRecordWindowForTriggerSwitch.end(); iteratorForpRecordWindowForTriggerSwitch++) {
+                
+                auto route = getRoute(iteratorForpRecordWindowForTriggerSwitch->second.srcHost, 
+                                        iteratorForpRecordWindowForTriggerSwitch->second.dstHost, 
+                                        syndbConfig.fatTreeTopoK);
+                
+                auto isSwitchInRoute = std::find(route.begin(), route.end(), switchID);
+                if (isSwitchInRoute != route.end()) {
+                    debug_print("Expected packet: {}", iteratorForpRecordWindowForTriggerSwitch->first);
+                    numberOfExpectedPackets++;
+                    auto isPacketInCurrentSwitchID = pRecordWindowForCurrentSwitch.find(iteratorForpRecordWindowForTriggerSwitch->first);
+                    if (isPacketInCurrentSwitchID != pRecordWindowForCurrentSwitch.end()) {
+                        numberOfCommonPackets++;
+                    }
+                } 
+            }
+
+            if (numberOfExpectedPackets != 0) {
+                ndebug_print("\tSwitch ID: {}\t Common Packets: {}\t Correlation: {}%", 
+                            switchID, int(numberOfExpectedPackets), 100*numberOfCommonPackets/numberOfExpectedPackets);
+            }
+        }
+
+    }
 
     return 0;
 }

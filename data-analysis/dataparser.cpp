@@ -1,22 +1,22 @@
 #include <iostream>
 
 #include "data-analysis/dataparser.hpp"
+#include "utils/logger.hpp"
 
 
-DataParser::DataParser(std::string prefixStringForFileName, switch_id_t numberOfSwitches, host_id_t numberOfHosts) {
+DataParser::DataParser(std::string prefixFilePath, std::string prefixStringForFileName, switch_id_t numberOfSwitches, host_id_t numberOfHosts) {
+
+    std::string pathForDataFolder = prefixFilePath + "/data/" + prefixStringForFileName;
 
     // open all file pointers in write/output mode
     for (int i = 0; i < numberOfSwitches; i++) {
-        std::string fileName = prefixStringForFileName + "switch_" + std::to_string(i) + ".txt";
-        std::fstream file ("./data/" + fileName, std::fstream::in);
+        std::string fileName = pathForDataFolder + "switch_" + std::to_string(i) + ".txt";
+        std::fstream file (fileName, std::fstream::in);
         this->switchFilePointers.push_back(std::move(file));
     }
 
-    for (int i = 0; i < numberOfHosts; i++) {
-        std::string fileName = prefixStringForFileName + "host_" + std::to_string(i) + ".txt";
-        std::fstream file ("./data/" + fileName, std::fstream::in);
-        this->hostFilePointers.push_back(std::move(file));
-    }
+    this->triggerFilePointer.open(pathForDataFolder + "trigger.txt", std::fstream::in);
+    this->sourceDestinationFilePointer.open(pathForDataFolder + "sourceDestination.txt", std::fstream::in);
 
 }
 
@@ -26,13 +26,13 @@ DataParser::~DataParser() {
         this->switchFilePointers[i].close();
     }
 
-    for (int i = 0; i < this->hostFilePointers.size(); i++) {
-        this->hostFilePointers[i].close();
-    }
+    this->triggerFilePointer.close();
+    this->sourceDestinationFilePointer.close();
+
 }
 
 
-std::map<pkt_id_t, PacketInfo> DataParser::getWindowForSwitch(switch_id_t switchID, sim_time_t triggerTime, pkt_id_t windowSize) {
+std::map<pkt_id_t, PacketInfo> DataParser::getWindowForSwitch(switch_id_t switchID, sim_time_t triggerTime, pkt_id_t windowSize, bool isTriggerSwitch) {
 
     this->switchFilePointers[switchID].clear();
     this->switchFilePointers[switchID].seekg(0);
@@ -42,10 +42,10 @@ std::map<pkt_id_t, PacketInfo> DataParser::getWindowForSwitch(switch_id_t switch
 
     while (! this->switchFilePointers[switchID].eof()) {
         PacketInfo currentPacket;
-        this->switchFilePointers[switchID] >> currentPacket.switchIngressTime >> currentPacket.id >> currentPacket.srcHost >> currentPacket.dstHost;
-        // std::cout << currentPacket.switchIngressTime << "\t" << currentPacket.id << "\t" << currentPacket.srcHost << "\t" << currentPacket.dstHost << std::endl;
+        this->switchFilePointers[switchID] >> currentPacket.switchIngressTime >> currentPacket.id;
+        // debug_print("{}\t{}", currentPacket.switchIngressTime, currentPacket.id);
         
-        // store in sorted map <ingressTime, pktID> where ingressTime <= triggerTime
+        // store in sorted map <ingressTime, PacketInfo> where ingressTime <= triggerTime
         if (currentPacket.switchIngressTime <= triggerTime) {
             ingressTimeToPktIDMap.insert(std::pair<sim_time_t, PacketInfo>(currentPacket.switchIngressTime, currentPacket));
         }
@@ -57,7 +57,7 @@ std::map<pkt_id_t, PacketInfo> DataParser::getWindowForSwitch(switch_id_t switch
     iteratorForingressTimeToPktIDMap--;     // end()-1 is last element
 
     while (numberOfPacketsAddedTopRecordWindow < windowSize+5) {
-        std::cout << iteratorForingressTimeToPktIDMap->first << "\t" << iteratorForingressTimeToPktIDMap->second.id << std::endl;
+        debug_print("{}\t{}", iteratorForingressTimeToPktIDMap->first, iteratorForingressTimeToPktIDMap->second.id);
         if (numberOfPacketsAddedTopRecordWindow < windowSize)
             pRecordWindow.insert(std::pair<sim_time_t, PacketInfo>(iteratorForingressTimeToPktIDMap->second.id, iteratorForingressTimeToPktIDMap->second));
 
@@ -66,6 +66,22 @@ std::map<pkt_id_t, PacketInfo> DataParser::getWindowForSwitch(switch_id_t switch
         }
         iteratorForingressTimeToPktIDMap--;
         numberOfPacketsAddedTopRecordWindow++;
+    }
+
+    pkt_id_t packetId;
+    host_id_t source, destination;
+    if (isTriggerSwitch) {
+        this->sourceDestinationFilePointer.clear();
+        this->sourceDestinationFilePointer.seekg(0);
+        while (! this->sourceDestinationFilePointer.eof()) {
+            this->sourceDestinationFilePointer >> packetId >> source >> destination;
+
+            auto positionInMap = pRecordWindow.find(packetId);
+            if (positionInMap != pRecordWindow.end()) {
+                positionInMap->second.srcHost = source;
+                positionInMap->second.dstHost = destination;
+            }
+        }
     }
 
     return pRecordWindow;
@@ -98,4 +114,25 @@ float DataParser::getCorrelationBetweenPrecordWindows(std::map<pkt_id_t, PacketI
 
     std::cout<< "Common Pkts: " << numberOfCommonPktIDs << std::endl;
     return (float)numberOfCommonPktIDs / (float)totalNumberOfExpectedPackets;
+}
+
+void DataParser::getTriggerInfo(switch_id_t numberOfSwitches) {
+
+    while (! this->triggerFilePointer.eof()) {
+        TriggerInfo trigger;
+        this->triggerFilePointer >> trigger.triggerId >> trigger.triggerTime >> trigger.originSwitch;        
+        if (this->triggerFilePointer.eof()) {
+            break;
+        }
+        debug_print_yellow("Trigger ID: {}\t Switch: {}\t Time: {}", trigger.triggerId, trigger.triggerTime, trigger.originSwitch);
+
+        for (int i = 0; i < numberOfSwitches-1; i++) {
+            sim_time_t timeOfReceivingTriggerPacket;
+            switch_id_t switchID;
+            this->triggerFilePointer >> switchID >> timeOfReceivingTriggerPacket;
+            debug_print("\t Switch: {}\t Time: {}", switchID, timeOfReceivingTriggerPacket);
+            trigger.mapOfSwitchTriggerTime.insert(std::pair<switch_id_t, sim_time_t>(switchID, timeOfReceivingTriggerPacket));
+        }
+        this->listOfTriggers.push_back(trigger);
+    }
 }
