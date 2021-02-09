@@ -63,7 +63,7 @@ typedef struct Config
 
     /* Incast Related Params */
     const uint8_t percentIncastTime = 10;
-    const host_id_t incastFanInRatio = ((fatTreeTopoK * fatTreeTopoK) * 3)/4;
+    const host_id_t incastFanInRatio = numHosts / 4; // 25% of the total hosts
     const host_id_t percentTargetIncastHosts = 30;
 
     /* Trigger-related params */
