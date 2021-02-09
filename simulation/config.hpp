@@ -35,7 +35,7 @@ typedef struct Config
     // const TrafficPatternType trafficPatternType = TrafficPatternType::SimpleTopo;
     
     /* FatTree Topo Params */
-    /* Do NOT comment out */ static const ft_scale_t fatTreeTopoK = 4; // Fat Tree scale k
+    /* Do NOT comment out */ static const ft_scale_t fatTreeTopoK = 24; // Fat Tree scale k
     const TopologyType topoType = TopologyType::FatTree;
     static const host_id_t numHosts = (fatTreeTopoK * fatTreeTopoK * fatTreeTopoK)/4;
     static const switch_id_t numSwitches = (fatTreeTopoK * fatTreeTopoK) + ((fatTreeTopoK * fatTreeTopoK)/4);   

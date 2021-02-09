@@ -59,6 +59,7 @@ struct Switch
     #if RING_BUFFER
     RingBuffer ringBuffer;
     #endif
+    // std::unique_ptr<std::ofstream> swPktArrivalFile;
     std::set<trigger_id_t> triggerHistory;
 
     /* Switch's processing on receiving a pkt: logging, SyNDB, etc. */
@@ -81,6 +82,7 @@ struct Switch
     
     Switch() = default; 
     Switch(switch_id_t id);
+    ~Switch();
 
 };
 

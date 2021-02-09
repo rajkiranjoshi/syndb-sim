@@ -171,6 +171,8 @@ switch_p Topology::createNewSwitch(SwitchType type){
     }
 
     newSwitch->type = type;
+
+    // newSwitch->swPktArrivalFile = std::unique_ptr<std::ofstream>(new std::ofstream(fmt::format("./pktarrival/{}_sw{}.txt", switchTypeToString(type), newSwitch->id), std::ofstream::out)); 
      
     this->switchIDMap[newSwitch->id] = newSwitch; 
     this->switchTypeIDMap[type].insert(newSwitch->id); 
