@@ -66,6 +66,8 @@ typedef struct Config
     const host_id_t incastFanInRatio = ((fatTreeTopoK * fatTreeTopoK) * 3)/4;
     const host_id_t percentTargetIncastHosts = 30;
 
+    /* Trigger-related params */
+    const sim_time_t triggerInitialDelay = 1500000; // 1.5ms for k=24 fatTree topo
 
     const link_speed_gbps_t torLinkSpeedGbps = 100;
     const link_speed_gbps_t networkLinkSpeedGbps = 100;

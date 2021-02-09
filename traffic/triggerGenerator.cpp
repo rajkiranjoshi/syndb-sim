@@ -1,6 +1,7 @@
 #include <random>
 #include <chrono>
 #include <functional>
+#include <algorithm>    // std::random_shuffle
 #include "simulation/simulation.hpp"
 #include "traffic/triggerGenerator.hpp"
 #include "utils/logger.hpp"
@@ -17,6 +18,11 @@ TriggerGenerator::TriggerGenerator(sim_time_t switchToSwitchOWD, uint16_t totalT
 
     // compute feasibility of triggers
     sim_time_t totalTime = (sim_time_t)(syndbConfig.totalTimeMSecs * (float)1000000);
+    if(this->initialDelay >= totalTime){
+        std::string msg = fmt::format("Total sim time of {}ms <= initial trigger delay of {}ms. Fix syndbConfig.triggerInitialDelay and/or syndbConfig.totalTimeMSecs", syndbConfig.totalTimeMSecs, (double)this->initialDelay/1000000.0);
+        throw std::logic_error(msg);
+    }
+
     sim_time_t availableTime = totalTime - this->initialDelay;
 
     uint16_t maxPossibleTriggers = (availableTime / this->baseIncrement) - 1;
@@ -142,6 +148,8 @@ TriggerGeneratorFatTreeTopo::TriggerGeneratorFatTreeTopo():TriggerGenerator::Tri
 
     for(int i=0; i < syndbConfig.numTriggersPerSwitchType; i++)
         nextSwitchIds.push_back(coreSwitches[getRandomCoreSwitchIdx()]);
+
+    std::random_shuffle(nextSwitchIds.begin(), nextSwitchIds.end());
     
     for(int i=0; i < nextSwitchIds.size(); i++){
         
