@@ -126,6 +126,8 @@ void IncastGenerator::generateIncast(){
             // ndebug_print("Incast pkt ID: {}", host->nextPkt->id);
         }
 
+        syndbSim.pktDumper->dumpIncastInfo(*this->nextIncast);
+
         this->updateNextIncast();
     }
     

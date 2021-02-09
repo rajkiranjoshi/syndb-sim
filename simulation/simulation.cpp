@@ -6,6 +6,7 @@
 #include "simulation/simulation.hpp"
 #include "utils/logger.hpp"
 #include "utils/utils.hpp"
+#include "utils/pktdumper.hpp"
 #include "topology/fattree_topology.hpp"
 
 
@@ -431,6 +432,41 @@ void Simulation::printSimulationStats(){
     syndbSim.showLinkUtilizations();
     ndebug_print_yellow("#####  Total Pkts Summary  #####");
     ndebug_print("Generated: {} | Delivered: {}", this->nextPktId, this->totalPktsDelivered);
+}
+
+
+void Simulation::printSimulationSetup(){
+     
+    ndebug_print_yellow("########  Simulation Setup  ########");
+    ndebug_print("TrafficPattern type is {}", trafficPatternTypeToString(syndbConfig.trafficPatternType));
+    ndebug_print("TrafficDistribution type is {}", trafficGenTypeToString(syndbConfig.trafficGenType));
+    ndebug_print("Trigger initial delay is {}ns", syndbConfig.triggerInitialDelay);
+    #if LOGGING
+        ndebug_print("Logging is enabled!");
+    #else
+        ndebug_print("Logging is disabled!");
+    #endif
+
+    #if HOP_DELAY_NOISE
+        ndebug_print("HopDelayNoise is enabled!");
+    #else
+        ndebug_print("HopDelayNoise is disabled!");
+    #endif
+
+    #if TRIGGERS_ENABLED
+        ndebug_print("Triggers are enabled!");
+    #else
+        ndebug_print("Triggers are disabled!");
+    #endif
+
+    #if INCASTS_ENABLED
+        ndebug_print("Incasts are enabled!");
+    #else
+        ndebug_print("Incasts are disabled!");
+    #endif
+
+    ndebug_print("Time increment is {}ns", syndbSim.timeIncrement);
+    ndebug_print("Running simulation for {}ns ...\n",syndbSim.totalTime);
 }
 
 void Simulation::cleanUp(){

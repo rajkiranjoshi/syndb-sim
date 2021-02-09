@@ -5,6 +5,7 @@
 #include <stdarg.h>
 #include <fmt/core.h>
 #include <fmt/color.h>
+#include "simulation/simulation.hpp"
 
 
 void log_debug(const std::string &msg);
@@ -31,13 +32,26 @@ void debug_print_yellow(const std::string &format, const Args&... args){
 
 template <typename... Args>
 void ndebug_print(const std::string &format, const Args&... args){
-    fmt::print(format, args...);
+    
+    std::string msg = fmt::format(format, args...);
+
+    #if LOGGING
+        syndbSim.pktDumper->logSimSummary(msg);
+    #endif
+
+    fmt::print(msg);
     std::putc('\n', stdout);
 }
 
 template <typename... Args>
 void ndebug_print_yellow(const std::string &format, const Args&... args){
-    std::string msg = fmt::format(format, args...); 
+    
+    std::string msg = fmt::format(format, args...);
+
+    #if LOGGING
+        syndbSim.pktDumper->logSimSummary(msg);
+    #endif
+    
     fmt::print(fg(fmt::color::yellow), msg);
     std::putc('\n', stdout);
 }
