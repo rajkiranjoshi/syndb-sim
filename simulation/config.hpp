@@ -24,7 +24,7 @@
 typedef struct Config 
 {
     static const sim_time_t timeIncrementNs = 100;
-    const float totalTimeMSecs = 1;
+    const float totalTimeMSecs = 10;
 
     // IMPORTANT: update numHosts and numSwitches as per the topology
     
@@ -45,7 +45,7 @@ typedef struct Config
 
     const uint8_t ftMixedPatternPercentIntraRack = 75;
 
-    static const uint numTriggersPerSwitchType = 5;
+    static const uint numTriggersPerSwitchType = 10;
 
     const TrafficGenType trafficGenType = TrafficGenType::Distribution;
     /* 
