@@ -24,7 +24,7 @@
 typedef struct Config 
 {
     static const sim_time_t timeIncrementNs = 100;
-    const float totalTimeMSecs = 10;
+    const float totalTimeMSecs = 100;
 
     // IMPORTANT: update numHosts and numSwitches as per the topology
     
