@@ -60,6 +60,64 @@ switch_id_t Topology::getTorId(host_id_t hostId){
     return it->second;
 }
 
+host_tor_link_p Topology::createNewToRLink(){
+
+    // host_tor_link_p newLink = host_tor_link_p(new HostTorLink(this->getNextLinkId(), syndbConfig.torLinkSpeedGbps));
+    host_tor_link_p newLink = std::make_shared<HostTorLink>(this->getNextLinkId(), syndbConfig.torLinkSpeedGbps);
+    this->torLinkVector.push_back(newLink);
+
+    return newLink;
+}
+
+network_link_p Topology::createNewNetworLink(switch_id_t sw1, switch_id_t sw2){
+
+    // network_link_p newLink = network_link_p(new NetworkLink(this->getNextLinkId(), syndbConfig.networkLinkSpeedGbps, sw1, sw2));
+    network_link_p newLink = std::make_shared<NetworkLink>(this->getNextLinkId(), syndbConfig.networkLinkSpeedGbps, sw1, sw2);
+    this->networkLinkVector.push_back(newLink);
+
+    return newLink;
+}
+
+switch_p Topology::createNewSwitch(SwitchType type){
+    switch_p newSwitch;
+    
+    switch (type)
+    {
+        case SwitchType::FtTor:
+            newSwitch = std::make_shared<SwitchFtTor>(this->getNextSwitchId());
+            break;
+        case SwitchType::FtAggr:
+            newSwitch = std::make_shared<SwitchFtAggr>(this->getNextSwitchId());
+            break;
+        case SwitchType::FtCore:
+            newSwitch = std::make_shared<SwitchFtCore>(this->getNextSwitchId()); 
+            break;
+        case SwitchType::Simple:
+        default:
+            newSwitch = std::make_shared<SimpleSwitch>(this->getNextSwitchId());
+            break;  
+    }
+
+    newSwitch->type = type;
+
+    // newSwitch->swPktArrivalFile = std::unique_ptr<std::ofstream>(new std::ofstream(fmt::format("./pktarrival/{}_sw{}.txt", switchTypeToString(type), newSwitch->id), std::ofstream::out)); 
+     
+    this->switchIDMap[newSwitch->id] = newSwitch; 
+    this->switchTypeIDMap[type].insert(newSwitch->id); 
+
+    return newSwitch;  
+}
+
+host_p Topology::createNewHost(bool trafficGenDisabled){
+
+    // host_p newHost = host_p(new Host(this->getNextHostId(), trafficGenDisabled));
+    host_p newHost = std::make_shared<Host>(this->getNextHostId(), trafficGenDisabled);
+
+    this->hostIDMap[newHost->id] = newHost; 
+
+    return newHost;
+}
+
 
 void Topology::addHostToTor(host_p &host, switch_p &tor){
 
@@ -132,60 +190,49 @@ void SimpleTopology::buildTopo(){
     // NO need since both the other ToRs are neighbors
 }
 
-host_tor_link_p Topology::createNewToRLink(){
-
-    // host_tor_link_p newLink = host_tor_link_p(new HostTorLink(this->getNextLinkId(), syndbConfig.torLinkSpeedGbps));
-    host_tor_link_p newLink = std::make_shared<HostTorLink>(this->getNextLinkId(), syndbConfig.torLinkSpeedGbps);
-    this->torLinkVector.push_back(newLink);
-
-    return newLink;
-}
-
-network_link_p Topology::createNewNetworLink(switch_id_t sw1, switch_id_t sw2){
-
-    // network_link_p newLink = network_link_p(new NetworkLink(this->getNextLinkId(), syndbConfig.networkLinkSpeedGbps, sw1, sw2));
-    network_link_p newLink = std::make_shared<NetworkLink>(this->getNextLinkId(), syndbConfig.networkLinkSpeedGbps, sw1, sw2);
-    this->networkLinkVector.push_back(newLink);
-
-    return newLink;
-}
-
-switch_p Topology::createNewSwitch(SwitchType type){
-    switch_p newSwitch;
+/* 
+    h0 --- s0 --- s1 --- s2 --- s3 --- s4 --- h1
+*/
+void LineTopology::buildTopo(){
     
-    switch (type)
-    {
-        case SwitchType::FtTor:
-            newSwitch = std::make_shared<SwitchFtTor>(this->getNextSwitchId());
-            break;
-        case SwitchType::FtAggr:
-            newSwitch = std::make_shared<SwitchFtAggr>(this->getNextSwitchId());
-            break;
-        case SwitchType::FtCore:
-            newSwitch = std::make_shared<SwitchFtCore>(this->getNextSwitchId()); 
-            break;
-        case SwitchType::Simple:
-        default:
-            newSwitch = std::make_shared<SimpleSwitch>(this->getNextSwitchId());
-            break;  
-    }
+    host_p h0, h1;
+    switch_p s0, s1, s2, s3, s4;
 
-    newSwitch->type = type;
+    // Create all hosts
+    h0 = this->createNewHost();
+    h1 = this->createNewHost(true);
 
-    // newSwitch->swPktArrivalFile = std::unique_ptr<std::ofstream>(new std::ofstream(fmt::format("./pktarrival/{}_sw{}.txt", switchTypeToString(type), newSwitch->id), std::ofstream::out)); 
-     
-    this->switchIDMap[newSwitch->id] = newSwitch; 
-    this->switchTypeIDMap[type].insert(newSwitch->id); 
+    // Create all switches
+    s0 = this->createNewSwitch(SwitchType::Simple); 
+    s1 = this->createNewSwitch(SwitchType::Simple); 
+    s2 = this->createNewSwitch(SwitchType::Simple);
+    s3 = this->createNewSwitch(SwitchType::Simple); 
+    s4 = this->createNewSwitch(SwitchType::Simple);
 
-    return newSwitch;  
-}
+    this->addHostToTor(h0, s0);
+    this->addHostToTor(h1, s4);
 
-host_p Topology::createNewHost(bool trafficGenDisabled){
+    this->connectSwitchToSwitch(s0, s1);
+    this->connectSwitchToSwitch(s1, s2);
+    this->connectSwitchToSwitch(s2, s3);
+    this->connectSwitchToSwitch(s3, s4);
 
-    // host_p newHost = host_p(new Host(this->getNextHostId(), trafficGenDisabled));
-    host_p newHost = std::make_shared<Host>(this->getNextHostId(), trafficGenDisabled);
+    // Setup routing on the switches. Need to downcast shared_pointer to SimpleSwitch
+    auto s0_ss = std::dynamic_pointer_cast<SimpleSwitch>(s0);
+    auto s1_ss = std::dynamic_pointer_cast<SimpleSwitch>(s1);
+    auto s2_ss = std::dynamic_pointer_cast<SimpleSwitch>(s2);
+    auto s3_ss = std::dynamic_pointer_cast<SimpleSwitch>(s3);
+    auto s4_ss = std::dynamic_pointer_cast<SimpleSwitch>(s4);
 
-    this->hostIDMap[newHost->id] = newHost; 
+    // Add routes for ToR switches when not direct neighbor
+    s0_ss->routingTable[s4->id] = s1->id;
+    s1_ss->routingTable[s4->id] = s2->id;
+    s2_ss->routingTable[s0->id] = s1->id;
+    s2_ss->routingTable[s4->id] = s3->id;
+    s3_ss->routingTable[s0->id] = s2->id;
+    s4_ss->routingTable[s0->id] = s3->id;
 
-    return newHost;
+    ndebug_print_yellow("Built Line topo:");
+    ndebug_print("h0 --- s0 --- s1 --- s2 --- s3 --- s4 --- h1\n");
+
 }

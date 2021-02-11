@@ -66,5 +66,15 @@ struct SimpleTopology : Topology
     void buildTopo();
 };
 
+/* 
+    h0 --- s0 --- s1 --- s2 --- s3 --- s4 --- h1
+*/
+struct LineTopology : Topology
+{
+    // Override the virtual function of the abstract class
+    void buildTopo();
+};
+
+
 
 #endif
