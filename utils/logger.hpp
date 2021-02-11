@@ -8,11 +8,6 @@
 #include "simulation/simulation.hpp"
 
 
-void log_debug(const std::string &msg);
-void log_error(const std::string &msg);
-void log_info(const std::string &msg);
-
-
 template <typename... Args>
 void debug_print(const std::string &format, const Args&... args){
 #ifdef DEBUG

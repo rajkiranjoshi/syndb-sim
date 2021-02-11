@@ -32,22 +32,10 @@ ANALYSIS_DEBUG_BINARY := syndb-analysis-debug
 ANALYSIS_PROFILE_BINARY := syndb-analysis-profile
 
 
-LIB_BOOST_LOG := 
-
-ifeq ($(UNAME_S),Linux)
-	LIB_BOOST_LOG := boost_log
-endif
-
-ifeq ($(UNAME_S),Darwin)
-	LIB_BOOST_LOG := boost_log-mt
-endif
-
-CXXFLAGS  = -DBOOST_LOG_DYN_LINK \
-			-I$(CURR_DIR) \
+CXXFLAGS  = -I$(CURR_DIR) \
 			-std=c++11
 
-LDLIBS = -l$(LIB_BOOST_LOG) \
-		 -lpthread \
+LDLIBS = -lpthread \
 		 -lfmt \
 		 -lspdlog
 
