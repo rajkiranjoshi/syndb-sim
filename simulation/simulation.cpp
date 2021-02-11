@@ -1,7 +1,6 @@
 #include <string>
 #include <time.h>
 #include <fmt/core.h>
-
 #include "simulation/config.hpp"
 #include "simulation/simulation.hpp"
 #include "utils/logger.hpp"
@@ -260,12 +259,12 @@ void Simulation::processNormalPktEvents(){
                 this->totalPktsDelivered += 1;
 
                 #ifdef DEBUG
-                debug_print_yellow("\nPkt ID {} dump:", event->pkt->id);
+                /* debug_print_yellow("\nPkt ID {} dump:", event->pkt->id);
                 debug_print("h{} --> h{}: {} ns (Start: {} ns | End: {} ns)", event->pkt->srcHost, event->pkt->dstHost, event->pkt->endTime - event->pkt->startTime, event->pkt->startTime, event->pkt->endTime);
                 auto it1 = event->pkt->switchINTInfoList.begin();
                 for(it1; it1 != event->pkt->switchINTInfoList.end(); it1++){
                     debug_print("Rx on s{} at {} ns", it1->swId, it1->rxTime);
-                }
+                } */
                 #endif
             }
             // Handling the case that the next hop is a switch (intermediate or dstTor)
@@ -381,6 +380,22 @@ void Simulation::showLinkUtilizations(){
     link_id_t numTorLinks = 0; 
     link_id_t numNetworkLinks = 0; 
 
+    #if LOGGING
+    // For dumping individual link utilization
+    std::string torLinkUtilsFileName = "";
+    std::string networkLinkUtilsFileName = "";
+
+    
+    torLinkUtilsFileName = fmt::format("./data/{}torLinksUtil.txt", this->pktDumper->prefixStringForFileName);
+    networkLinkUtilsFileName = fmt::format("./data/{}networkLinksUtil.txt", this->pktDumper->prefixStringForFileName);
+    #else
+    torLinkUtilsFileName = "./data/torLinksUtil.txt";
+    networkLinkUtilsFileName = "./data/networkLinksUtil.txt";
+    #endif
+
+    std::ofstream torLinkUtilsFile(torLinkUtilsFileName);
+    std::ofstream networkLinkUtilsFile(networkLinkUtilsFileName);
+
     debug_print_yellow("Utilization on ToR links:");
     for(auto it = syndbSim.topo->torLinkVector.begin(); it != syndbSim.topo->torLinkVector.end(); it++){
         
@@ -395,6 +410,10 @@ void Simulation::showLinkUtilizations(){
         torLinksPercentUtilSum += percent_util_to_tor;
         torLinksPercentUtilSum += percent_util_to_host;
         numTorLinks += 2;
+
+        // Dumping individual link utilization
+        torLinkUtilsFile << percent_util_to_tor << std::endl;
+        torLinkUtilsFile << percent_util_to_host << std::endl;
     }
 
     debug_print_yellow("Utilization on Network links:");
@@ -420,7 +439,15 @@ void Simulation::showLinkUtilizations(){
         networkLinksPercentUtilSum += percent_util1;
         networkLinksPercentUtilSum += percent_util2;
         numNetworkLinks += 2;
+
+        // Dumping individual link utilization
+        networkLinkUtilsFile << percent_util1 << std::endl;
+        networkLinkUtilsFile << percent_util2 << std::endl;
     }
+
+    // Closing individual link utilization files
+    torLinkUtilsFile.close();
+    networkLinkUtilsFile.close();
 
     ndebug_print_yellow("#####  Network load summary  #####");
     ndebug_print("ToR Links: {}", torLinksPercentUtilSum / numTorLinks);
@@ -495,9 +522,6 @@ void Simulation::cleanUp(){
             delete *it;
     }
     
-     
-
-
     this->printSimulationStats();
 
     this->endTime = time(NULL);
