@@ -24,6 +24,9 @@ Simulation::Simulation(){
     else if (syndbConfig.topoType == TopologyType::FatTree){
         this->topo = std::shared_ptr<Topology>(new FattreeTopology(syndbConfig.fatTreeTopoK));
     }
+    else if (syndbConfig.topoType == TopologyType::Line){
+        this->topo = std::shared_ptr<Topology>(new LineTopology());
+    }
 
     this->nextPktId = 0;
     this->nextTriggerPktId = 0;
@@ -116,7 +119,7 @@ void Simulation::generateHostPktEvents(){
         // Just for debug case when trafficGen is disabled
         if (host->trafficGenDisabled)
             continue;
-            
+        
         while(host->nextPktTime <= syndbSim.currTime + syndbSim.timeIncrement){
             // Use the next scheduled packet on the host to create hostPktEvent
             // hostpktevent_p hostPktEvent = hostpktevent_p(new HostPktEvent(host, host->nextPkt));
