@@ -14,7 +14,7 @@ void log_info(const std::string &msg);
 
 template <typename... Args>
 void debug_print(const std::string &format, const Args&... args){
-#ifdef DEBUG
+#ifdef DEBUG_LOGGING
     fmt::print(format, args...);
     std::putc('\n', stdout);
 #endif
@@ -22,7 +22,7 @@ void debug_print(const std::string &format, const Args&... args){
 
 template <typename... Args>
 void debug_print_yellow(const std::string &format, const Args&... args){
-#ifdef DEBUG
+#ifdef DEBUG_LOGGING
     std::string msg = fmt::format(format, args...); 
     fmt::print(fg(fmt::color::yellow), msg);
     std::putc('\n', stdout);

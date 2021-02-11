@@ -5,6 +5,8 @@
 #include "utils/types.hpp"
 // #include "topology/topology.hpp"
 
+// #define DEBUG_LOGGING 0
+
 #ifndef LOGGING
 #define LOGGING 0 
 #endif
