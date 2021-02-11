@@ -5,7 +5,7 @@
 #include "simulation/config.hpp"
 #include "data-analysis/dataparser.hpp"
 
-#define WINDOW_SIZE 100000
+#define WINDOW_SIZE 1000000
 
 std::vector<switch_id_t> getRoute (host_id_t source, host_id_t destination, ft_scale_t fatTreeTopoK) {
     std::vector<switch_id_t> route;
@@ -89,7 +89,7 @@ std::vector<switch_id_t> getRoute (host_id_t source, host_id_t destination, ft_s
 
 int main(){
 
-    ndebug_print_yellow("Welcome to data analysis of {}!", PREFIX_FILE_PATH);
+    ndebug_print_yellow("Welcome to data analysis!");
 
     Config syndbConfig;
     DataParser dataparser(PREFIX_FILE_PATH, PREFIX_STRING_FOR_DATA_FILES, syndbConfig.numSwitches, syndbConfig.numHosts);
@@ -103,6 +103,10 @@ int main(){
         switch_id_t triggerSwitchID = iteratorForTrigger->originSwitch;
         // switch_id_t triggerSwitchID = 0;
         sim_time_t triggerTime = iteratorForTrigger->triggerTime;
+
+        if (triggerTime < 5000000) {
+            continue;
+        }
         ndebug_print_yellow("Trigger ID: {} Switch: {} Time: {}", iteratorForTrigger->triggerId, triggerSwitchID, triggerTime);
 
         // get p-record window for trigger switch
@@ -110,6 +114,7 @@ int main(){
         
         auto iteratorForpRecordWindowForTriggerSwitch = pRecordWindowForTriggerSwitch.begin();
         ndebug_print_yellow("-----------------------");
+
         #ifdef DEBUG
         for (; iteratorForpRecordWindowForTriggerSwitch != pRecordWindowForTriggerSwitch.end(); iteratorForpRecordWindowForTriggerSwitch++) {
             ndebug_print("{}\t{}\t{}\t{}", iteratorForpRecordWindowForTriggerSwitch->first,
@@ -118,7 +123,6 @@ int main(){
                                     iteratorForpRecordWindowForTriggerSwitch->second.dstHost);
         }
         #endif
-
 
         for (int switchID = 0; switchID < syndbConfig.numSwitches; switchID++) {
         // for (int switchID = 0; switchID < 20; switchID++) {
@@ -145,6 +149,9 @@ int main(){
 
             // for each packet in the trigger switch precord window find the packet in current switch ID
             auto iteratorForpRecordWindowForTriggerSwitch = pRecordWindowForTriggerSwitch.begin();
+            sim_time_t timeOfMostRecentCommonpRecord = 0, timeOfLeastRecentCommonpRecord = 0;
+            sim_time_t timeOfMostRecentExpectedpRecord = 0, timeOfLeastRecentExpectedpRecord = 0;
+            pkt_id_t packetIDOfLeastRecentExpectedRecord;
 
             for (; iteratorForpRecordWindowForTriggerSwitch != pRecordWindowForTriggerSwitch.end(); iteratorForpRecordWindowForTriggerSwitch++) {
                 
@@ -156,20 +163,47 @@ int main(){
                 if (isSwitchInRoute != route.end()) {
                     debug_print("Expected packet: {}", iteratorForpRecordWindowForTriggerSwitch->first);
                     numberOfExpectedPackets++;
+
+                    // if (iteratorForpRecordWindowForTriggerSwitch->second.switchIngressTime > timeOfMostRecentExpectedpRecord) {
+                    //     timeOfMostRecentExpectedpRecord = iteratorForpRecordWindowForTriggerSwitch->second.switchIngressTime;
+                    // }
+
+                    if (iteratorForpRecordWindowForTriggerSwitch->second.switchIngressTime < timeOfLeastRecentExpectedpRecord 
+                            || timeOfLeastRecentExpectedpRecord == 0) {
+                        timeOfLeastRecentExpectedpRecord = iteratorForpRecordWindowForTriggerSwitch->second.switchIngressTime;
+                        packetIDOfLeastRecentExpectedRecord = iteratorForpRecordWindowForTriggerSwitch->first;
+                    }
+
+
                     auto isPacketInCurrentSwitchID = pRecordWindowForCurrentSwitch.find(iteratorForpRecordWindowForTriggerSwitch->first);
                     if (isPacketInCurrentSwitchID != pRecordWindowForCurrentSwitch.end()) {
                         numberOfCommonPackets++;
+
+                        if (isPacketInCurrentSwitchID->second.switchIngressTime > timeOfMostRecentCommonpRecord) {
+                            timeOfMostRecentCommonpRecord = isPacketInCurrentSwitchID->second.switchIngressTime;
+                        }
+
+                        // if (iteratorForpRecordWindowForTriggerSwitch->second.switchIngressTime < timeOfLeastRecentCommonpRecord 
+                        //     || timeOfLeastRecentCommonpRecord == 0) {
+                        //     timeOfLeastRecentCommonpRecord = iteratorForpRecordWindowForTriggerSwitch->second.switchIngressTime;
+                        // }
+
                     }
                 } 
-            }
+            } // loop iterating over all packets in trigger switch window
 
             if (numberOfExpectedPackets != 0) {
-                ndebug_print("\tSwitch ID: {}\t Common Packets: {}\t Correlation: {}%", 
-                            switchID, int(numberOfExpectedPackets), 100*numberOfCommonPackets/numberOfExpectedPackets);
+                ndebug_print("\tSwitch ID: {}\t Expected Packets: {}\t Correlation: {}%\t Latest Packet ID (available): {}\t Oldest Pkt ID (missing): {}", 
+                            switchID, 
+                            int(numberOfExpectedPackets), 
+                            100*numberOfCommonPackets/numberOfExpectedPackets,
+                            timeOfMostRecentCommonpRecord,
+                            packetIDOfLeastRecentExpectedRecord);
             }
-        }
 
-    }
+        } // loop iterating over all non-trigger switches
+        break;
+    } // loop iterating over all triggers
 
     return 0;
 }
