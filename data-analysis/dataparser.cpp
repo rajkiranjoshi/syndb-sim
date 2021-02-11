@@ -21,7 +21,7 @@ std::string DataParser::executeShellCommand(const char* command) {
 
 DataParser::DataParser(std::string prefixFilePath, std::string prefixStringForFileName, switch_id_t numberOfSwitches, host_id_t numberOfHosts) {
 
-    std::string pathForDataFolder = prefixFilePath + "/data/" + prefixStringForFileName;
+    std::string pathForDataFolder = prefixFilePath + "/data-incorrect/" + prefixStringForFileName;
     ndebug_print_yellow("Reading files {}*.txt.", pathForDataFolder);
     // open all file pointers in write/output mode
     for (int i = 0; i < numberOfSwitches; i++) {
@@ -56,7 +56,7 @@ std::map<pkt_id_t, PacketInfo> DataParser::getWindowForSwitch(switch_id_t switch
     // get line number of last packet before triggerTime
     std::string prefixFilePath = PREFIX_FILE_PATH;
     std::string prefixStringForFileName = PREFIX_STRING_FOR_DATA_FILES;
-    std::string pathForDataFolder = prefixFilePath + "/data/" + prefixStringForFileName;
+    std::string pathForDataFolder = prefixFilePath + "/data-incorrect/" + prefixStringForFileName;
     std::string fileName = pathForDataFolder + "switch_" + std::to_string(switchID) + ".txt";
     std::string prefixForCommandToGetLineNumber = "cat " + fileName + " | cut -f 1 |" + "grep -n -w ";
     std::string suffixForCommandToGetLineNumber = " | cut -d \":\" -f 1";
@@ -87,7 +87,7 @@ std::map<pkt_id_t, PacketInfo> DataParser::getWindowForSwitch(switch_id_t switch
 
     pkt_id_t numberOfPacketsAddedTopRecordWindow = 0;
     
-    while (numberOfPacketsAddedTopRecordWindow < windowSize) {
+    while (numberOfPacketsAddedTopRecordWindow < windowSize && ! this->switchFilePointers[switchID].eof()) {
         PacketInfo currentPacket;
         this->switchFilePointers[switchID] >> currentPacket.switchIngressTime >> currentPacket.id;
         pRecordWindow.insert(std::pair<pkt_id_t, PacketInfo>(currentPacket.id, currentPacket));
@@ -97,9 +97,9 @@ std::map<pkt_id_t, PacketInfo> DataParser::getWindowForSwitch(switch_id_t switch
 
     #ifdef DEBUG
     auto it = pRecordWindow.begin();
-    ndebug_print("--- pRecord window for switch {} ---", switchID);
+    debug_print("--- pRecord window for switch {} ---", switchID);
     while (it != pRecordWindow.end()) {
-        ndebug_print("{}\t{}", it->first, it->second.switchIngressTime);
+        debug_print("{}\t{}", it->first, it->second.switchIngressTime);
         it++;
     }
     #endif
@@ -111,9 +111,14 @@ std::map<pkt_id_t, PacketInfo> DataParser::getWindowForSwitch(switch_id_t switch
         // triggerTime now contains the tstamp of the most recent packet before the trigger packet is received
         sim_time_t timeOfMostRecentpRecord = triggerTime; 
         // the next line to read in the file contains the packet most recently removed from the pRecord window
-        sim_time_t timeOfLeastRecentpRecord;
+        sim_time_t timeOfLeastRecentpRecord = 0;
         this->switchFilePointers[switchID] >> timeOfLeastRecentpRecord;
-        sim_time_t historyRecordedInpRecordWindow = timeOfMostRecentpRecord - timeOfLeastRecentpRecord - 1;
+        sim_time_t historyRecordedInpRecordWindow = 0;
+        if (timeOfLeastRecentpRecord < timeOfMostRecentpRecord) {
+            historyRecordedInpRecordWindow = timeOfMostRecentpRecord - timeOfLeastRecentpRecord - 1;
+        } else {
+            historyRecordedInpRecordWindow = timeOfMostRecentpRecord - 1;
+        }
         ndebug_print("Trigger Switch pRecord Window History {}", historyRecordedInpRecordWindow);
     
 
@@ -147,7 +152,7 @@ std::map<pkt_id_t, PacketInfo> DataParser::getWindowForSwitch(switch_id_t switch
             }
         }
 
-        pkt_id_t packetId;
+        pkt_id_t packetId = 0;
         host_id_t source, destination;
         long numberOfCompletedpRecords = 0;
         
@@ -213,13 +218,13 @@ void DataParser::getTriggerInfo(switch_id_t numberOfSwitches) {
         if (this->triggerFilePointer.eof()) {
             break;
         }
-        debug_print_yellow("Trigger ID: {}\t Switch: {}\t Time: {}", trigger.triggerId, trigger.triggerTime, trigger.originSwitch);
+        // debug_print_yellow("Trigger ID: {}\t Switch: {}\t Time: {}", trigger.triggerId, trigger.triggerTime, trigger.originSwitch);
 
         for (int i = 0; i < numberOfSwitches-1; i++) {
             sim_time_t timeOfReceivingTriggerPacket;
             switch_id_t switchID;
             this->triggerFilePointer >> switchID >> timeOfReceivingTriggerPacket;
-            debug_print("\t Switch: {}\t Time: {}", switchID, timeOfReceivingTriggerPacket);
+            // debug_print("\t Switch: {}\t Time: {}", switchID, timeOfReceivingTriggerPacket);
             trigger.mapOfSwitchTriggerTime.insert(std::pair<switch_id_t, sim_time_t>(switchID, timeOfReceivingTriggerPacket));
         }
         this->listOfTriggers.push_back(trigger);

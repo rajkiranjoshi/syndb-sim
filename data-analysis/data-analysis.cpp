@@ -94,7 +94,7 @@ int main(){
     Config syndbConfig;
     DataParser dataparser(PREFIX_FILE_PATH, PREFIX_STRING_FOR_DATA_FILES, syndbConfig.numSwitches, syndbConfig.numHosts);
     dataparser.getTriggerInfo(syndbConfig.numSwitches);
-    
+
     pkt_id_t windowSize = WINDOW_SIZE;
     
     auto iteratorForTrigger = dataparser.listOfTriggers.begin();
@@ -104,9 +104,6 @@ int main(){
         // switch_id_t triggerSwitchID = 0;
         sim_time_t triggerTime = iteratorForTrigger->triggerTime;
 
-        if (triggerTime < 5000000) {
-            continue;
-        }
         ndebug_print_yellow("Trigger ID: {} Switch: {} Time: {}", iteratorForTrigger->triggerId, triggerSwitchID, triggerTime);
 
         // get p-record window for trigger switch
@@ -117,10 +114,10 @@ int main(){
 
         #ifdef DEBUG
         for (; iteratorForpRecordWindowForTriggerSwitch != pRecordWindowForTriggerSwitch.end(); iteratorForpRecordWindowForTriggerSwitch++) {
-            ndebug_print("{}\t{}\t{}\t{}", iteratorForpRecordWindowForTriggerSwitch->first,
-                                    iteratorForpRecordWindowForTriggerSwitch->second.switchIngressTime, 
-                                    iteratorForpRecordWindowForTriggerSwitch->second.srcHost, 
-                                    iteratorForpRecordWindowForTriggerSwitch->second.dstHost);
+            // ndebug_print("{}\t{}\t{}\t{}", iteratorForpRecordWindowForTriggerSwitch->first,
+            //                         iteratorForpRecordWindowForTriggerSwitch->second.switchIngressTime, 
+            //                         iteratorForpRecordWindowForTriggerSwitch->second.srcHost, 
+            //                         iteratorForpRecordWindowForTriggerSwitch->second.dstHost);
         }
         #endif
 
@@ -136,7 +133,6 @@ int main(){
             // sim_time_t timeForTriggerPacket = triggerTime;
             debug_print("\tSwitch: {}\t Trigger Packet Time: {}", switchID, timeForTriggerPacket);
             std::map<pkt_id_t, PacketInfo> pRecordWindowForCurrentSwitch = dataparser.getWindowForSwitch(switchID, timeForTriggerPacket, windowSize, false);
-            debug_print("Size of precord window: {}", pRecordWindowForCurrentSwitch.size());
 
             #ifdef DEBUG
             auto iteratorForpRecordWindowForCurrentSwitch = pRecordWindowForCurrentSwitch.begin();
@@ -151,7 +147,7 @@ int main(){
             auto iteratorForpRecordWindowForTriggerSwitch = pRecordWindowForTriggerSwitch.begin();
             sim_time_t timeOfMostRecentCommonpRecord = 0, timeOfLeastRecentCommonpRecord = 0;
             sim_time_t timeOfMostRecentExpectedpRecord = 0, timeOfLeastRecentExpectedpRecord = 0;
-            pkt_id_t packetIDOfLeastRecentExpectedRecord;
+            pkt_id_t packetIDOfLeastRecentExpectedRecord, packetIDOfMostRecentCommonRecord;
 
             for (; iteratorForpRecordWindowForTriggerSwitch != pRecordWindowForTriggerSwitch.end(); iteratorForpRecordWindowForTriggerSwitch++) {
                 
@@ -181,6 +177,7 @@ int main(){
 
                         if (isPacketInCurrentSwitchID->second.switchIngressTime > timeOfMostRecentCommonpRecord) {
                             timeOfMostRecentCommonpRecord = isPacketInCurrentSwitchID->second.switchIngressTime;
+                            packetIDOfMostRecentCommonRecord = isPacketInCurrentSwitchID->first;
                         }
 
                         // if (iteratorForpRecordWindowForTriggerSwitch->second.switchIngressTime < timeOfLeastRecentCommonpRecord 
@@ -193,12 +190,38 @@ int main(){
             } // loop iterating over all packets in trigger switch window
 
             if (numberOfExpectedPackets != 0) {
-                ndebug_print("\tSwitch ID: {}\t Expected Packets: {}\t Correlation: {}%\t Latest Packet ID (available): {}\t Oldest Pkt ID (missing): {}", 
+                uint64_t timeWhenPacketIDWasLastAvailable = timeForTriggerPacket;
+                if (numberOfCommonPackets < numberOfExpectedPackets) {
+                    std::string prefixFilePath = PREFIX_FILE_PATH;
+                    std::string prefixStringForFileName = PREFIX_STRING_FOR_DATA_FILES;
+                    std::string pathForDataFolder = prefixFilePath + "/data-incorrect/" + prefixStringForFileName;
+                    std::string fileName = pathForDataFolder + "switch_" + std::to_string(switchID) + ".txt";
+                    std::string getLineNumber = "cat " + fileName + "| cut -f 2 | grep -n -w " + std::to_string(packetIDOfLeastRecentExpectedRecord) + " | cut -d \":\" -f 1";
+                    uint64_t lineNumber = std::stoll(dataparser.executeShellCommand(getLineNumber.c_str()));
+
+                    if (lineNumber < 1000000) {
+                        lineNumber = -1;
+                    } else {
+                        lineNumber -= 1000000;
+                    }
+                    debug_print("{}", lineNumber);
+                    
+                    if (lineNumber < 100000000 && lineNumber > 0) {
+                        std::string getSimulationTime = "sed -n " + std::to_string(lineNumber) + "p " + fileName + " | cut -f 1";
+                        timeWhenPacketIDWasLastAvailable = std::stoll(dataparser.executeShellCommand(getSimulationTime.c_str()));
+                        debug_print("{}", timeWhenPacketIDWasLastAvailable);
+                        if (timeWhenPacketIDWasLastAvailable > timeForTriggerPacket) {
+                            timeWhenPacketIDWasLastAvailable = timeForTriggerPacket;
+                        }
+                    } 
+                }
+
+
+                ndebug_print("\tSwitch ID: {}\t Expected Packets: {}\t Correlation: {}%\t Time lost: {}ns", 
                             switchID, 
                             int(numberOfExpectedPackets), 
                             100*numberOfCommonPackets/numberOfExpectedPackets,
-                            timeOfMostRecentCommonpRecord,
-                            packetIDOfLeastRecentExpectedRecord);
+                            timeForTriggerPacket - timeWhenPacketIDWasLastAvailable);
             }
 
         } // loop iterating over all non-trigger switches
