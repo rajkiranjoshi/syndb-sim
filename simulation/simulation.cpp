@@ -380,12 +380,10 @@ void Simulation::showLinkUtilizations(){
     link_id_t numTorLinks = 0; 
     link_id_t numNetworkLinks = 0; 
 
-    #if LOGGING
     // For dumping individual link utilization
     std::string torLinkUtilsFileName = "";
     std::string networkLinkUtilsFileName = "";
-
-    
+    #if LOGGING
     torLinkUtilsFileName = fmt::format("./data/{}torLinksUtil.txt", this->pktDumper->prefixStringForFileName);
     networkLinkUtilsFileName = fmt::format("./data/{}networkLinksUtil.txt", this->pktDumper->prefixStringForFileName);
     #else
