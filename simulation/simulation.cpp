@@ -432,7 +432,7 @@ void Simulation::showLinkUtilizations(){
         percent_util1 = (util1 / syndbConfig.networkLinkSpeedGbps) * 100.0;
         percent_util2 = (util2 / syndbConfig.networkLinkSpeedGbps) * 100.0;
 
-        debug_print("Link ID {}: towards sw{}: {} | towards sw{}: {}", (*it)->id, sw1, util1, sw2, util2);
+        debug_print("Link ID {}: towards sw{}: {} | towards sw{}: {}", (*it)->id, sw1, percent_util1, sw2, percent_util2);
 
         networkLinksPercentUtilSum += percent_util1;
         networkLinksPercentUtilSum += percent_util2;
