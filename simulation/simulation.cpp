@@ -86,11 +86,12 @@ void Simulation::initIncastGen(){
 
 void Simulation::initHosts(){
 
-    auto it = this->topo->hostIDMap.begin();
-
-    while (it != this->topo->hostIDMap.end() )
+    for (auto it = this->topo->hostIDMap.begin(); it != this->topo->hostIDMap.end(); it++)
     {
         Host* h = it->second.get();
+
+        if(h->trafficGenDisabled)
+            continue;
 
         if(syndbConfig.trafficPatternType == TrafficPatternType::FtMixed){
             std::dynamic_pointer_cast<FtMixedTrafficPattern>(h->trafficPattern)->initTopoInfo();
@@ -98,7 +99,6 @@ void Simulation::initHosts(){
 
         h->generateNextPkt();
 
-        it++;
     }
 
     ndebug_print(fmt::format("Initialized {} hosts", this->topo->hostIDMap.size()));
@@ -113,13 +113,10 @@ void Simulation::generateHostPktEvents(){
     for(auto it = this->topo->hostIDMap.begin(); it != this->topo->hostIDMap.end(); it++){
         Host* host = it->second.get();
 
-        #ifdef DEBUG
         // Just for debug case when trafficGen is disabled
         if (host->trafficGenDisabled)
             continue;
             
-        #endif
-        
         while(host->nextPktTime <= syndbSim.currTime + syndbSim.timeIncrement){
             // Use the next scheduled packet on the host to create hostPktEvent
             // hostpktevent_p hostPktEvent = hostpktevent_p(new HostPktEvent(host, host->nextPkt));
