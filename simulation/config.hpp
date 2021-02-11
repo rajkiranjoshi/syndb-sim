@@ -15,7 +15,7 @@
 #include <cassert>
 #include "utils/types.hpp"
 
-#define LOGGING 0
+#define LOGGING 1
 #define HOP_DELAY_NOISE 1
 #define RING_BUFFER 0
 #define TRIGGERS_ENABLED 1
@@ -45,7 +45,9 @@ typedef struct Config
 
     const uint8_t ftMixedPatternPercentIntraRack = 75;
 
-    static const uint numTriggersPerSwitchType = 10;
+    /* Trigger-related params */
+    static const uint numTriggersPerSwitchType = 100;
+    const sim_time_t triggerInitialDelay = 15000000; // 15ms for k=24 fatTree topo 100ms run
 
     const TrafficGenType trafficGenType = TrafficGenType::Distribution;
     /* 
@@ -59,15 +61,10 @@ typedef struct Config
     // const TrafficGenType trafficGenType = TrafficGenType::Continuous;
     /* Do NOT comment out */ const pkt_size_t fixedPktSizeForSimpleTrafficGen = 1500;
 
-    
-
     /* Incast Related Params */
     const uint8_t percentIncastTime = 10;
     const host_id_t incastFanInRatio = numHosts / 4; // 25% of the total hosts
     const host_id_t percentTargetIncastHosts = 30;
-
-    /* Trigger-related params */
-    const sim_time_t triggerInitialDelay = 1500000; // 1.5ms for k=24 fatTree topo
 
     const link_speed_gbps_t torLinkSpeedGbps = 100;
     const link_speed_gbps_t networkLinkSpeedGbps = 100;
