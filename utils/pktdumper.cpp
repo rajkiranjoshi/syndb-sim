@@ -1,18 +1,19 @@
 #include <iostream>
+#include <ctime>
 #include <typeinfo>
 
 #include "utils/pktdumper.hpp"
 #include "utils/logger.hpp"
 #include "traffic/triggerGenerator.hpp"
+#include <fmt/chrono.h>
 #include <spdlog/cfg/env.h>
 
 
 
 void PktDumper::openFiles(switch_id_t numberOfSwitches, host_id_t numberOfHosts) {
-    // create prefix file name consisting of current hour, minute and seconds
-    time_t currentTime;
-    time(&currentTime);
-    const std::tm *calendarTime = std::localtime(&currentTime);
+    // create date-time string to use in the prefix string
+    std::time_t currentTime = std::time(nullptr);
+    std::string dateTimeString = fmt::format("{:%Y-%m-%d}_{:%H.%M.%S}", fmt::localtime(currentTime), fmt::localtime(currentTime));
 
     // clear stpdlog default pattern
     debug_print("Clearing default spdlog dump pattern.");
@@ -20,9 +21,7 @@ void PktDumper::openFiles(switch_id_t numberOfSwitches, host_id_t numberOfHosts)
     spdlog::init_thread_pool(QUEUE_SIZE, 1);
 
     
-    this->prefixStringForFileName = "dump_" + std::to_string(calendarTime->tm_hour) + "_" + 
-                                    std::to_string(calendarTime->tm_min) + "_" + 
-                                    std::to_string(calendarTime->tm_sec) + "_";
+    this->prefixStringForFileName = "dump_" + dateTimeString + "_";
 
     std::string simSummaryFileName = "./data/" + prefixStringForFileName + "summary.txt";
     this->simSummaryFilePointer = spdlog::basic_logger_mt("summary", simSummaryFileName);
