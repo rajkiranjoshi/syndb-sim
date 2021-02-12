@@ -21,7 +21,7 @@ std::string DataParser::executeShellCommand(const char* command) {
 
 DataParser::DataParser(std::string prefixFilePath, std::string prefixStringForFileName, switch_id_t numberOfSwitches, host_id_t numberOfHosts) {
 
-    std::string pathForDataFolder = prefixFilePath + "/data-incorrect/" + prefixStringForFileName;
+    std::string pathForDataFolder = prefixFilePath + "/dump_2_52_9/" + prefixStringForFileName;
     ndebug_print_yellow("Reading files {}*.txt.", pathForDataFolder);
     // open all file pointers in write/output mode
     for (int i = 0; i < numberOfSwitches; i++) {
@@ -48,15 +48,14 @@ DataParser::~DataParser() {
 }
 
 
-std::map<pkt_id_t, PacketInfo> DataParser::getWindowForSwitch(switch_id_t switchID, sim_time_t triggerTime, pkt_id_t windowSize, bool isTriggerSwitch) {
+std::unordered_map<pkt_id_t, PacketInfo> DataParser::getWindowForSwitch(switch_id_t switchID, sim_time_t triggerTime, pkt_id_t windowSize, bool isTriggerSwitch) {
 
-    std::multimap<sim_time_t, PacketInfo> ingressTimeToPktIDMap;
-    std::map<pkt_id_t, PacketInfo> pRecordWindow;
+    std::unordered_map<pkt_id_t, PacketInfo> pRecordWindow;
 
     // get line number of last packet before triggerTime
     std::string prefixFilePath = PREFIX_FILE_PATH;
     std::string prefixStringForFileName = PREFIX_STRING_FOR_DATA_FILES;
-    std::string pathForDataFolder = prefixFilePath + "/data-incorrect/" + prefixStringForFileName;
+    std::string pathForDataFolder = prefixFilePath + "/dump_2_52_9/" + prefixStringForFileName;
     std::string fileName = pathForDataFolder + "switch_" + std::to_string(switchID) + ".txt";
     std::string prefixForCommandToGetLineNumber = "cat " + fileName + " | cut -f 1 |" + "grep -n -w ";
     std::string suffixForCommandToGetLineNumber = " | cut -d \":\" -f 1";
@@ -86,14 +85,24 @@ std::map<pkt_id_t, PacketInfo> DataParser::getWindowForSwitch(switch_id_t switch
     }
 
     pkt_id_t numberOfPacketsAddedTopRecordWindow = 0;
+    pkt_id_t smallestPktID = -1, largestPktID = -1;
     
     while (numberOfPacketsAddedTopRecordWindow < windowSize && ! this->switchFilePointers[switchID].eof()) {
         PacketInfo currentPacket;
         this->switchFilePointers[switchID] >> currentPacket.switchIngressTime >> currentPacket.id;
         pRecordWindow.insert(std::pair<pkt_id_t, PacketInfo>(currentPacket.id, currentPacket));
 
+        if (smallestPktID == -1 || smallestPktID > currentPacket.id) {
+            smallestPktID = currentPacket.id;
+        } 
+        if (largestPktID < currentPacket.id) {
+            largestPktID = currentPacket.id;
+        }
+
         numberOfPacketsAddedTopRecordWindow++;
     }
+
+    debug_print("pRecord Window Size for Switch ID {} : {}", switchID, numberOfPacketsAddedTopRecordWindow);
 
     #ifdef DEBUG
     auto it = pRecordWindow.begin();
@@ -119,15 +128,15 @@ std::map<pkt_id_t, PacketInfo> DataParser::getWindowForSwitch(switch_id_t switch
         } else {
             historyRecordedInpRecordWindow = timeOfMostRecentpRecord - 1;
         }
-        ndebug_print("Trigger Switch pRecord Window History {}", historyRecordedInpRecordWindow);
+        ndebug_print("Trigger Switch pRecord Window History {}ns", historyRecordedInpRecordWindow);
     
 
-        auto firstEntryInpRecordWindow = pRecordWindow.begin();
-        auto lastEntryInpRecordWindow = pRecordWindow.end();
-        lastEntryInpRecordWindow--;
-        pkt_id_t smallestPktID = firstEntryInpRecordWindow->first;
-        pkt_id_t largestPktID = lastEntryInpRecordWindow->first;
-        ndebug_print("Smallest pkt ID: {}\t Largest pkt ID:{}", smallestPktID, largestPktID);
+        // auto firstEntryInpRecordWindow = pRecordWindow.begin();
+        // auto lastEntryInpRecordWindow = pRecordWindow.end();
+        // lastEntryInpRecordWindow--;
+        // pkt_id_t smallestPktID = firstEntryInpRecordWindow->first;
+        // pkt_id_t largestPktID = lastEntryInpRecordWindow->first;
+        // debug_print("Smallest pkt ID: {}\t Largest pkt ID:{}", smallestPktID, largestPktID);
 
         // skip lines in sourceDestination file
         /* 
@@ -218,13 +227,13 @@ void DataParser::getTriggerInfo(switch_id_t numberOfSwitches) {
         if (this->triggerFilePointer.eof()) {
             break;
         }
-        // debug_print_yellow("Trigger ID: {}\t Switch: {}\t Time: {}", trigger.triggerId, trigger.triggerTime, trigger.originSwitch);
+        debug_print_yellow("Trigger ID: {}\t Switch: {}\t Time: {}", trigger.triggerId, trigger.triggerTime, trigger.originSwitch);
 
         for (int i = 0; i < numberOfSwitches-1; i++) {
             sim_time_t timeOfReceivingTriggerPacket;
             switch_id_t switchID;
             this->triggerFilePointer >> switchID >> timeOfReceivingTriggerPacket;
-            // debug_print("\t Switch: {}\t Time: {}", switchID, timeOfReceivingTriggerPacket);
+            debug_print("\t Switch: {}\t Time: {}", switchID, timeOfReceivingTriggerPacket);
             trigger.mapOfSwitchTriggerTime.insert(std::pair<switch_id_t, sim_time_t>(switchID, timeOfReceivingTriggerPacket));
         }
         this->listOfTriggers.push_back(trigger);
