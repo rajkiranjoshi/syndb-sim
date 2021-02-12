@@ -80,6 +80,9 @@ void Simulation::initTriggerGen(){
         case TopologyType::FatTree:
             this->triggerGen = std::shared_ptr<TriggerGenerator>(new TriggerGeneratorFatTreeTopo());
             break;
+        case TopologyType::Line:
+            this->triggerGen = std::shared_ptr<TriggerGenerator>(new TriggerGeneratorLineTopo());
+            break;
     }
 }
 
