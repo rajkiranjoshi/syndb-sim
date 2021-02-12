@@ -97,6 +97,38 @@ TriggerGeneratorSimpleTopo::TriggerGeneratorSimpleTopo():TriggerGenerator::Trigg
     this->updateNextTrigger();
 }
 
+TriggerGeneratorLineTopo::TriggerGeneratorLineTopo():TriggerGenerator::TriggerGenerator(8876, syndbConfig.numTriggersPerSwitchType){
+    // 8876: 4 x 2219. 2219 is one-hop delay for 1500B pkt on a 10G link
+
+    sim_time_t halfSimTimeIncrement = syndbSim.timeIncrement / 2;
+    sim_time_t currBaseTime = this->initialDelay + this->baseIncrement;
+    sim_time_t nextTime, randomExtraTime; 
+    switch_id_t nextSwitch;
+
+    for(int i=0; i < this->totalTriggers; i++){
+        
+        triggerScheduleInfo newScheduleInfo;
+        
+        nextSwitch = 4;  // hard-coded last switch
+        randomExtraTime = this->getRandomExtraTime();
+        nextTime = currBaseTime + randomExtraTime;
+        // round nextTime to nearest simulator increment
+        nextTime = ((nextTime + halfSimTimeIncrement) / syndbSim.timeIncrement) * syndbSim.timeIncrement;
+
+        newScheduleInfo.time = nextTime;
+        newScheduleInfo.switchId = nextSwitch;
+
+        this->triggerSchedule.push_back(newScheduleInfo);
+
+        // update currBaseTime
+        // currBaseTime += this->baseIncrement;
+        currBaseTime = nextTime + this->baseIncrement;
+    }
+
+    this->updateNextTrigger();
+
+}
+
 
 void TriggerGenerator::printTriggerSchedule(){
     ndebug_print_yellow("Trigger Schedule: {} total triggers", this->triggerSchedule.size());

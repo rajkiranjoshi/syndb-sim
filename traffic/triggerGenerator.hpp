@@ -40,6 +40,11 @@ struct TriggerGeneratorSimpleTopo: TriggerGenerator
     TriggerGeneratorSimpleTopo();
 };
 
+struct TriggerGeneratorLineTopo: TriggerGenerator
+{
+    TriggerGeneratorLineTopo();
+};
+
 
 struct TriggerGeneratorFatTreeTopo : TriggerGenerator
 {
