@@ -59,6 +59,7 @@ typedef struct Simulation
     void logTriggerInfoMap();
     void showLinkUtilizations();
 
+    void printSimulationSetup();
     void printSimulationStats();
     void cleanUp();
 

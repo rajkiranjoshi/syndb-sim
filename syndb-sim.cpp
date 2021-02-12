@@ -22,6 +22,12 @@ int main(){
 
     syndbSim = Simulation();
 
+    // Init Step 0: Open files for logging
+    #if LOGGING
+    syndbSim.pktDumper->openFiles(syndbConfig.numSwitches, syndbConfig.numHosts);
+    #endif
+    syndbSim.printSimulationSetup();
+    
     // Init Step 1: Build the topology
     syndbSim.buildTopo();
 
@@ -38,13 +44,6 @@ int main(){
     // Init Step 3: Initialize the hosts
     syndbSim.initHosts();
 
-    // Init Step 4: Open files for logging
-    #if LOGGING
-    syndbSim.pktDumper->openFiles(syndbConfig.numSwitches, syndbConfig.numHosts);
-    #endif
-
-    ndebug_print("Time increment is {}ns", syndbSim.timeIncrement);
-    ndebug_print("Running simulation for {}ns ...",syndbSim.totalTime);
 
     // Main simulation loop: at time = 0; all event lists are empty. Only step 4 does some work.
     for ( ; syndbSim.currTime <= syndbSim.totalTime; syndbSim.currTime += syndbSim.timeIncrement)

@@ -48,17 +48,6 @@ Host::Host(host_id_t id, bool disableTrafficGen){
 
 void Host::generateNextPkt(){
     
-
-#ifdef DEBUG
-    // Just for debugging if pktGen is disabled
-    if(this->trafficGenDisabled == true){ // pktGen has not generated any pkt
-        // Set nextPkt as NULL
-        this->nextPkt = NULL;
-        this->nextPktTime = syndbSim.currTime;
-
-        return;
-    }
-#endif
     // Get the pktsize + delay from the trafficGen
     this->trafficGen->getNextPacket(this->nextPktInfo);
 

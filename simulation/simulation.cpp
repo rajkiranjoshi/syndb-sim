@@ -1,11 +1,11 @@
 #include <string>
 #include <time.h>
 #include <fmt/core.h>
-
 #include "simulation/config.hpp"
 #include "simulation/simulation.hpp"
 #include "utils/logger.hpp"
 #include "utils/utils.hpp"
+#include "utils/pktdumper.hpp"
 #include "topology/fattree_topology.hpp"
 
 
@@ -86,11 +86,12 @@ void Simulation::initIncastGen(){
 
 void Simulation::initHosts(){
 
-    auto it = this->topo->hostIDMap.begin();
-
-    while (it != this->topo->hostIDMap.end() )
+    for (auto it = this->topo->hostIDMap.begin(); it != this->topo->hostIDMap.end(); it++)
     {
         Host* h = it->second.get();
+
+        if(h->trafficGenDisabled)
+            continue;
 
         if(syndbConfig.trafficPatternType == TrafficPatternType::FtMixed){
             std::dynamic_pointer_cast<FtMixedTrafficPattern>(h->trafficPattern)->initTopoInfo();
@@ -98,7 +99,6 @@ void Simulation::initHosts(){
 
         h->generateNextPkt();
 
-        it++;
     }
 
     ndebug_print(fmt::format("Initialized {} hosts", this->topo->hostIDMap.size()));
@@ -113,13 +113,10 @@ void Simulation::generateHostPktEvents(){
     for(auto it = this->topo->hostIDMap.begin(); it != this->topo->hostIDMap.end(); it++){
         Host* host = it->second.get();
 
-        #ifdef DEBUG
         // Just for debug case when trafficGen is disabled
         if (host->trafficGenDisabled)
             continue;
             
-        #endif
-        
         while(host->nextPktTime <= syndbSim.currTime + syndbSim.timeIncrement){
             // Use the next scheduled packet on the host to create hostPktEvent
             // hostpktevent_p hostPktEvent = hostpktevent_p(new HostPktEvent(host, host->nextPkt));
@@ -259,12 +256,12 @@ void Simulation::processNormalPktEvents(){
                 this->totalPktsDelivered += 1;
 
                 #ifdef DEBUG
-                debug_print_yellow("\nPkt ID {} dump:", event->pkt->id);
+                /* debug_print_yellow("\nPkt ID {} dump:", event->pkt->id);
                 debug_print("h{} --> h{}: {} ns (Start: {} ns | End: {} ns)", event->pkt->srcHost, event->pkt->dstHost, event->pkt->endTime - event->pkt->startTime, event->pkt->startTime, event->pkt->endTime);
                 auto it1 = event->pkt->switchINTInfoList.begin();
                 for(it1; it1 != event->pkt->switchINTInfoList.end(); it1++){
                     debug_print("Rx on s{} at {} ns", it1->swId, it1->rxTime);
-                }
+                } */
                 #endif
             }
             // Handling the case that the next hop is a switch (intermediate or dstTor)
@@ -380,6 +377,20 @@ void Simulation::showLinkUtilizations(){
     link_id_t numTorLinks = 0; 
     link_id_t numNetworkLinks = 0; 
 
+    // For dumping individual link utilization
+    std::string torLinkUtilsFileName = "";
+    std::string networkLinkUtilsFileName = "";
+    #if LOGGING
+    torLinkUtilsFileName = fmt::format("./data/{}torLinksUtil.txt", this->pktDumper->prefixStringForFileName);
+    networkLinkUtilsFileName = fmt::format("./data/{}networkLinksUtil.txt", this->pktDumper->prefixStringForFileName);
+    #else
+    torLinkUtilsFileName = "./data/torLinksUtil.txt";
+    networkLinkUtilsFileName = "./data/networkLinksUtil.txt";
+    #endif
+
+    std::ofstream torLinkUtilsFile(torLinkUtilsFileName);
+    std::ofstream networkLinkUtilsFile(networkLinkUtilsFileName);
+
     debug_print_yellow("Utilization on ToR links:");
     for(auto it = syndbSim.topo->torLinkVector.begin(); it != syndbSim.topo->torLinkVector.end(); it++){
         
@@ -394,6 +405,10 @@ void Simulation::showLinkUtilizations(){
         torLinksPercentUtilSum += percent_util_to_tor;
         torLinksPercentUtilSum += percent_util_to_host;
         numTorLinks += 2;
+
+        // Dumping individual link utilization
+        torLinkUtilsFile << percent_util_to_tor << std::endl;
+        torLinkUtilsFile << percent_util_to_host << std::endl;
     }
 
     debug_print_yellow("Utilization on Network links:");
@@ -414,12 +429,20 @@ void Simulation::showLinkUtilizations(){
         percent_util1 = (util1 / syndbConfig.networkLinkSpeedGbps) * 100.0;
         percent_util2 = (util2 / syndbConfig.networkLinkSpeedGbps) * 100.0;
 
-        debug_print("Link ID {}: towards sw{}: {} | towards sw{}: {}", (*it)->id, sw1, util1, sw2, util2);
+        debug_print("Link ID {}: towards sw{}: {} | towards sw{}: {}", (*it)->id, sw1, percent_util1, sw2, percent_util2);
 
         networkLinksPercentUtilSum += percent_util1;
         networkLinksPercentUtilSum += percent_util2;
         numNetworkLinks += 2;
+
+        // Dumping individual link utilization
+        networkLinkUtilsFile << percent_util1 << std::endl;
+        networkLinkUtilsFile << percent_util2 << std::endl;
     }
+
+    // Closing individual link utilization files
+    torLinkUtilsFile.close();
+    networkLinkUtilsFile.close();
 
     ndebug_print_yellow("#####  Network load summary  #####");
     ndebug_print("ToR Links: {}", torLinksPercentUtilSum / numTorLinks);
@@ -431,6 +454,41 @@ void Simulation::printSimulationStats(){
     syndbSim.showLinkUtilizations();
     ndebug_print_yellow("#####  Total Pkts Summary  #####");
     ndebug_print("Generated: {} | Delivered: {}", this->nextPktId, this->totalPktsDelivered);
+}
+
+
+void Simulation::printSimulationSetup(){
+     
+    ndebug_print_yellow("########  Simulation Setup  ########");
+    ndebug_print("TrafficPattern type is {}", trafficPatternTypeToString(syndbConfig.trafficPatternType));
+    ndebug_print("TrafficDistribution type is {}", trafficGenTypeToString(syndbConfig.trafficGenType));
+    ndebug_print("Trigger initial delay is {}ns", syndbConfig.triggerInitialDelay);
+    #if LOGGING
+        ndebug_print("Logging is enabled!");
+    #else
+        ndebug_print("Logging is disabled!");
+    #endif
+
+    #if HOP_DELAY_NOISE
+        ndebug_print("HopDelayNoise is enabled!");
+    #else
+        ndebug_print("HopDelayNoise is disabled!");
+    #endif
+
+    #if TRIGGERS_ENABLED
+        ndebug_print("Triggers are enabled!");
+    #else
+        ndebug_print("Triggers are disabled!");
+    #endif
+
+    #if INCASTS_ENABLED
+        ndebug_print("Incasts are enabled!");
+    #else
+        ndebug_print("Incasts are disabled!");
+    #endif
+
+    ndebug_print("Time increment is {}ns", syndbSim.timeIncrement);
+    ndebug_print("Running simulation for {}ns ...\n",syndbSim.totalTime);
 }
 
 void Simulation::cleanUp(){
@@ -459,9 +517,6 @@ void Simulation::cleanUp(){
             delete *it;
     }
     
-     
-
-
     this->printSimulationStats();
 
     this->endTime = time(NULL);

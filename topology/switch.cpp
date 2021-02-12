@@ -1,5 +1,6 @@
 #include <stdexcept>
 #include <chrono>
+#include <memory>
 #include <fmt/core.h>
 #include "topology/switch.hpp"
 #include "utils/logger.hpp"
@@ -122,12 +123,14 @@ void Switch::receiveNormalPkt(normalpkt_p pkt, sim_time_t rxTime){
     this->ringBuffer.insertPrecord(pkt->id, rxTime);
     #endif
 
+    // *this->swPktArrivalFile << rxTime << std::endl;
+
     // Prepare and insert switch INT into the packet
     switchINTInfo newInfo;
     newInfo.swId = this->id;
     newInfo.rxTime = rxTime;
 
-    pkt->switchINTInfoList.push_back(newInfo); 
+    pkt->switchINTInfoList.push_back(newInfo);
 
 }
 
@@ -323,4 +326,6 @@ Switch* SimpleSwitch::getNextHop(switch_id_t dstSwitchId){
     }
 }
 
-
+Switch::~Switch(){
+    // this->swPktArrivalFile->close();
+}

@@ -4,6 +4,7 @@
 #include <memory>
 #include <functional>
 #include <list>
+#include <set>
 #include "utils/types.hpp"
 
 
@@ -23,7 +24,7 @@ struct IncastGenerator
     std::list<incastScheduleInfo_p> incastSchedule;    
     const sim_time_t initialDelay = 10000; // 10us - for both topologies
     
-    uint16_t totalIncasts;
+    sim_time_t totalIncasts;
     
     sim_time_t nextIncastTime;
     incastScheduleInfo_p nextIncast;

@@ -3,7 +3,13 @@
 
 #include <functional>
 #include "utils/types.hpp"
+#include "simulation/config.hpp"
 
+struct triggerInfo {
+    sim_time_t triggerOrigTime;
+    switch_id_t originSwitch;
+    std::map<switch_id_t, sim_time_t> rxSwitchTimes;
+};
 
 struct triggerScheduleInfo{
     sim_time_t time;
@@ -13,7 +19,7 @@ struct triggerScheduleInfo{
 struct TriggerGenerator
 {
     std::list<triggerScheduleInfo> triggerSchedule;    
-    const sim_time_t initialDelay = 10000; // 10us - for both topologies
+    const sim_time_t initialDelay = syndbConfig.triggerInitialDelay; // 10us - for both topologies
     sim_time_t baseIncrement; // set to topology's switchToSwitchOWD
     uint16_t totalTriggers;
     sim_time_t totalExtraTime;
