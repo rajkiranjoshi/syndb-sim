@@ -2,6 +2,7 @@
 #define TYPES_H
 
 #include <cstdint>
+#include <fmt/core.h>
 
 /* Simulation Related Types */
 typedef uint64_t sim_time_t;
@@ -42,7 +43,43 @@ typedef union {
 enum class syndb_status_t {success, failure};
 
 enum class TopologyType {Simple, FatTree}; 
-enum class TrafficPatternType {SimpleTopo, AlltoAll, FtUniform};
+enum class TrafficPatternType {SimpleTopo, AlltoAll, FtUniform, FtMixed};
 enum class TrafficGenType {Continuous, Distribution};
+enum class TrafficDstType {IntraRack, InterRack};
+
+inline std::string trafficPatternTypeToString(TrafficPatternType type){
+    switch(type){
+        case TrafficPatternType::SimpleTopo:
+            return "SimpleTopo";
+            break;
+        case TrafficPatternType::AlltoAll:
+            return "AlltoAll";
+            break;
+        case TrafficPatternType::FtUniform:
+            return "FtUniform";
+            break;
+        case TrafficPatternType::FtMixed:
+            return "FtMixed";
+            break;
+        default:
+            std::string msg = fmt::format("Unknown TrafficPatternType {}", type);
+            throw std::logic_error(msg);
+            break;
+    }
+}
+
+inline std::string trafficGenTypeToString(TrafficGenType type){
+    switch(type){
+        case TrafficGenType::Continuous:
+            return "Continuous";
+            break;
+        case TrafficGenType::Distribution:
+            return "Distribution";
+            break;
+        default:
+            std::string msg = fmt::format("Unknown TrafficGenType {}", type);
+            throw std::logic_error(msg);
+    }
+}
 
 #endif

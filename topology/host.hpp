@@ -13,19 +13,22 @@ typedef struct Host
 {
     host_id_t id;
     host_tor_link_p torLink;
-    switch_p torSwitch;
+    Switch* torSwitch;
 
+    packetInfo nextPktInfo;
     normalpkt_p nextPkt;
     sim_time_t nextPktTime;
+    sim_time_t prevPktTime;
 
     std::shared_ptr<TrafficGenerator> trafficGen;
     std::shared_ptr<TrafficPattern> trafficPattern;
     bool trafficGenDisabled;
 
     Host(host_id_t id, bool disableTrafficGen = false);
-
+    ~Host();
+    
     void generateNextPkt();
-    void sendPkt();
+    void sendPkt(normalpkt_p &nextPkt, sim_time_t nextPktTime);
 
 } Host;
 

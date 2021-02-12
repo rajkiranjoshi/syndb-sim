@@ -1,5 +1,7 @@
 #include <random>
+#include <chrono>
 #include <functional>
+#include <algorithm>    // std::random_shuffle
 #include "simulation/simulation.hpp"
 #include "traffic/triggerGenerator.hpp"
 #include "utils/logger.hpp"
@@ -16,6 +18,11 @@ TriggerGenerator::TriggerGenerator(sim_time_t switchToSwitchOWD, uint16_t totalT
 
     // compute feasibility of triggers
     sim_time_t totalTime = (sim_time_t)(syndbConfig.totalTimeMSecs * (float)1000000);
+    if(this->initialDelay >= totalTime){
+        std::string msg = fmt::format("Total sim time of {}ms <= initial trigger delay of {}ms. Fix syndbConfig.triggerInitialDelay and/or syndbConfig.totalTimeMSecs", syndbConfig.totalTimeMSecs, (double)this->initialDelay/1000000.0);
+        throw std::logic_error(msg);
+    }
+
     sim_time_t availableTime = totalTime - this->initialDelay;
 
     uint16_t maxPossibleTriggers = (availableTime / this->baseIncrement) - 1;
@@ -27,8 +34,9 @@ TriggerGenerator::TriggerGenerator(sim_time_t switchToSwitchOWD, uint16_t totalT
 
     sim_time_t totalExtraTime = availableTime - ((this->totalTriggers + 1) * this->baseIncrement);
     sim_time_t extraTimePerTrigger = totalExtraTime / this->totalTriggers;
-    std::default_random_engine generator(std::random_device{}());
-    std::uniform_int_distribution<int> extraTimeDist(0, extraTimePerTrigger);
+    uint64_t seed = std::chrono::high_resolution_clock::now().time_since_epoch().count();
+    std::default_random_engine generator(seed);
+    std::uniform_int_distribution<int> extraTimeDist((extraTimePerTrigger * 9 / 10), extraTimePerTrigger);
     this->getRandomExtraTime = std::bind(extraTimeDist, generator);
 
 }
@@ -36,7 +44,7 @@ TriggerGenerator::TriggerGenerator(sim_time_t switchToSwitchOWD, uint16_t totalT
 void TriggerGenerator::generateTrigger(){
 
     if(this->nextTriggerTime ==  syndbSim.currTime){ // it MUST be equal
-        switch_p currSwitch = syndbSim.topo->getSwitchById(this->nextSwitchId);
+        Switch* currSwitch = syndbSim.topo->getSwitchById(this->nextSwitchId);
         currSwitch->generateTrigger(); 
 
         this->updateNextTrigger();
@@ -63,7 +71,8 @@ TriggerGeneratorSimpleTopo::TriggerGeneratorSimpleTopo():TriggerGenerator::Trigg
     sim_time_t nextTime;
     switch_id_t nextSwitch;
 
-    std::default_random_engine generator(std::random_device{}());
+    uint64_t seed = std::chrono::high_resolution_clock::now().time_since_epoch().count();
+    std::default_random_engine generator(seed);
     std::uniform_int_distribution<int> switchSelectDist(0, syndbSim.topo->nextSwitchId-1);
     auto getRandomSwitchId = std::bind(switchSelectDist, std::ref(generator));
 
@@ -90,12 +99,12 @@ TriggerGeneratorSimpleTopo::TriggerGeneratorSimpleTopo():TriggerGenerator::Trigg
 
 
 void TriggerGenerator::printTriggerSchedule(){
-    ndebug_print_yellow("Showing schedule for {} triggers", this->triggerSchedule.size());
+    ndebug_print_yellow("Trigger Schedule: {} total triggers", this->triggerSchedule.size());
 
     auto it = this->triggerSchedule.begin();
 
     for(it; it != this->triggerSchedule.end(); it++){
-        ndebug_print("{} {}", it->time, it->switchId);
+        debug_print("{} {}", it->time, it->switchId);
     }
 
 }
@@ -116,10 +125,11 @@ TriggerGeneratorFatTreeTopo::TriggerGeneratorFatTreeTopo():TriggerGenerator::Tri
 
     sim_time_t halfSimTimeIncrement = syndbSim.timeIncrement / 2;
     sim_time_t currBaseTime = this->initialDelay + this->baseIncrement;
-    sim_time_t nextTime;
+    sim_time_t nextTime, randomExtraTime;
     switch_id_t nextSwitch;
 
-    std::default_random_engine generator(std::random_device{}());
+    uint64_t seed = std::chrono::high_resolution_clock::now().time_since_epoch().count();
+    std::default_random_engine generator(seed);
     std::uniform_int_distribution<int> torSelectDist(0, torSwitches.size()-1);
     std::uniform_int_distribution<int> aggrSelectDist(0, aggrSwitches.size()-1);
     std::uniform_int_distribution<int> coreSelectDist(0, coreSwitches.size()-1);
@@ -138,13 +148,16 @@ TriggerGeneratorFatTreeTopo::TriggerGeneratorFatTreeTopo():TriggerGenerator::Tri
 
     for(int i=0; i < syndbConfig.numTriggersPerSwitchType; i++)
         nextSwitchIds.push_back(coreSwitches[getRandomCoreSwitchIdx()]);
+
+    std::random_shuffle(nextSwitchIds.begin(), nextSwitchIds.end());
     
     for(int i=0; i < nextSwitchIds.size(); i++){
         
         triggerScheduleInfo newScheduleInfo;
         
         nextSwitch = nextSwitchIds[i]; 
-        nextTime = currBaseTime + this->getRandomExtraTime();
+        randomExtraTime = this->getRandomExtraTime();
+        nextTime = currBaseTime + randomExtraTime;
         // round nextTime to nearest simulator increment
         nextTime = ((nextTime + halfSimTimeIncrement) / syndbSim.timeIncrement) * syndbSim.timeIncrement;
 

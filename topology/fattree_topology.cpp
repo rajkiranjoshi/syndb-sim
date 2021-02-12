@@ -111,5 +111,9 @@ void FattreeTopology::buildTopo(){
             } // end of routing table entries   
         } // end of aggrSwitches in the pod
     } // end of loop over all pods
+
+    ndebug_print_yellow("Built FatTree Topo (k={})", this->k);
+    ndebug_print("Total Hosts: {}", this->hostIDMap.size());
+    ndebug_print("Total Switches: {} (Core: {}, Agg: {}, ToR: {})", this->switchIDMap.size(), this->coreSwitches.size(), this->pods.size() * this->pods[0]->aggrSwitches.size(), this->pods.size() * this->pods[0]->torSwitches.size());
     
 }

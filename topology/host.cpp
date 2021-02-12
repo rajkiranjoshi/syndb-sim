@@ -1,5 +1,6 @@
 #include <algorithm>
 #include <fmt/core.h>
+#include <memory>
 #include "topology/host.hpp"
 #include "simulation/config.hpp"
 #include "simulation/simulation.hpp"
@@ -11,16 +12,17 @@ Host::Host(host_id_t id, bool disableTrafficGen){
     this->torSwitch = NULL;
     this->nextPkt = NULL;
     this->nextPktTime = 0;
+    this->prevPktTime = 0;
 
     this->id = id;
     this->trafficGenDisabled = disableTrafficGen;
     
     if(syndbConfig.trafficGenType == TrafficGenType::Continuous){
-        this->trafficGen = std::shared_ptr<TrafficGenerator>(new SimpleTrafficGenerator(syndbConfig.torLinkSpeedGbps, syndbConfig.hostTrafficGenLoadPercent, id));
+        this->trafficGen = std::shared_ptr<TrafficGenerator>(new SimpleTrafficGenerator());
     }
     else if (syndbConfig.trafficGenType == TrafficGenType::Distribution)
     {
-        this->trafficGen = std::shared_ptr<TrafficGenerator>(new DcTrafficGenerator(syndbConfig.torLinkSpeedGbps, syndbConfig.hostTrafficGenLoadPercent, id));
+        this->trafficGen = std::shared_ptr<TrafficGenerator>(new DcTrafficGenerator());
         this->trafficGen->loadTrafficDistribution(syndbConfig.packetSizeDistFile, syndbConfig.flowArrivalDistFile);
     }
 
@@ -34,6 +36,9 @@ Host::Host(host_id_t id, bool disableTrafficGen){
         case TrafficPatternType::FtUniform:
             this->trafficPattern = std::shared_ptr<TrafficPattern>(new FtUniformTrafficPattern(this->id));
             break;
+        case TrafficPatternType::FtMixed:
+            this->trafficPattern = std::shared_ptr<TrafficPattern>(new FtMixedTrafficPattern(this->id));
+            break;
         default:
             std::string msg = fmt::format("Host constructor failed. No way to initialize the specified traffic pattern: {}", syndbConfig.trafficPatternType);
             throw std::logic_error(msg);
@@ -43,31 +48,25 @@ Host::Host(host_id_t id, bool disableTrafficGen){
 
 void Host::generateNextPkt(){
     
-
-#ifdef DEBUG
-    // Just for debugging if pktGen is disabled
-    if(this->trafficGenDisabled == true){ // pktGen has not generated any pkt
-        // Set nextPkt as NULL
-        this->nextPkt = NULL;
-        this->nextPktTime = syndbSim.currTime;
-
-        return;
-    }
-#endif
     // Get the pktsize + delay from the trafficGen
-    packetInfo pktInfo = this->trafficGen->getNextPacket();
+    this->trafficGen->getNextPacket(this->nextPktInfo);
+
+    // Construct a pkt
+    this->nextPkt = syndbSim.getNewNormalPkt(syndbSim.getNextPktId(), this->nextPktInfo.size);
+    this->nextPkt->srcHost = this->id;
+    this->nextPkt->size = this->nextPktInfo.size;
     // Get the dstHost from the TrafficPattern
-    pktInfo.pkt->dstHost = this->trafficPattern->applyTrafficPattern();
-    this->nextPkt = pktInfo.pkt;
+    this->nextPkt->dstHost = this->trafficPattern->applyTrafficPattern();
+    this->prevPktTime = this->nextPktTime; // save curr next time to prev
     
-    sim_time_t pktGenSendTime = this->nextPktTime + pktInfo.sendDelay;
+    sim_time_t pktGenSendTime = this->nextPktTime + this->nextPktInfo.sendDelay;
     sim_time_t nextPktSerializeStart = std::max<sim_time_t>(pktGenSendTime, this->torLink->next_idle_time_to_tor);
     // this->nextPktTime is the last pkt serialize end time
-    this->nextPktTime = nextPktSerializeStart + pktInfo.serializeDelay;
+    this->nextPktTime = nextPktSerializeStart + getSerializationDelay(this->nextPkt->size, syndbConfig.torLinkSpeedGbps);;
     this->torLink->next_idle_time_to_tor = this->nextPktTime;
 
     // Update the byte count
-    this->torLink->byte_count_to_tor += pktInfo.size + 24; // +24 to account for on-wire PHY bits
+    this->torLink->byte_count_to_tor += this->nextPkt->size + 24; // +24 to account for on-wire PHY bits
 
     // Add appropriate INT data to the packet
     this->nextPkt->startTime = nextPktSerializeStart;
@@ -75,40 +74,43 @@ void Host::generateNextPkt(){
 
 }
 
-void Host::sendPkt(){
+void Host::sendPkt(normalpkt_p &nextPkt, sim_time_t nextPktTime){
     
     routeScheduleInfo rsinfo;
 
     if(this->trafficGenDisabled)
         return;
-    else if (this->nextPkt->dstHost == this->id){ // loopback pkt
+    else if (nextPkt->dstHost == this->id){ // loopback pkt
         return;
     }
     
     // For quick testing of AlltoAll traffic pattern
-    // ndebug_print("sendPkt(): {} --> {}", this->id, this->nextPkt->dstHost);
+    // ndebug_print("sendPkt(): {} --> {}", this->id, nextPkt->dstHost);
 
     // Step 1: Pass the pkt to ToR for its own processing
-    this->torSwitch->receiveNormalPkt(this->nextPkt, this->nextPktTime); // can parallelize switch's processing?
+    this->torSwitch->receiveNormalPkt(nextPkt, nextPktTime); // can parallelize switch's processing?
 
-    // Step 2: Call the routing on the ToR switch to get rsinfo
-    syndb_status_t s = this->torSwitch->routeScheduleNormalPkt(this->nextPkt, this->nextPktTime, rsinfo); 
+    // Step 2: Call the routing + scheduling on the ToR switch to get rsinfo
+    syndb_status_t s = this->torSwitch->routeScheduleNormalPkt(nextPkt, nextPktTime, rsinfo); 
 
     if(s != syndb_status_t::success){
-        std::string msg = fmt::format("Host {} failed to send Pkt to host {} since routing on the ToR failed!", this->id, this->nextPkt->dstHost);
+        std::string msg = fmt::format("Host {} failed to send Pkt to host {} since routing on the ToR failed!", this->id, nextPkt->dstHost);
         throw std::logic_error(msg);
     }
 
     // Create, fill and add a new normal pkt event
-    pktevent_p<normalpkt_p> newPktEvent = pktevent_p<normalpkt_p>(new PktEvent<normalpkt_p>());
-    newPktEvent->pkt = this->nextPkt;
+    // pktevent_p<normalpkt_p> newPktEvent = pktevent_p<normalpkt_p>(new PktEvent<normalpkt_p>());
+    pktevent_p<normalpkt_p> newPktEvent = syndbSim.getNewNormalPktEvent();
+    newPktEvent->pkt = nextPkt;
     newPktEvent->pktForwardTime = rsinfo.pktNextForwardTime;
     newPktEvent->currSwitch = this->torSwitch;
     newPktEvent->nextSwitch = rsinfo.nextSwitch;
 
     syndbSim.NormalPktEventList.push_front(newPktEvent);
 
-    // Generate next pkt to send from the host
-    this->generateNextPkt();
+}
 
+Host::~Host(){
+    if(this->nextPkt != NULL)
+        delete this->nextPkt;
 }

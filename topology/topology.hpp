@@ -31,9 +31,9 @@ struct Topology
     std::map<SwitchType, std::set<switch_id_t>> switchTypeIDMap; // updated by createNewSwitch()
 
     switch_id_t getTorId(host_id_t hostId);
-    switch_p getSwitchById(switch_id_t id);
+    Switch* getSwitchById(switch_id_t id);
     SwitchType getSwitchTypeById(switch_id_t id); 
-    host_p getHostById(host_id_t hostId);
+    Host* getHostById(host_id_t hostId);
 
     inline host_id_t getNextHostId() {return this->nextHostId++;}
     inline link_id_t getNextLinkId() {return this->nextLinkId++;}
@@ -44,8 +44,8 @@ struct Topology
     switch_p createNewSwitch(SwitchType type);
     host_p createNewHost(bool trafficGenDisabled = false);
 
-    void addHostToTor(host_p host, switch_p tor);
-    void connectSwitchToSwitch(switch_p s1, switch_p s2);
+    void addHostToTor(host_p &host, switch_p &tor);
+    void connectSwitchToSwitch(switch_p &s1, switch_p &s2);
 
     Topology();
     virtual void buildTopo() = 0;

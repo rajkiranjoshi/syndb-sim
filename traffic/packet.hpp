@@ -21,7 +21,7 @@ typedef struct Pkt {
     Pkt() = default;
     Pkt(pkt_size_t size);
 
-    ~Pkt();
+    // ~Pkt();
     
 } Pkt;
 
@@ -35,11 +35,13 @@ typedef struct NormalPkt : Pkt {
     std::list<switchINTInfo> switchINTInfoList; 
 
     NormalPkt(pkt_id_t id, pkt_size_t size);
+    ~NormalPkt();
     // using Pkt::Pkt; // Inheriting constructor of base class Pkt
 
 } NormalPkt;
 
-typedef std::shared_ptr<NormalPkt> normalpkt_p;
+// typedef std::shared_ptr<NormalPkt> normalpkt_p;
+typedef NormalPkt* normalpkt_p;
 
 /* triggerPkt Struct */
 typedef struct TriggerPkt : Pkt {

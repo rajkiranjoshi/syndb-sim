@@ -1,4 +1,4 @@
-#ifndef PACKETDUMPER_H
+ #ifndef PACKETDUMPER_H
 #define PACKETDUMPER_H
 
 #include <map>
@@ -6,28 +6,37 @@
 #include <ctime>
 #include <fstream>
 #include <time.h>
+
 #include "traffic/packet.hpp"
+#include "traffic/incastGenerator.hpp"
+#include "traffic/triggerGenerator.hpp"
 #include "topology/switch.hpp"
+#include <fmt/core.h>
+#include <fmt/color.h>
 
-struct triggerInfo {
-    sim_time_t triggerOrigTime;
-    switch_id_t originSwitch;
-    std::map<switch_id_t, sim_time_t> rxSwitchTimes;
-};
 
-typedef struct PktDumper
+// need to declare logger.hpp first because of conflict in fmt
+#include <spdlog/async.h>
+#include <spdlog/logger.h>
+#include <spdlog/sinks/basic_file_sink.h>
+
+#define QUEUE_SIZE 32768 * 2
+    typedef struct PktDumper
 {
     std::string prefixStringForFileName;
 
-    std::vector<std::fstream> switchFilePointers;
-    std::vector<std::fstream> hostFilePointers;
+    std::shared_ptr<spdlog::logger> triggerFilePointer, sourceDestinationFilePointer, incastFilePointer, simSummaryFilePointer;
+    std::vector<std::shared_ptr<spdlog::logger>> switchFilePointers;
 
     ~PktDumper();
     PktDumper() = default;
-    PktDumper(switch_id_t numberOfSwitches, host_id_t numberOfHosts);
+    
+    void openFiles(switch_id_t numberOfSwitches, host_id_t numberOfHosts);
+    void dumpPacket(const normalpkt_p pkt);
+    void dumpTriggerInfo(const trigger_id_t &triggerId, triggerInfo &tinfo, const SwitchType &switchType);
+    void dumpIncastInfo(const incastScheduleInfo &incastInfo);
+    void logSimSummary(const std::string &msg);
 
-    void dumpPacket(normalpkt_p pkt);
-    void dumpTriggerInfo(trigger_id_t triggerId, triggerInfo tinfo, SwitchType switchType);
 } PktDumper;
 
 

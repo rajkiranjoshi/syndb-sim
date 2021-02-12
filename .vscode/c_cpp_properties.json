@@ -9,10 +9,21 @@
                 "DEBUG"
             ],
             "compilerPath": "/usr/bin/gcc",
-            "cStandard": "gnu17",
-            "cppStandard": "gnu++14",
+            "cStandard": "gnu11",
+            "cppStandard": "gnu++11",
             "intelliSenseMode": "gcc-x64",
             "compilerArgs": []
+        },
+        {
+            "name": "Release",
+            "includePath": [
+                "${workspaceFolder}/**"
+            ],
+            "defines": [],
+            "compilerPath": "/usr/bin/gcc",
+            "cStandard": "gnu11",
+            "cppStandard": "gnu++14",
+            "intelliSenseMode": "linux-gcc-x64"
         }
     ],
     "version": 4

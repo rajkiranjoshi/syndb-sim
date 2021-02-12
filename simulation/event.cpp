@@ -9,9 +9,23 @@ PktEvent<T>::PktEvent(){
     // debug_print(fmt::format("New empty PktEvent constructed!"));
 }
 
-template<typename T>
-PktEvent<T>::~PktEvent(){
-    // debug_print(fmt::format("Event with packet id {} destructed!", this->pkt->id));
+template<>
+PktEvent<normalpkt_p>::~PktEvent(){
+    /* if(this->pkt != NULL)
+        debug_print(fmt::format("Normal Pkt Event with packet id {} destructed!", this->pkt->id));
+    else
+        debug_print(fmt::format("Normal Pkt Event (empty) destructed!")); */
+}
+
+template<>
+PktEvent<triggerpkt_p>::~PktEvent(){
+    // debug_print(fmt::format("Trigger Pkt Event with trigger id {} destructed!", this->pkt->triggerId));
+}
+
+
+HostPktEvent::HostPktEvent(Host* host, normalpkt_p &pkt){
+    this->host = host;
+    this->pkt = pkt;
 }
 
 /* 

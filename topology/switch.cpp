@@ -1,4 +1,6 @@
 #include <stdexcept>
+#include <chrono>
+#include <memory>
 #include <fmt/core.h>
 #include "topology/switch.hpp"
 #include "utils/logger.hpp"
@@ -11,17 +13,29 @@
 Switch::Switch(switch_id_t id){
     this->id = id;
     this->hop_delay = syndbConfig.switchHopDelayNs;
+
+    #if HOP_DELAY_NOISE
+    this->hop_delay_variation = syndbConfig.maxSwitchHopDelayNs - syndbConfig.minSwitchHopDelayNs;
+    uint64_t seed = std::chrono::high_resolution_clock::now().time_since_epoch().count();
+    this->randHopDelay = std::default_random_engine(seed);
+    #endif
+}
+
+sim_time_t Switch::getRandomHopDelay(){
+    uint_fast32_t randval = this->randHopDelay() % this->hop_delay_variation;
+
+    return syndbConfig.minSwitchHopDelayNs + randval;
 }
 
 
-syndb_status_t Switch::intraRackRouteNormalPkt(normalpkt_p pkt, const sim_time_t pktArrivalTime, routeScheduleInfo &rsinfo){
+syndb_status_t Switch::intraRackRouteNormalPkt(normalpkt_p &pkt, const sim_time_t pktArrivalTime, routeScheduleInfo &rsinfo){
 
     // intra-rack routing
     // Figure-out the link + queue and call schedulePkt() --> updates the q_next_idle_time
     // nextSwitch is NULL (since host)
     // Update the rsinfo struct
 
-    host_tor_link_p hostTorLink;
+    HostTorLink* hostTorLink;
 
     auto search = this->neighborHostTable.find(pkt->dstHost);
     if(search != this->neighborHostTable.end()){
@@ -42,9 +56,9 @@ syndb_status_t Switch::intraRackRouteNormalPkt(normalpkt_p pkt, const sim_time_t
 
 }
 
-syndb_status_t Switch::scheduleToNextHopSwitch(const pkt_size_t pktsize, const sim_time_t pktArrivalTime, switch_p nextHopSwitch, routeScheduleInfo &rsinfo, PacketType ptype){
+syndb_status_t Switch::scheduleToNextHopSwitch(const pkt_size_t pktsize, const sim_time_t pktArrivalTime, Switch* nextHopSwitch, routeScheduleInfo &rsinfo, PacketType ptype){
     
-    network_link_p nextLink;
+    NetworkLink* nextLink;
 
     auto search = this->neighborSwitchTable.find(nextHopSwitch->id);
     if(search != this->neighborSwitchTable.end()){
@@ -78,10 +92,16 @@ syndb_status_t Switch::scheduleToNextHopSwitch(const pkt_size_t pktsize, const s
 
 void Switch::schedulePkt(const pkt_size_t pktsize, const sim_time_t pktArrivalTime, const link_speed_gbps_t linkSpeed, sim_time_t &qNextIdleTime, byte_count_t &byteCount){
     
-    sim_time_t pktSendTime, timeAfterSwitchHop, pktNextSerializeStartTime;
+    sim_time_t pktSendTime, timeAfterSwitchHop, pktNextSerializeStartTime, hopDelay; 
+
+    #if HOP_DELAY_NOISE
+    hopDelay = this->getRandomHopDelay();
+    #else
+    hopDelay = this->hop_delay;
+    #endif
 
     // *earliest* time when we can start serialization on the link
-    timeAfterSwitchHop = pktArrivalTime + this->hop_delay;
+    timeAfterSwitchHop = pktArrivalTime + hopDelay;
 
     // *actual* time when we can start serialization assuming FIFO queuing on the next link
     pktNextSerializeStartTime = std::max<sim_time_t>(timeAfterSwitchHop, qNextIdleTime);
@@ -99,14 +119,18 @@ void Switch::schedulePkt(const pkt_size_t pktsize, const sim_time_t pktArrivalTi
 
 
 void Switch::receiveNormalPkt(normalpkt_p pkt, sim_time_t rxTime){
-    // this->ringBuffer.insertPrecord(pkt->id, rxTime);
+    #if RING_BUFFER
+    this->ringBuffer.insertPrecord(pkt->id, rxTime);
+    #endif
+
+    // *this->swPktArrivalFile << rxTime << std::endl;
 
     // Prepare and insert switch INT into the packet
     switchINTInfo newInfo;
     newInfo.swId = this->id;
     newInfo.rxTime = rxTime;
 
-    pkt->switchINTInfoList.push_back(newInfo); 
+    pkt->switchINTInfoList.push_back(newInfo);
 
 }
 
@@ -141,7 +165,9 @@ void Switch::receiveTriggerPkt(triggerpkt_p pkt, sim_time_t rxTime){
     syndbSim.TriggerInfoMap[pkt->triggerId].rxSwitchTimes[this->id] = rxTime;
 
     // Flush the current RingBuffer
-    this->snapshotRingBuffer();
+    #if RING_BUFFER
+    this->snapshotRingBuffer(rxTime);
+    #endif
 
     // Broadcast forward to neighbors with source pruning
     switch_id_t srcSwitch = pkt->srcSwitchId;
@@ -223,8 +249,8 @@ void Switch::createSendTriggerPkt(switch_id_t dstSwitchId, trigger_id_t triggerI
     syndbSim.TriggerPktEventList.push_back(newEvent);
 }
 
-syndb_status_t Switch::routeScheduleTriggerPkt(triggerpkt_p pkt, const sim_time_t pktArrivalTime, routeScheduleInfo &rsinfo){
-    switch_p nextHopSwitch;
+syndb_status_t Switch::routeScheduleTriggerPkt(triggerpkt_p &pkt, const sim_time_t pktArrivalTime, routeScheduleInfo &rsinfo) {
+    Switch* nextHopSwitch;
 
     nextHopSwitch = syndbSim.topo->getSwitchById(pkt->dstSwitchId); // since triggerPkts sent to neighbors only
 
@@ -232,15 +258,19 @@ syndb_status_t Switch::routeScheduleTriggerPkt(triggerpkt_p pkt, const sim_time_
 }
 
 
-void Switch::snapshotRingBuffer(){
-
+void Switch::snapshotRingBuffer(sim_time_t triggerPktRcvTime){
+    #if RING_BUFFER
+    ndebug_print("### Ring Buffer for Switch {} ###", this->id);
+    ndebug_print("Time: {}ns", triggerPktRcvTime);
+    this->ringBuffer.printRingBuffer();
+    #endif
 }
 
 /****************************************/
 /*        SimpleSwitch Methods          */
 /****************************************/
 
-syndb_status_t SimpleSwitch::routeScheduleNormalPkt(normalpkt_p pkt, const sim_time_t pktArrivalTime, routeScheduleInfo &rsinfo){
+syndb_status_t SimpleSwitch::routeScheduleNormalPkt(normalpkt_p &pkt, const sim_time_t pktArrivalTime, routeScheduleInfo &rsinfo){
     // Two steps for updating the rsinfo struct
     // Step 1: Do the routing: determines nextSwitch, nextLink, nextLink's queue (correct next_idle_time)
     // Step 2: (common) Do the scheduling: determines the pktNextForwardTime for the correct nextLink's queue
@@ -254,7 +284,7 @@ syndb_status_t SimpleSwitch::routeScheduleNormalPkt(normalpkt_p pkt, const sim_t
     } // end of intra-rack routing case
     else // inter-rack routing
     {
-        switch_p nextHopSwitch;
+        Switch* nextHopSwitch;
         nextHopSwitch = this->getNextHop(dstTorId);
         
         // call the switch-to-switch scheduling since we know the nextHopSwitch
@@ -264,7 +294,7 @@ syndb_status_t SimpleSwitch::routeScheduleNormalPkt(normalpkt_p pkt, const sim_t
 
 }
 
-switch_p SimpleSwitch::getNextHop(switch_id_t dstSwitchId){
+Switch* SimpleSwitch::getNextHop(switch_id_t dstSwitchId){
     
     // First, find if the dstSwitchId is in the neighbor switch list
 
@@ -296,4 +326,6 @@ switch_p SimpleSwitch::getNextHop(switch_id_t dstSwitchId){
     }
 }
 
-
+Switch::~Switch(){
+    // this->swPktArrivalFile->close();
+}

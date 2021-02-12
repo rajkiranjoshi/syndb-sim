@@ -32,7 +32,9 @@
 *.app
 syndb-sim
 syndb-sim-debug
+syndb-sim-prof
 syndb-analysis
 syndb-analysis-debug
+syndb-analysis-prof
 data/*
-
+output.txt
