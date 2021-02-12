@@ -467,6 +467,9 @@ void Simulation::printSimulationSetup(){
      
     ndebug_print_yellow("########  Simulation Setup  ########");
     ndebug_print("TrafficPattern type is {}", trafficPatternTypeToString(syndbConfig.trafficPatternType));
+    if(syndbConfig.trafficPatternType == TrafficPatternType::FtMixed){
+        ndebug_print("IntraRack: {}% | InterRack: {}%", syndbConfig.ftMixedPatternPercentIntraRack, 100 - syndbConfig.ftMixedPatternPercentIntraRack);
+    }
     ndebug_print("TrafficDistribution type is {}", trafficGenTypeToString(syndbConfig.trafficGenType));
     ndebug_print("Trigger initial delay is {}ns", syndbConfig.triggerInitialDelay);
     #if LOGGING
