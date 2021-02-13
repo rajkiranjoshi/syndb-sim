@@ -16,7 +16,7 @@
         {
             "label": "Debug Build Analysis",
             "type": "shell",
-            "command": "make CONFIG=debug -j $(($(nproc)-1)) analysis",
+            "command": "make CONFIG=debugnologging -j $(($(nproc)-1)) analysis",
             "problemMatcher": [],
             "group": {
                 "kind": "build",
