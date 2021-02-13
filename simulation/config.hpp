@@ -32,19 +32,19 @@ typedef struct Config
     // IMPORTANT: update numHosts and numSwitches as per the topology
     
     /* SimpleTopo Params */
-    // const TopologyType topoType = TopologyType::Simple;
-    // static const switch_id_t numSwitches = 3;
-    // static const uint numHosts = 4;
-    // const TrafficPatternType trafficPatternType = TrafficPatternType::SimpleTopo;
+    const TopologyType topoType = TopologyType::Simple;
+    static const switch_id_t numSwitches = 5;
+    static const uint numHosts = 2;
+    const TrafficPatternType trafficPatternType = TrafficPatternType::SimpleTopo;
     
     /* FatTree Topo Params */
     /* Do NOT comment out */ static const ft_scale_t fatTreeTopoK = 24; // Fat Tree scale k
-    const TopologyType topoType = TopologyType::FatTree;
-    static const host_id_t numHosts = (fatTreeTopoK * fatTreeTopoK * fatTreeTopoK)/4;
-    static const switch_id_t numSwitches = (fatTreeTopoK * fatTreeTopoK) + ((fatTreeTopoK * fatTreeTopoK)/4);   
+    // const TopologyType topoType = TopologyType::FatTree;
+    // static const host_id_t numHosts = (fatTreeTopoK * fatTreeTopoK * fatTreeTopoK)/4;
+    // static const switch_id_t numSwitches = (fatTreeTopoK * fatTreeTopoK) + ((fatTreeTopoK * fatTreeTopoK)/4);   
     // const TrafficPatternType trafficPatternType = TrafficPatternType::AlltoAll;
     // const TrafficPatternType trafficPatternType = TrafficPatternType::FtUniform;
-    const TrafficPatternType trafficPatternType = TrafficPatternType::FtMixed;
+    // const TrafficPatternType trafficPatternType = TrafficPatternType::FtMixed;
 
     const uint8_t ftMixedPatternPercentIntraRack = 75;
 
