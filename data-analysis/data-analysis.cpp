@@ -1,11 +1,13 @@
 #include <iostream>
 #include <vector>
+#include <unordered_set>
 
+#define LOGGING 0
 #include "utils/logger.hpp"
-#include "simulation/config.hpp"
+// #include "simulation/config.hpp"
 #include "data-analysis/dataparser.hpp"
 
-#define WINDOW_SIZE 1000000
+#define WINDOW_SIZE 1000 * 1000
 
 std::vector<switch_id_t> getRoute (host_id_t source, host_id_t destination, ft_scale_t fatTreeTopoK) {
     std::vector<switch_id_t> route;
@@ -86,10 +88,100 @@ std::vector<switch_id_t> getRoute (host_id_t source, host_id_t destination, ft_s
     return route;
 }
 
+std::unordered_set<switch_id_t> getValidSwitches(switch_id_t triggerSwitchID, ft_scale_t fatTreeTopoK)
+{
+    std::unordered_set<switch_id_t> validSwitches;
 
-int main(){
+    const uint64_t k = fatTreeTopoK;
+    const uint64_t kBy2 = fatTreeTopoK / 2;
+    const uint64_t kSquare = k * k;
+    const uint64_t kBy2WholeSquare = kBy2 * kBy2;
+
+    if (triggerSwitchID < kSquare)
+    {
+
+        if (triggerSwitchID < kSquare) 
+        {
+            if ((triggerSwitchID % k) < kBy2)
+            {
+                // ToR switch
+
+                // add all ToR and Aggr switches in all the pods
+                for (int i = 0; i < kSquare; i++)
+                {
+                    validSwitches.insert(i);
+                }
+
+                for (int i = kSquare; i < (kSquare +kBy2WholeSquare); i++)
+                {
+                    validSwitches.insert(i);
+                }
+
+                return validSwitches;
+            }
+            else
+            {
+                // Aggr switch
+                switch_id_t podLocalAggregationSwitchID = (triggerSwitchID % k) - kBy2;
+                switch_id_t indexForStartingCoreSwitchID = kSquare + (podLocalAggregationSwitchID * kBy2);
+
+                // add all ToR switches
+                for (int i = 0; i < kSquare; i++)
+                {
+                    if (i % k < kBy2)
+                    {
+                        validSwitches.insert(i);
+                    }
+                }
+
+                // add connected Core switches
+                for (int i = 0; i < kBy2; i++)
+                {
+                    validSwitches.insert(indexForStartingCoreSwitchID + i);
+                }
+
+                // add connected Aggr switches
+                for (int i = 0; i < k; i++)
+                {
+                    validSwitches.insert((k * i) + kBy2 + podLocalAggregationSwitchID);
+                }
+
+                return validSwitches;
+            }
+        }
+    }
+    else
+    {
+        // Core switch
+        switch_id_t localgroupCoreSwitchID = (triggerSwitchID - kSquare) / kBy2;
+
+        // add all ToR and connected Aggr switches
+        for (int i = 0; i < kSquare; i++)
+        {
+            if (i % k < kBy2)
+            {
+                validSwitches.insert(i);
+            }
+            else if (i % kBy2 == localgroupCoreSwitchID)
+            {
+                validSwitches.insert(i);
+            }
+        }
+
+        return validSwitches;
+    }
+}
+
+int main(int argc, char *argv[]){
 
     ndebug_print_yellow("Welcome to data analysis!");
+
+    int startTriggerID = 0, endTriggerID = 299;
+    if (argc > 1) {
+        startTriggerID = std::stoi(argv[1]);
+        endTriggerID = std::stoi(argv[2]);
+    }
+    ndebug_print("Processing triggers from {} to {}.", startTriggerID, endTriggerID);
 
     Config syndbConfig;
     DataParser dataparser(PREFIX_FILE_PATH, PREFIX_STRING_FOR_DATA_FILES, syndbConfig.numSwitches, syndbConfig.numHosts);
@@ -100,20 +192,25 @@ int main(){
     auto iteratorForTrigger = dataparser.listOfTriggers.begin();
     for (; iteratorForTrigger < dataparser.listOfTriggers.end(); iteratorForTrigger++) {
 
-        
         switch_id_t triggerSwitchID = iteratorForTrigger->originSwitch;
         // switch_id_t triggerSwitchID = 0;
         sim_time_t triggerTime = iteratorForTrigger->triggerTime;
+        // sim_time_t triggerTime = 10000;
 
-        if (iteratorForTrigger->triggerId != 1) {
+        if (iteratorForTrigger->triggerId > endTriggerID || iteratorForTrigger->triggerId < startTriggerID) {
+            continue;
+        }
+
+        if (iteratorForTrigger->triggerId % 6 != 0) {
             continue;
         }
         ndebug_print_yellow("Trigger ID: {} Switch: {} Time: {}", iteratorForTrigger->triggerId, triggerSwitchID, triggerTime);
 
         // get p-record window for trigger switch
         std::unordered_map<pkt_id_t, PacketInfo> pRecordWindowForTriggerSwitch = dataparser.getWindowForSwitch(triggerSwitchID, triggerTime, windowSize, true);
-
         auto iteratorForpRecordWindowForTriggerSwitch = pRecordWindowForTriggerSwitch.begin();
+
+        std::unordered_set<switch_id_t> validSwitches = getValidSwitches(triggerSwitchID, syndbConfig.fatTreeTopoK);
         ndebug_print_yellow("-----------------------");
 
 #ifdef DEBUG
@@ -131,8 +228,14 @@ int main(){
             // for (int switchID = 21; switchID < 24; switchID++) {
             std::string prefixFilePath = PREFIX_FILE_PATH;
             std::string prefixStringForFileName = PREFIX_STRING_FOR_DATA_FILES;
-            std::string pathForDataFolder = prefixFilePath + "/dump_2_52_9/" + prefixStringForFileName;
-            std::string fileName = pathForDataFolder + "switch_" + std::to_string(switchID) + ".txt";
+            std::string pathForDataFolder = prefixFilePath + "/" + prefixStringForFileName + "/" + prefixStringForFileName;
+            std::string fileName = pathForDataFolder + "_switch_" + std::to_string(switchID) + ".txt";
+
+            auto isValidSwitch = validSwitches.find(switchID);
+            if (isValidSwitch == validSwitches.end()) 
+            {
+                continue;
+            }
 
             if (switchID == triggerSwitchID)
             {
@@ -142,7 +245,8 @@ int main(){
             // ----- Get precord window for switch when it receives the trigger packet -----
             sim_time_t timeForTriggerPacket = iteratorForTrigger->mapOfSwitchTriggerTime.find(switchID)->second;
             // sim_time_t timeForTriggerPacket = triggerTime;
-            debug_print("\tSwitch: {}\t Trigger Packet Time: {}", switchID, timeForTriggerPacket);
+            ndebug_print("\tSwitch: {}\t Trigger Packet Time: {}", switchID, timeForTriggerPacket);
+
             std::unordered_map<pkt_id_t, PacketInfo> pRecordWindowForCurrentSwitch = dataparser.getWindowForSwitch(switchID, timeForTriggerPacket, windowSize, false);
 
 #ifdef DEBUG
@@ -230,13 +334,13 @@ int main(){
                     std::string getLineNumber = "cat " + fileName + "| cut -f 2 | grep -n -w " + std::to_string(packetIDOfLeastRecentExpectedRecord) + " | cut -d \":\" -f 1";
                     uint64_t lineNumber = std::stoll(dataparser.executeShellCommand(getLineNumber.c_str()));
 
-                    if (lineNumber < 1000000)
+                    if (lineNumber < WINDOW_SIZE)
                     {
                         lineNumber = -1;
                     }
                     else
                     {
-                        lineNumber -= 1000000;
+                        lineNumber -= WINDOW_SIZE;
                     }
                     debug_print("{}", lineNumber);
 
@@ -265,6 +369,4 @@ int main(){
 
     return 0;
 }
-
-
 

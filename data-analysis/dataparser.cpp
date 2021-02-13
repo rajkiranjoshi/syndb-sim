@@ -2,6 +2,8 @@
 #include <limits.h>
 
 #include "data-analysis/dataparser.hpp"
+
+#define LOGGING 0
 #include "utils/logger.hpp"
 
 
@@ -21,17 +23,17 @@ std::string DataParser::executeShellCommand(const char* command) {
 
 DataParser::DataParser(std::string prefixFilePath, std::string prefixStringForFileName, switch_id_t numberOfSwitches, host_id_t numberOfHosts) {
 
-    std::string pathForDataFolder = prefixFilePath + "/dump_2_52_9/" + prefixStringForFileName;
+    std::string pathForDataFolder = prefixFilePath + "/" + prefixStringForFileName +"/" + prefixStringForFileName;
     ndebug_print_yellow("Reading files {}*.txt.", pathForDataFolder);
     // open all file pointers in write/output mode
     for (int i = 0; i < numberOfSwitches; i++) {
-        std::string fileName = pathForDataFolder + "switch_" + std::to_string(i) + ".txt";
+        std::string fileName = pathForDataFolder + "_switch_" + std::to_string(i) + ".txt";
         std::fstream file (fileName, std::fstream::in);
         this->switchFilePointers.push_back(std::move(file));
     }
 
-    this->triggerFilePointer.open(pathForDataFolder + "trigger.txt", std::fstream::in);
-    this->sourceDestinationFilePointer.open(pathForDataFolder + "sourceDestination.txt", std::fstream::in);
+    this->triggerFilePointer.open(pathForDataFolder + "_trigger.txt", std::fstream::in);
+    this->sourceDestinationFilePointer.open(pathForDataFolder + "_sourceDestination.txt", std::fstream::in);
 
 }
 
@@ -55,8 +57,8 @@ std::unordered_map<pkt_id_t, PacketInfo> DataParser::getWindowForSwitch(switch_i
     // get line number of last packet before triggerTime
     std::string prefixFilePath = PREFIX_FILE_PATH;
     std::string prefixStringForFileName = PREFIX_STRING_FOR_DATA_FILES;
-    std::string pathForDataFolder = prefixFilePath + "/dump_2_52_9/" + prefixStringForFileName;
-    std::string fileName = pathForDataFolder + "switch_" + std::to_string(switchID) + ".txt";
+    std::string pathForDataFolder = prefixFilePath + "/" + prefixStringForFileName + "/" + prefixStringForFileName;
+    std::string fileName = pathForDataFolder + "_switch_" + std::to_string(switchID) + ".txt";
     std::string prefixForCommandToGetLineNumber = "cat " + fileName + " | cut -f 1 |" + "grep -n -w ";
     std::string suffixForCommandToGetLineNumber = " | cut -d \":\" -f 1";
     uint64_t startLineNumber = 0;
@@ -85,14 +87,14 @@ std::unordered_map<pkt_id_t, PacketInfo> DataParser::getWindowForSwitch(switch_i
     }
 
     pkt_id_t numberOfPacketsAddedTopRecordWindow = 0;
-    pkt_id_t smallestPktID = -1, largestPktID = -1;
+    pkt_id_t smallestPktID = 0, largestPktID = 0;
     
     while (numberOfPacketsAddedTopRecordWindow < windowSize && ! this->switchFilePointers[switchID].eof()) {
         PacketInfo currentPacket;
         this->switchFilePointers[switchID] >> currentPacket.switchIngressTime >> currentPacket.id;
         pRecordWindow.insert(std::pair<pkt_id_t, PacketInfo>(currentPacket.id, currentPacket));
 
-        if (smallestPktID == -1 || smallestPktID > currentPacket.id) {
+        if (smallestPktID == 0 || smallestPktID > currentPacket.id) {
             smallestPktID = currentPacket.id;
         } 
         if (largestPktID < currentPacket.id) {
@@ -136,7 +138,7 @@ std::unordered_map<pkt_id_t, PacketInfo> DataParser::getWindowForSwitch(switch_i
         // lastEntryInpRecordWindow--;
         // pkt_id_t smallestPktID = firstEntryInpRecordWindow->first;
         // pkt_id_t largestPktID = lastEntryInpRecordWindow->first;
-        // debug_print("Smallest pkt ID: {}\t Largest pkt ID:{}", smallestPktID, largestPktID);
+        ndebug_print("Smallest pkt ID: {}\t Largest pkt ID:{}", smallestPktID, largestPktID);
 
         // skip lines in sourceDestination file
         /* 
