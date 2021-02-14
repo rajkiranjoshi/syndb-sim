@@ -19,7 +19,7 @@ while  [ $startTrigger -lt $endTrigger ]
 do
     tempEndTrigger=$(($startTrigger + $increment - 1))
     cp syndb-analysis syndb-analysis-$startTrigger-$server
-    echo "screen -S nvme_$startTrigger bash -c './syndb-analysis-$startTrigger-$server $startTrigger $tempEndTrigger  2>&1 | tee ./data-analysis-output/patronus/dump_1_4_46/output_for_triggers_$startTrigger-$tempEndTrigger.txt'"
+    echo "screen -S $server-$startTrigger bash -c './syndb-analysis-$startTrigger-$server $startTrigger $tempEndTrigger  2>&1 | tee ./data-analysis-output/patronus/storage/dump_1_6_35/output_for_triggers_$startTrigger-$tempEndTrigger.txt'"
     read varname
     startTrigger=$(($tempEndTrigger + 1))
     # echo "$startTrigger"

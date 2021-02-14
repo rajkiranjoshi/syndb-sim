@@ -170,6 +170,8 @@ std::unordered_set<switch_id_t> getValidSwitches(switch_id_t triggerSwitchID, ft
 
         return validSwitches;
     }
+
+    return validSwitches;
 }
 
 int main(int argc, char *argv[]){

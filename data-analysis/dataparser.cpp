@@ -141,27 +141,32 @@ std::unordered_map<pkt_id_t, PacketInfo> DataParser::getWindowForSwitch(switch_i
         ndebug_print("Smallest pkt ID: {}\t Largest pkt ID:{}", smallestPktID, largestPktID);
 
         // skip lines in sourceDestination file
-        /* 
-        ****** Uncomment if packet drops are enabled ******
-
-        fileName = pathForDataFolder + "sourceDestination.txt";
-        prefixForCommandToGetLineNumber = "cat " + fileName + " | " + "grep -n -w ";
-        std::string commandToGetLineNumber = prefixForCommandToGetLineNumber + std::to_string(smallestPktID) + suffixForCommandToGetLineNumber;
-        debug_print("{}", commandToGetLineNumber);
-        std::string lineNumber = this->executeShellCommand(commandToGetLineNumber.c_str());
-        startLineNumber = std::stoll(lineNumber);
-        debug_print("Start Line Number for sourceDestination file: {}", startLineNumber); 
         
-        */
+        fileName = pathForDataFolder + "_sourceDestination.txt";
+        prefixForCommandToGetLineNumber = "grep -m 1 -b -w ";
+        std::string commandToGetSkipBytes = prefixForCommandToGetLineNumber + std::to_string(smallestPktID) + " " + fileName +suffixForCommandToGetLineNumber;
+        debug_print("{}", commandToGetSkipBytes);
+        std::string lineNumber = this->executeShellCommand(commandToGetSkipBytes.c_str());
+        uint64_t skipBytes = std::stoll(lineNumber);
+        debug_print("Skip Bytes for sourceDestination file: {}", skipBytes);        
 
         startLineNumber = smallestPktID - 1; // pkt ID starts from 0
         this->sourceDestinationFilePointer.clear();
-        this->sourceDestinationFilePointer.seekg(0);
-        for (uint64_t currLineNumber = 0; currLineNumber < startLineNumber - 1; ++currLineNumber){
+        this->sourceDestinationFilePointer.seekg(skipBytes);
+
+/*         while (true) {
+            pkt_id_t tempPacketID;
+            this->sourceDestinationFilePointer.seekg(skipBytes);
             if (this->sourceDestinationFilePointer.ignore(std::numeric_limits<std::streamsize>::max(), this->sourceDestinationFilePointer.widen('\n'))){ 
                 // skip till the line before start of pRecord window
             }
-        }
+            this->sourceDestinationFilePointer >> tempPacketID;
+            if (tempPacketID < smallestPktID) {
+                skipBytes += (smallestPktID - tempPacketID) * 8;
+            } else if (smallestPktID < tempPacketID) {
+                skipBytes -= (tempPacketID - smallestPktID) * 8;
+            }
+        } */
 
         pkt_id_t packetId = 0;
         host_id_t source, destination;
