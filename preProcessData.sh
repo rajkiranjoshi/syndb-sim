@@ -10,5 +10,5 @@ filesInDir=$(ls ./dump*sourceDestination.txt)
 for fileName in $filesInDir
 do
    echo "Sorting $fileName"
-   sort -n -k1 $fileName -o $fileName
+   sort -n -k1 $fileName -o $fileName -T /home/nishant
 done
