@@ -3,12 +3,15 @@
 
 #include <fstream>
 #include <vector>
+#include <map>
 #include <unordered_map>
 #include "utils/types.hpp"
 
+#define WINDOW_SIZE 1000 * 1000
+
 // Lumos
-// #define PREFIX_STRING_FOR_DATA_FILES "dump_2_52_9"
-// #define PREFIX_FILE_PATH "/home/nishant/syndb-100ms/minion1/nvme"
+#define PREFIX_STRING_FOR_DATA_FILES "dump_2_52_9"
+#define PREFIX_FILE_PATH "/home/nishant/syndb-100ms/minion1/nvme"
 
 // #define PREFIX_STRING_FOR_DATA_FILES "dump_2_54_21"
 // #define PREFIX_FILE_PATH "/home/nishant/syndb-100ms/minion1/sata"
@@ -27,8 +30,8 @@
 // #define PREFIX_FILE_PATH "/opt/syndb-100ms"
 
 // Minion1
-#define PREFIX_STRING_FOR_DATA_FILES "dump_2021-02-12_02.42.58"
-#define PREFIX_FILE_PATH "/opt/syndb-100ms"
+// #define PREFIX_STRING_FOR_DATA_FILES "dump_2021-02-13_01.53.20"
+// #define PREFIX_FILE_PATH "/mnt/storage/syndb-100ms-50_50"
 
 
 struct PacketInfo {
@@ -64,8 +67,8 @@ struct DataParser {
 
     std::string executeShellCommand(const char* command);
     void getTriggerInfo(switch_id_t numberOfSwitches);
-    std::unordered_map<pkt_id_t, PacketInfo> getWindowForSwitch(switch_id_t switchID, sim_time_t triggerTime, pkt_id_t windowSize, bool isTriggerSwitch);
-    float getCorrelationBetweenPrecordWindows(std::unordered_map<pkt_id_t, PacketInfo> precordWindowForTriggerSwitch, std::unordered_map<pkt_id_t, PacketInfo> precordWindowForCurrentSwitch);
+    std::map<pkt_id_t, PacketInfo> getWindowForSwitch(switch_id_t switchID, sim_time_t triggerTime, pkt_id_t windowSize, bool isTriggerSwitch);
+    float getCorrelationBetweenPrecordWindows(std::map<pkt_id_t, PacketInfo> precordWindowForTriggerSwitch, std::map<pkt_id_t, PacketInfo> precordWindowForCurrentSwitch);
 };
 
 

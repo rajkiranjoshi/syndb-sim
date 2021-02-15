@@ -50,18 +50,19 @@ DataParser::~DataParser() {
 }
 
 
-std::unordered_map<pkt_id_t, PacketInfo> DataParser::getWindowForSwitch(switch_id_t switchID, sim_time_t triggerTime, pkt_id_t windowSize, bool isTriggerSwitch) {
+std::map<pkt_id_t, PacketInfo> DataParser::getWindowForSwitch(switch_id_t switchID, sim_time_t triggerTime, pkt_id_t windowSize, bool isTriggerSwitch) {
 
-    std::unordered_map<pkt_id_t, PacketInfo> pRecordWindow;
+    std::map<pkt_id_t, PacketInfo> pRecordWindow;
 
     // get line number of last packet before triggerTime
     std::string prefixFilePath = PREFIX_FILE_PATH;
     std::string prefixStringForFileName = PREFIX_STRING_FOR_DATA_FILES;
     std::string pathForDataFolder = prefixFilePath + "/" + prefixStringForFileName + "/" + prefixStringForFileName;
     std::string fileName = pathForDataFolder + "_switch_" + std::to_string(switchID) + ".txt";
-    std::string prefixForCommandToGetLineNumber = "cat " + fileName + " | cut -f 1 |" + "grep -n -w ";
+    std::string prefixForCommandToGetLineNumber = "cat " + fileName + " | cut -f 1 |" + "grep -n -w -F ";
     std::string suffixForCommandToGetLineNumber = " | cut -d \":\" -f 1";
     uint64_t startLineNumber = 0;
+    uint64_t skipBytes = 0;
 
     while (triggerTime > 0) {
 
@@ -81,6 +82,8 @@ std::unordered_map<pkt_id_t, PacketInfo> DataParser::getWindowForSwitch(switch_i
     this->switchFilePointers[switchID].clear();
     this->switchFilePointers[switchID].seekg(0);
     for (uint64_t currLineNumber = 0; currLineNumber < startLineNumber - 1; ++currLineNumber){
+        sim_time_t tempIngressTime;
+
         if (this->switchFilePointers[switchID].ignore(std::numeric_limits<std::streamsize>::max(), this->switchFilePointers[switchID].widen('\n'))){ 
             // skip till the line before start of pRecord window
         }
@@ -143,11 +146,11 @@ std::unordered_map<pkt_id_t, PacketInfo> DataParser::getWindowForSwitch(switch_i
         // skip lines in sourceDestination file
         
         fileName = pathForDataFolder + "_sourceDestination.txt";
-        prefixForCommandToGetLineNumber = "grep -m 1 -b -w ";
+        prefixForCommandToGetLineNumber = "LC_ALL=C grep -m 1 -b -w -F ";
         std::string commandToGetSkipBytes = prefixForCommandToGetLineNumber + std::to_string(smallestPktID) + " " + fileName +suffixForCommandToGetLineNumber;
         debug_print("{}", commandToGetSkipBytes);
-        std::string lineNumber = this->executeShellCommand(commandToGetSkipBytes.c_str());
-        uint64_t skipBytes = std::stoll(lineNumber);
+        std::string skipBytesString = this->executeShellCommand(commandToGetSkipBytes.c_str());
+        skipBytes = std::stoll(skipBytesString);
         debug_print("Skip Bytes for sourceDestination file: {}", skipBytes);        
 
         startLineNumber = smallestPktID - 1; // pkt ID starts from 0
@@ -171,24 +174,38 @@ std::unordered_map<pkt_id_t, PacketInfo> DataParser::getWindowForSwitch(switch_i
         pkt_id_t packetId = 0;
         host_id_t source, destination;
         long numberOfCompletedpRecords = 0;
-        
+        auto pRecordIterator = pRecordWindow.begin();
         while (packetId <= largestPktID) {
             this->sourceDestinationFilePointer >> packetId >> source >> destination;
             
-            auto positionInMap = pRecordWindow.find(packetId);
-            if (positionInMap != pRecordWindow.end()) {
+            // auto positionInMap = pRecordWindow.find(packetId);
+            if (pRecordIterator->first == packetId) {
                 debug_print("{}", packetId);
 
-                positionInMap->second.srcHost = source;
-                positionInMap->second.dstHost = destination;
+                pRecordIterator->second.srcHost = source;
+                pRecordIterator->second.dstHost = destination;
                 numberOfCompletedpRecords++;
-
+                
+                pRecordIterator++;
+                skipBytes = this->sourceDestinationFilePointer.tellg();
+                skipBytes += (pRecordIterator->first - packetId) * 21;
+                this->sourceDestinationFilePointer.seekg(skipBytes);
+                if (this->sourceDestinationFilePointer.ignore(std::numeric_limits<std::streamsize>::max(), this->sourceDestinationFilePointer.widen('\n'))){ 
+                    // skip till the line before start of pRecord window
+                }
+                
                 #ifdef DEBUG
                 if (numberOfCompletedpRecords >= windowSize) {
                     break;
                     ndebug_print("Found source and destination for all packets in the precord window.");
                 }
                 #endif
+            } else if (pRecordIterator->first < packetId) {
+                skipBytes -= (packetId - pRecordIterator->first) * 21;
+                this->sourceDestinationFilePointer.seekg(skipBytes);
+                if (this->sourceDestinationFilePointer.ignore(std::numeric_limits<std::streamsize>::max(), this->sourceDestinationFilePointer.widen('\n'))){ 
+                    // skip till the line before start of pRecord window
+                }
             }
         }
     }
