@@ -36,5 +36,6 @@ syndb-sim-prof
 syndb-analysis
 syndb-analysis-debug
 syndb-analysis-prof
+data-analysis-output/*
 data/*
 output.txt
