@@ -79,6 +79,18 @@ std::map<pkt_id_t, PacketInfo> DataParser::getWindowForSwitch(switch_id_t switch
     }
 
     debug_print("Starting line number is: {}", startLineNumber);
+    debug_print("Starting trigger time is: {}", triggerTime);
+    std::string commandToGetTime = "sed -n " + std::to_string(startLineNumber+100000) + "p " + fileName + " | cut -f 1";
+    sim_time_t end_time_100k = std::stoll(this->executeShellCommand(commandToGetTime.c_str()));
+    sim_time_t end_time_5M = triggerTime;
+    commandToGetTime = "sed -n " + std::to_string(startLineNumber+5000000) + "p " + fileName + " | cut -f 1";
+    std::string timeString = this->executeShellCommand(commandToGetTime.c_str());
+    if (timeString.size() != 0) {
+        end_time_5M = std::stoll(timeString);
+    }
+    ndebug_print("{}\t{}\t{}", switchID, triggerTime-end_time_100k, triggerTime-end_time_5M);
+    return pRecordWindow;
+
     this->switchFilePointers[switchID].clear();
     this->switchFilePointers[switchID].seekg(0);
     for (uint64_t currLineNumber = 0; currLineNumber < startLineNumber - 1; ++currLineNumber){
