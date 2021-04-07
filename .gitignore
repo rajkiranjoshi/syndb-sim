@@ -39,6 +39,4 @@ syndb-analysis-prof
 data-analysis-output/*
 data/*
 output.txt
-temp.txt
-data-analysis-output/*
 lineTopo.txt
