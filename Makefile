@@ -73,6 +73,10 @@ OUTPUT_BINARY := $(PROFILE_BINARY)
 ANALYSIS_BINARY := $(ANALYSIS_PROFILE_BINARY)
 endif
 
+ifeq ($(CONFIG), test)
+CXXFLAGS += -DCONFIG=4
+endif
+
 .PHONY: all clean cleaner
 
 all: $(OUTPUT_BINARY)

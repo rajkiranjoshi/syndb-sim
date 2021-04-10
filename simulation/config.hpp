@@ -5,6 +5,7 @@
 #define CONFIG_VALIDATION 1
 #define CONFIG_EVALUATION 2
 #define CONFIG_PROFILING  3
+#define CONFIG_TEST       4
 
 #ifndef CONFIG
 #define CONFIG CONFIG_DEFAULT
@@ -18,6 +19,8 @@
     #include "simulation/config_evaluation.hpp"
 #elif CONFIG == CONFIG_PROFILING
     #include "simulation/config_profiling.hpp"
+#elif CONFIG == CONFIG_TEST
+    #include "simulation/config_test.hpp"
 #endif
 
 #endif
