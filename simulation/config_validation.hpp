@@ -15,7 +15,7 @@ typedef struct Config
     // IMPORTANT: update numHosts and numSwitches as per the topology
     
     /* LineTopo 10ms Expt Params */
-    /* Do NOT comment out */ const pkt_size_t fixedPktSizeForSimpleTrafficGen = 101; //1500;
+    const pkt_size_t fixedPktSizeForSimpleTrafficGen = 101; //1500;
     const float totalTimeMSecs = 10;
     const TopologyType topoType = TopologyType::Line;
     static const switch_id_t numSwitches = 5;
@@ -27,12 +27,6 @@ typedef struct Config
     const link_speed_gbps_t networkLinkSpeedGbps = 10;
     const TrafficGenType trafficGenType = TrafficGenType::Continuous;
     
-    /* FatTree Topo 100ms Expt Params */
-    // These would NOT be used. But needed to compile.
-    /* Do NOT comment out */ static const ft_scale_t fatTreeTopoK = 24; // Fat Tree scale k
-    /* Do NOT comment out */ const uint8_t ftMixedPatternPercentIntraRack = 75;
-    /* Do NOT comment out */ const uint8_t targetBaseNetworkLoadPercent = 40;  /* 30 -> 25%, 40 -> 31%, 50 -> 36% */
-
     /* Incast Related Params */
     const uint8_t percentIncastTime = 10;
     const host_id_t incastFanInRatio = numHosts / 4; // 25% of the total hosts
@@ -48,12 +42,16 @@ typedef struct Config
     static const uint32_t ringBufferSize = 10; // large size for simulation "oracle"
     static const pkt_size_t triggerPktSize = 60;
 
-    // Fat Tree specific config options
-    static const int numCoreSwitches = (fatTreeTopoK/2) * (fatTreeTopoK/2);
-  
     const std::string packetSizeDistFile = "traffic-dist/fb_webserver_packetsizedist_cdf.csv";
-
     const std::string flowArrivalDistFile = "traffic-dist/fb_webserver_flowinterarrival_ns_cdf.csv";
+
+    /* Other params NOT used, but needed for compilation. */
+    // FatTree Topo 100ms Expt Params
+    static const ft_scale_t fatTreeTopoK = 24; // Fat Tree scale k
+    const uint8_t ftMixedPatternPercentIntraRack = 75;
+    const uint8_t targetBaseNetworkLoadPercent = 40;  /* 30 -> 25%, 40 -> 31%, 50 -> 36% */
+    static const int numCoreSwitches = (fatTreeTopoK/2) * (fatTreeTopoK/2);
+
 } Config;
 
 extern Config syndbConfig;
