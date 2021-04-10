@@ -2,16 +2,15 @@
 #include <cassert>
 #include "utils/types.hpp"
 
-#define LOGGING 0
-#define HOP_DELAY_NOISE 0
+#define LOGGING 1
+#define HOP_DELAY_NOISE 1
 #define RING_BUFFER 0
-#define TRIGGERS_ENABLED 0
-#define INCASTS_ENABLED 0
+#define TRIGGERS_ENABLED 1
+#define INCASTS_ENABLED 1
 
 typedef struct Config 
 {
     static const sim_time_t timeIncrementNs = 100;
-    const float totalTimeMSecs = 0.5;
 
     // IMPORTANT: update numHosts and numSwitches as per the topology
     
@@ -20,45 +19,35 @@ typedef struct Config
     // static const switch_id_t numSwitches = 3;
     // static const uint numHosts = 4;
     // const TrafficPatternType trafficPatternType = TrafficPatternType::SimpleTopo;
+    // const sim_time_t triggerInitialDelay = 1500000; // 1.5ms for Line topo 10G runs
+    // const link_speed_gbps_t torLinkSpeedGbps = 100;
+    // const link_speed_gbps_t networkLinkSpeedGbps = 100;
+
+    /* LineTopo 10ms Expt Params */
+    /* Do NOT comment out */ const pkt_size_t fixedPktSizeForSimpleTrafficGen = 101; //1500;  
     
-    /* FatTree Topo Params */
-    /* Do NOT comment out */ static const ft_scale_t fatTreeTopoK = 24; // Fat Tree scale k
+    /* FatTree Topo 100ms Expt Params */
+    /* Do NOT comment out */ static const ft_scale_t fatTreeTopoK = 4; // Fat Tree scale k
+    /* Do NOT comment out */ const uint8_t ftMixedPatternPercentIntraRack = 75;
+    /* Do NOT comment out */ const uint8_t targetBaseNetworkLoadPercent = 40;  /* 30 -> 25%, 40 -> 31%, 50 -> 36% */
+    const float totalTimeMSecs = 1000;
     const TopologyType topoType = TopologyType::FatTree;
     static const host_id_t numHosts = (fatTreeTopoK * fatTreeTopoK * fatTreeTopoK)/4;
     static const switch_id_t numSwitches = (fatTreeTopoK * fatTreeTopoK) + ((fatTreeTopoK * fatTreeTopoK)/4);   
-    // const TrafficPatternType trafficPatternType = TrafficPatternType::AlltoAll;
-    const TrafficPatternType trafficPatternType = TrafficPatternType::FtUniform;
-    // const TrafficPatternType trafficPatternType = TrafficPatternType::FtMixed;
-
-    const uint8_t ftMixedPatternPercentIntraRack = 75;
-
-    static const uint numTriggersPerSwitchType = 15;
-    const sim_time_t triggerInitialDelay = 75000; // 75us for k=24 fatTree topo 0.5ms run
-
-    // const TrafficGenType trafficGenType = TrafficGenType::Distribution;
-    /* 
-    targetBaseNetworkLoadPercent -> observed network load
-        30 -> 25% 
-        40 -> 31%
-        50 -> 36%
-    */
-    const uint8_t targetBaseNetworkLoadPercent = 40;
-    
-    const TrafficGenType trafficGenType = TrafficGenType::Continuous;
-    /* Do NOT comment out */ const pkt_size_t fixedPktSizeForSimpleTrafficGen = 1500;
-
-    
-
-    /* Incast Related Params */
-    const uint8_t percentIncastTime = 10;
-    const host_id_t incastFanInRatio = ((fatTreeTopoK * fatTreeTopoK) * 3)/4;
-    const host_id_t percentTargetIncastHosts = 30;
-
-
+    const TrafficPatternType trafficPatternType = TrafficPatternType::FtMixed;
+    const TrafficGenType trafficGenType = TrafficGenType::Distribution;
+    const sim_time_t triggerInitialDelay = 15000000; // 15ms for k=24 fatTree topo 100ms run
+    static const uint numTriggersPerSwitchType = 100;
     const link_speed_gbps_t torLinkSpeedGbps = 100;
     const link_speed_gbps_t networkLinkSpeedGbps = 100;
 
-    const load_t hostTrafficGenLoadPercent = 100;
+
+    /* Incast Related Params */
+    const uint8_t percentIncastTime = 10;
+    const host_id_t incastFanInRatio = numHosts / 4; // 25% of the total hosts
+    const host_id_t percentTargetIncastHosts = 30;
+
+    // const load_t hostTrafficGenLoadPercent = 100;
 
     const sim_time_t switchHopDelayNs = 1000;
     const sim_time_t minSwitchHopDelayNs = 950;
@@ -77,3 +66,4 @@ typedef struct Config
 } Config;
 
 extern Config syndbConfig;
+

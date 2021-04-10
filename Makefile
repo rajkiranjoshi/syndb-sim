@@ -2,6 +2,10 @@ ifndef $(BUILD)
 	BUILD := release
 endif
 
+ifndef $(CONFIG)
+	CONFIG := default
+endif
+
 UNAME_S := $(shell uname -s)
 
 CURR_DIR:=$(shell dirname $(realpath $(firstword $(MAKEFILE_LIST))))
@@ -51,8 +55,20 @@ OUTPUT_BINARY := $(DEBUG_BINARY)
 ANALYSIS_BINARY := $(ANALYSIS_DEBUG_BINARY)
 endif
 
-ifeq ($(BUILD), profile)
-CXXFLAGS += -O3 -pg -DPROFILING=1
+ifeq ($(CONFIG), default)
+CXXFLAGS += -DCONFIG=0
+endif
+
+ifeq ($(CONFIG), validation)
+CXXFLAGS += -DCONFIG=1
+endif
+
+ifeq ($(CONFIG), evaluation)
+CXXFLAGS += -DCONFIG=2
+endif
+
+ifeq ($(CONFIG), profiling)
+CXXFLAGS += -pg -DCONFIG=3
 OUTPUT_BINARY := $(PROFILE_BINARY)
 ANALYSIS_BINARY := $(ANALYSIS_PROFILE_BINARY)
 endif
