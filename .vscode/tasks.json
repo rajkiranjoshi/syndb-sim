@@ -6,7 +6,7 @@
         {
             "label": "Debug Build",
             "type": "shell",
-            "command": "make CONFIG=debug -j $(($(nproc)-1))",
+            "command": "make BUILD=debug -j $(($(nproc)-1))",
             "problemMatcher": [],
             "group": {
                 "kind": "build",
@@ -16,7 +16,7 @@
         {
             "label": "Debug Build Analysis",
             "type": "shell",
-            "command": "make CONFIG=debug -j $(($(nproc)-1)) analysis",
+            "command": "make BUILD=debug -j $(($(nproc)-1)) analysis",
             "problemMatcher": [],
             "group": "build"
         }
