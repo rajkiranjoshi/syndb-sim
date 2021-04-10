@@ -213,7 +213,10 @@ int main(int argc, char *argv[]) {
         std::map<pkt_id_t, PacketInfo> pRecordWindowForTriggerSwitch = dataparser.getWindowForSwitch(triggerSwitchID, triggerTime, windowSize, true);
         auto iteratorForpRecordWindowForTriggerSwitch = pRecordWindowForTriggerSwitch.begin();
 
-        // std::unordered_set<switch_id_t> validSwitches = getValidSwitches(triggerSwitchID, syndbConfig.fatTreeTopoK);
+        std::unordered_set<switch_id_t> validSwitches;
+        if (syndbConfig.topoType == TopologyType::FatTree) {
+            validSwitches = getValidSwitches(triggerSwitchID, syndbConfig.fatTreeTopoK);
+        }
         ndebug_print_yellow("-----------------------");
 
 #ifdef DEBUG
@@ -325,7 +328,7 @@ int main(int argc, char *argv[]) {
                                 100 * numberOfCommonPackets / numberOfExpectedPackets,
                                 timeOfMostRecentCommonpRecord - timeOfLeastRecentCommonpRecord);
                 }
-            } else if (TopologyType::Line) {
+            } else if (syndbConfig.topoType == TopologyType::Line) {
 
                 for (; iteratorForpRecordWindowForTriggerSwitch != pRecordWindowForTriggerSwitch.end(); iteratorForpRecordWindowForTriggerSwitch++) {
                     auto isPacketInCurrentSwitchID = pRecordWindowForCurrentSwitch.find(iteratorForpRecordWindowForTriggerSwitch->first);
