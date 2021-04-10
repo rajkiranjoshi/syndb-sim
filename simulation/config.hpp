@@ -26,7 +26,7 @@
 
 typedef struct Config 
 {
-    static const sim_time_t timeIncrementNs = 100;
+    static const sim_time_t timeIncrementNs;
     const float totalTimeMSecs = 100;
 
     // IMPORTANT: update numHosts and numSwitches as per the topology
@@ -88,6 +88,13 @@ typedef struct Config
     const std::string packetSizeDistFile = "traffic-dist/fb_webserver_packetsizedist_cdf.csv";
 
     const std::string flowArrivalDistFile = "traffic-dist/fb_webserver_flowinterarrival_ns_cdf.csv";
+
+    void readConfigFile(std::string configFileName);
+    void setValues(std::string key, long value);
+    // void setValues(std::string key, std::string value);
+
+    static_const_timeIncrementNs(int timeIncrementNs_): timeIncrementNs(timeIncrementNs_) { }
+    
 } Config;
 
 extern Config syndbConfig;
