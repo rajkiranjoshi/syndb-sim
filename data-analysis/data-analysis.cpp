@@ -213,7 +213,7 @@ int main(int argc, char *argv[]) {
         std::map<pkt_id_t, PacketInfo> pRecordWindowForTriggerSwitch = dataparser.getWindowForSwitch(triggerSwitchID, triggerTime, windowSize, true);
         auto iteratorForpRecordWindowForTriggerSwitch = pRecordWindowForTriggerSwitch.begin();
 
-        std::unordered_set<switch_id_t> validSwitches = getValidSwitches(triggerSwitchID, syndbConfig.fatTreeTopoK);
+        // std::unordered_set<switch_id_t> validSwitches = getValidSwitches(triggerSwitchID, syndbConfig.fatTreeTopoK);
         ndebug_print_yellow("-----------------------");
 
 #ifdef DEBUG
@@ -234,8 +234,11 @@ int main(int argc, char *argv[]) {
 
             auto isValidSwitch = validSwitches.find(switchID);
             if (isValidSwitch == validSwitches.end()) {
+/*             auto isValidSwitch = validSwitches.find(switchID);
+            if (isValidSwitch == validSwitches.end()) 
+            {
                 continue;
-            }
+            } */
 
             if (switchID == triggerSwitchID) {
                 continue;
@@ -306,6 +309,18 @@ int main(int argc, char *argv[]) {
                             timeOfLeastRecentCommonpRecord = iteratorForpRecordWindowForTriggerSwitch->second.switchIngressTime;
                         }
                     }
+            for (; iteratorForpRecordWindowForTriggerSwitch != pRecordWindowForTriggerSwitch.end(); iteratorForpRecordWindowForTriggerSwitch++)
+            {
+                auto isPacketInCurrentSwitchID = pRecordWindowForCurrentSwitch.find(iteratorForpRecordWindowForTriggerSwitch->first);
+                if (isPacketInCurrentSwitchID != pRecordWindowForCurrentSwitch.end())
+                {
+                    numberOfCommonPackets++;
+
+                    if (isPacketInCurrentSwitchID->second.switchIngressTime > timeOfMostRecentCommonpRecord)
+                    {
+                        timeOfMostRecentCommonpRecord = isPacketInCurrentSwitchID->second.switchIngressTime;
+                        packetIDOfMostRecentCommonRecord = isPacketInCurrentSwitchID->first;
+                    }
                 }
             } // loop iterating over all packets in trigger switch window
 
@@ -322,6 +337,37 @@ int main(int argc, char *argv[]) {
                              100 * numberOfCommonPackets / numberOfExpectedPackets,
                              timeOfMostRecentCommonpRecord - timeOfLeastRecentCommonpRecord);
             }
+/*                 uint64_t timeWhenPacketIDWasLastAvailable = timeForTriggerPacket;
+
+                std::string getLineNumber = "cat " + fileName + "| cut -f 2 | grep -n -w " + std::to_string(packetIDOfLeastRecentExpectedRecord) + " | cut -d \":\" -f 1";
+                uint64_t lineNumber = std::stoll(dataparser.executeShellCommand(getLineNumber.c_str()));
+
+                if (lineNumber < WINDOW_SIZE)
+                {
+                    lineNumber = -1;
+                }
+                else
+                {
+                    lineNumber -= WINDOW_SIZE;
+                }
+                debug_print("{}", lineNumber);
+
+                if (lineNumber < 100000000 && lineNumber > 0)
+                {
+                    std::string getSimulationTime = "sed -n " + std::to_string(lineNumber) + "p " + fileName + " | cut -f 1";
+                    timeWhenPacketIDWasLastAvailable = std::stoll(dataparser.executeShellCommand(getSimulationTime.c_str()));
+                    debug_print("{}", timeWhenPacketIDWasLastAvailable);
+                    if (timeWhenPacketIDWasLastAvailable > timeForTriggerPacket)
+                    {
+                        timeWhenPacketIDWasLastAvailable = timeForTriggerPacket;
+                    }
+                } */
+                
+            float correlation = ((float)numberOfCommonPackets / (float)WINDOW_SIZE);
+            ndebug_print("\tSwitch ID: {}\t Correlation: {}%\t ",
+                            switchID,
+                            correlation * 100);
+            
 
         } // loop iterating over all non-trigger switches
 
