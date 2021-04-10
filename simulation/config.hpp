@@ -93,7 +93,6 @@ typedef struct Config
     void setValues(std::string key, long value);
     // void setValues(std::string key, std::string value);
 
-    static_const_timeIncrementNs(int timeIncrementNs_): timeIncrementNs(timeIncrementNs_) { }
     
 } Config;
 

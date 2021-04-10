@@ -232,13 +232,12 @@ int main(int argc, char *argv[]) {
             std::string pathForDataFolder = prefixFilePath + "/" + prefixStringForFileName + "/" + prefixStringForFileName;
             std::string fileName = pathForDataFolder + "_switch_" + std::to_string(switchID) + ".txt";
 
-            auto isValidSwitch = validSwitches.find(switchID);
-            if (isValidSwitch == validSwitches.end()) {
-/*             auto isValidSwitch = validSwitches.find(switchID);
-            if (isValidSwitch == validSwitches.end()) 
-            {
-                continue;
-            } */
+            if (syndbConfig.topoType == TopologyType::FatTree) {
+                auto isValidSwitch = validSwitches.find(switchID);
+                if (isValidSwitch == validSwitches.end()) {
+                    continue;
+                }
+            }
 
             if (switchID == triggerSwitchID) {
                 continue;
@@ -266,107 +265,86 @@ int main(int argc, char *argv[]) {
             sim_time_t timeOfMostRecentCommonpRecord = 0, timeOfLeastRecentCommonpRecord = 0;
             pkt_id_t packetIDOfLeastRecentExpectedRecord, packetIDOfMostRecentCommonRecord;
 
-            for (; iteratorForpRecordWindowForTriggerSwitch != pRecordWindowForTriggerSwitch.end(); iteratorForpRecordWindowForTriggerSwitch++) {
+            if (syndbConfig.topoType == TopologyType::FatTree) {
+                for (; iteratorForpRecordWindowForTriggerSwitch != pRecordWindowForTriggerSwitch.end(); iteratorForpRecordWindowForTriggerSwitch++) {
 
-                auto route = getRoute(iteratorForpRecordWindowForTriggerSwitch->second.srcHost,
-                                      iteratorForpRecordWindowForTriggerSwitch->second.dstHost,
-                                      syndbConfig.fatTreeTopoK);
+                    auto route = getRoute(iteratorForpRecordWindowForTriggerSwitch->second.srcHost,
+                                        iteratorForpRecordWindowForTriggerSwitch->second.dstHost,
+                                        syndbConfig.fatTreeTopoK);
 
-                int indexOfTriggerSwitch = -1, indexOfCurrentSwitch = -1;
-                for (int routeIteratorIndex = 0; routeIteratorIndex < route.size(); routeIteratorIndex++) {
-                    if (route[routeIteratorIndex] == triggerSwitchID) {
-                        indexOfTriggerSwitch = routeIteratorIndex;
-                    } else if (route[routeIteratorIndex] == switchID) {
-                        indexOfCurrentSwitch = routeIteratorIndex;
+                    int indexOfTriggerSwitch = -1, indexOfCurrentSwitch = -1;
+                    for (int routeIteratorIndex = 0; routeIteratorIndex < route.size(); routeIteratorIndex++) {
+                        if (route[routeIteratorIndex] == triggerSwitchID) {
+                            indexOfTriggerSwitch = routeIteratorIndex;
+                        } else if (route[routeIteratorIndex] == switchID) {
+                            indexOfCurrentSwitch = routeIteratorIndex;
+                        }
                     }
+
+                    if (indexOfCurrentSwitch != -1 && indexOfCurrentSwitch < indexOfTriggerSwitch)
+                    {
+                        numberOfExpectedPackets++;
+                        
+                        if (iteratorForpRecordWindowForCurrentSwitch == pRecordWindowForCurrentSwitch.end()) {
+                            continue;
+                        }
+
+                        if (iteratorForpRecordWindowForTriggerSwitch->first < iteratorForpRecordWindowForCurrentSwitch->first) {
+                            continue;
+                        } 
+
+                        while (iteratorForpRecordWindowForTriggerSwitch->first > iteratorForpRecordWindowForCurrentSwitch->first && 
+                                iteratorForpRecordWindowForCurrentSwitch != pRecordWindowForCurrentSwitch.end()) {
+                            ++iteratorForpRecordWindowForCurrentSwitch;
+                        }
+                        if (iteratorForpRecordWindowForTriggerSwitch->first == iteratorForpRecordWindowForCurrentSwitch->first) {
+                            numberOfCommonPackets++;
+
+                            if (iteratorForpRecordWindowForTriggerSwitch->second.switchIngressTime > timeOfMostRecentCommonpRecord) {
+                                timeOfMostRecentCommonpRecord = iteratorForpRecordWindowForTriggerSwitch->second.switchIngressTime;
+                                packetIDOfMostRecentCommonRecord = iteratorForpRecordWindowForTriggerSwitch->first;
+                            }
+
+                            if (iteratorForpRecordWindowForTriggerSwitch->second.switchIngressTime < timeOfLeastRecentCommonpRecord || timeOfLeastRecentCommonpRecord == 0) {
+                                timeOfLeastRecentCommonpRecord = iteratorForpRecordWindowForTriggerSwitch->second.switchIngressTime;
+                            }
+                        }
+                    }
+                } 
+
+                // ----- Calculate correlation and time lost statistics -----
+                if (numberOfExpectedPackets != 0) {
+
+                    if (timeOfLeastRecentCommonpRecord > timeOfMostRecentCommonpRecord && numberOfCommonPackets == 0) {
+                        timeOfLeastRecentCommonpRecord = timeOfMostRecentCommonpRecord;
+                    }
+
+                    ndebug_print("\tSwitch ID: {}\t Expected Packets: {}\t Correlation: {}%\t Common History: {}ns",
+                                switchID,
+                                int(numberOfExpectedPackets),
+                                100 * numberOfCommonPackets / numberOfExpectedPackets,
+                                timeOfMostRecentCommonpRecord - timeOfLeastRecentCommonpRecord);
                 }
+            } else if (TopologyType::Line) {
 
-                if (indexOfCurrentSwitch != -1 && indexOfCurrentSwitch < indexOfTriggerSwitch)
-                {
-                    numberOfExpectedPackets++;
-                    
-                    if (iteratorForpRecordWindowForCurrentSwitch == pRecordWindowForCurrentSwitch.end()) {
-                        continue;
-                    }
-
-                    if (iteratorForpRecordWindowForTriggerSwitch->first < iteratorForpRecordWindowForCurrentSwitch->first) {
-                        continue;
-                    } 
-
-                    while (iteratorForpRecordWindowForTriggerSwitch->first > iteratorForpRecordWindowForCurrentSwitch->first && 
-                            iteratorForpRecordWindowForCurrentSwitch != pRecordWindowForCurrentSwitch.end()) {
-                        ++iteratorForpRecordWindowForCurrentSwitch;
-                    }
-                    if (iteratorForpRecordWindowForTriggerSwitch->first == iteratorForpRecordWindowForCurrentSwitch->first) {
+                for (; iteratorForpRecordWindowForTriggerSwitch != pRecordWindowForTriggerSwitch.end(); iteratorForpRecordWindowForTriggerSwitch++) {
+                    auto isPacketInCurrentSwitchID = pRecordWindowForCurrentSwitch.find(iteratorForpRecordWindowForTriggerSwitch->first);
+                    if (isPacketInCurrentSwitchID != pRecordWindowForCurrentSwitch.end()) {
                         numberOfCommonPackets++;
 
-                        if (iteratorForpRecordWindowForTriggerSwitch->second.switchIngressTime > timeOfMostRecentCommonpRecord) {
-                            timeOfMostRecentCommonpRecord = iteratorForpRecordWindowForTriggerSwitch->second.switchIngressTime;
-                            packetIDOfMostRecentCommonRecord = iteratorForpRecordWindowForTriggerSwitch->first;
-                        }
-
-                        if (iteratorForpRecordWindowForTriggerSwitch->second.switchIngressTime < timeOfLeastRecentCommonpRecord || timeOfLeastRecentCommonpRecord == 0) {
-                            timeOfLeastRecentCommonpRecord = iteratorForpRecordWindowForTriggerSwitch->second.switchIngressTime;
+                        if (isPacketInCurrentSwitchID->second.switchIngressTime > timeOfMostRecentCommonpRecord) {
+                            timeOfMostRecentCommonpRecord = isPacketInCurrentSwitchID->second.switchIngressTime;
+                            packetIDOfMostRecentCommonRecord = isPacketInCurrentSwitchID->first;
                         }
                     }
-            for (; iteratorForpRecordWindowForTriggerSwitch != pRecordWindowForTriggerSwitch.end(); iteratorForpRecordWindowForTriggerSwitch++)
-            {
-                auto isPacketInCurrentSwitchID = pRecordWindowForCurrentSwitch.find(iteratorForpRecordWindowForTriggerSwitch->first);
-                if (isPacketInCurrentSwitchID != pRecordWindowForCurrentSwitch.end())
-                {
-                    numberOfCommonPackets++;
+                } // loop iterating over all packets in trigger switch window
 
-                    if (isPacketInCurrentSwitchID->second.switchIngressTime > timeOfMostRecentCommonpRecord)
-                    {
-                        timeOfMostRecentCommonpRecord = isPacketInCurrentSwitchID->second.switchIngressTime;
-                        packetIDOfMostRecentCommonRecord = isPacketInCurrentSwitchID->first;
-                    }
-                }
-            } // loop iterating over all packets in trigger switch window
-
-            // ----- Calculate correlation and time lost statistics -----
-            if (numberOfExpectedPackets != 0) {
-
-                if (timeOfLeastRecentCommonpRecord > timeOfMostRecentCommonpRecord && numberOfCommonPackets == 0) {
-                    timeOfLeastRecentCommonpRecord = timeOfMostRecentCommonpRecord;
-                }
-
-                ndebug_print("\tSwitch ID: {}\t Expected Packets: {}\t Correlation: {}%\t Common History: {}ns",
-                             switchID,
-                             int(numberOfExpectedPackets),
-                             100 * numberOfCommonPackets / numberOfExpectedPackets,
-                             timeOfMostRecentCommonpRecord - timeOfLeastRecentCommonpRecord);
+                    
+                float correlation = ((float)numberOfCommonPackets / (float)WINDOW_SIZE);
+                ndebug_print("\tSwitch ID: {}\t Correlation: {}%\t ",
+                                switchID,
+                                correlation * 100);
             }
-/*                 uint64_t timeWhenPacketIDWasLastAvailable = timeForTriggerPacket;
-
-                std::string getLineNumber = "cat " + fileName + "| cut -f 2 | grep -n -w " + std::to_string(packetIDOfLeastRecentExpectedRecord) + " | cut -d \":\" -f 1";
-                uint64_t lineNumber = std::stoll(dataparser.executeShellCommand(getLineNumber.c_str()));
-
-                if (lineNumber < WINDOW_SIZE)
-                {
-                    lineNumber = -1;
-                }
-                else
-                {
-                    lineNumber -= WINDOW_SIZE;
-                }
-                debug_print("{}", lineNumber);
-
-                if (lineNumber < 100000000 && lineNumber > 0)
-                {
-                    std::string getSimulationTime = "sed -n " + std::to_string(lineNumber) + "p " + fileName + " | cut -f 1";
-                    timeWhenPacketIDWasLastAvailable = std::stoll(dataparser.executeShellCommand(getSimulationTime.c_str()));
-                    debug_print("{}", timeWhenPacketIDWasLastAvailable);
-                    if (timeWhenPacketIDWasLastAvailable > timeForTriggerPacket)
-                    {
-                        timeWhenPacketIDWasLastAvailable = timeForTriggerPacket;
-                    }
-                } */
-                
-            float correlation = ((float)numberOfCommonPackets / (float)WINDOW_SIZE);
-            ndebug_print("\tSwitch ID: {}\t Correlation: {}%\t ",
-                            switchID,
-                            correlation * 100);
             
 
         } // loop iterating over all non-trigger switches
