@@ -4,9 +4,18 @@
 
 #define LOGGING 0
 #include "utils/logger.hpp"
-// #include "simulation/config.hpp"
 #include "data-analysis/dataparser.hpp"
 
+
+/**
+ * Get the route for a given packet in fat-tree topology.
+ *
+ * @param source        Host ID of the source 
+ * @param destination   Host ID of the destination
+ * @param fatTreeTopoK  k value for the fat-tree topology
+ *
+ * @return route        List of switch IDs in the route as a vector
+ */
 std::vector<switch_id_t> getRoute (host_id_t source, host_id_t destination, ft_scale_t fatTreeTopoK) {
     std::vector<switch_id_t> route;
 
@@ -16,10 +25,11 @@ std::vector<switch_id_t> getRoute (host_id_t source, host_id_t destination, ft_s
 
     host_id_t sourcePod = source / kBy2WholeSquare;
     host_id_t destinationPod = destination / kBy2WholeSquare;
-    #ifdef DEBUG
+
+#ifdef DEBUG
     debug_print("Source Pod: {}", sourcePod);
     debug_print("Destination Pod: {}", destinationPod);
-    #endif
+#endif
 
     // get ToR switch ID for first hop
     host_id_t podLocalSourceHostID = source % kBy2WholeSquare;  // between 0 to (kBy2WholeSquare - 1)
@@ -31,11 +41,11 @@ std::vector<switch_id_t> getRoute (host_id_t source, host_id_t destination, ft_s
 
     route.push_back(sourceToRSwitchID);
 
-    #ifdef DEBUG
-    // debug_print("Pod Local Source ID: {}", podLocalSourceHostID);
-    // debug_print("Pod Local Source ToR Switch ID: {}", podLocalSourceToRSwitchID);
+#ifdef DEBUG
+    debug_print("Pod Local Source ID: {}", podLocalSourceHostID);
+    debug_print("Pod Local Source ToR Switch ID: {}", podLocalSourceToRSwitchID);
     debug_print("Source ToR Switch ID: s{}", sourceToRSwitchID);
-    #endif
+#endif
 
     if (destinationToRSwitchID == sourceToRSwitchID) {
         return route;
@@ -46,17 +56,19 @@ std::vector<switch_id_t> getRoute (host_id_t source, host_id_t destination, ft_s
     switch_id_t sourceAggregationSwitchID = (sourcePod * k) + kBy2 + podLocalSourceAggregationSwitchID;
 
     route.push_back(sourceAggregationSwitchID);
-    #ifdef DEBUG
-    // debug_print("Pod Local Source Aggregation Switch ID: {}", podLocalSourceAggregationSwitchID);
+
+#ifdef DEBUG
+    debug_print("Pod Local Source Aggregation Switch ID: {}", podLocalSourceAggregationSwitchID);
     debug_print("Source Aggregation Switch ID: s{}", sourceAggregationSwitchID);
-    #endif
+#endif
 
     if (destinationPod == sourcePod) {
-        #ifdef DEBUG
-        // debug_print("Pod Local Destination ID: {}", podLocalDestinationHostID);
-        // debug_print("Pod Local Destination ToR Switch ID: {}", podLocalDestinationToRSwitchID);
+
+#ifdef DEBUG
+        debug_print("Pod Local Destination ID: {}", podLocalDestinationHostID);
+        debug_print("Pod Local Destination ToR Switch ID: {}", podLocalDestinationToRSwitchID);
         debug_print("Destination ToR Switch ID: s{}", destinationToRSwitchID);
-        #endif
+#endif
         route.push_back(destinationToRSwitchID);
         return route;
     }
@@ -65,29 +77,40 @@ std::vector<switch_id_t> getRoute (host_id_t source, host_id_t destination, ft_s
     switch_id_t coreSwitchID = (k*k) + (podLocalSourceAggregationSwitchID * kBy2) + localCoreSwitchID;
 
     route.push_back(coreSwitchID);
-    #ifdef DEBUG
-    // debug_print("Local Core Switch ID: {}", localCoreSwitchID);
+
+#ifdef DEBUG
+    debug_print("Local Core Switch ID: {}", localCoreSwitchID);
     debug_print("Core Switch ID: s{}", coreSwitchID);
-    #endif
+#endif
 
     switch_id_t podLocalDestinationAggergationSwitchID = podLocalSourceAggregationSwitchID;
     switch_id_t destinationAggregationSwitchID = (destinationPod * k) + kBy2 + podLocalDestinationAggergationSwitchID;
 
     route.push_back(destinationAggregationSwitchID);
     route.push_back(destinationToRSwitchID);
-    #ifdef DEBUG
-    // debug_print("Pod Local Destination Aggregation Switch ID: {}", podLocalDestinationAggergationSwitchID);
+
+#ifdef DEBUG
+    debug_print("Pod Local Destination Aggregation Switch ID: {}", podLocalDestinationAggergationSwitchID);
     debug_print("Destination Aggregation Switch ID: s{}", destinationAggregationSwitchID);
-    // debug_print("Pod Local Destination ID: {}", podLocalDestinationHostID);
-    // debug_print("Pod Local Destination ToR Switch ID: {}", podLocalDestinationToRSwitchID);
+    debug_print("Pod Local Destination ID: {}", podLocalDestinationHostID);
+    debug_print("Pod Local Destination ToR Switch ID: {}", podLocalDestinationToRSwitchID);
     debug_print("Destination ToR Switch ID: s{}", destinationToRSwitchID);
-    #endif
+#endif
 
     return route;
 }
 
-std::unordered_set<switch_id_t> getValidSwitches(switch_id_t triggerSwitchID, ft_scale_t fatTreeTopoK)
-{
+
+
+/**
+ * Get the list of accessible switches for a trigger switch.
+ *
+ * @param triggerSwitchID   Switch ID for trigger switch
+ *
+ * @return validSwitches    Set of switches which are accessible from the trigger switch
+ * 
+ */
+std::unordered_set<switch_id_t> getValidSwitches(switch_id_t triggerSwitchID, ft_scale_t fatTreeTopoK) {
     std::unordered_set<switch_id_t> validSwitches;
 
     const uint64_t k = fatTreeTopoK;
@@ -95,73 +118,57 @@ std::unordered_set<switch_id_t> getValidSwitches(switch_id_t triggerSwitchID, ft
     const uint64_t kSquare = k * k;
     const uint64_t kBy2WholeSquare = kBy2 * kBy2;
 
-    if (triggerSwitchID < kSquare)
-    {
+    if (triggerSwitchID < kSquare) {
 
-        if (triggerSwitchID < kSquare) 
-        {
-            if ((triggerSwitchID % k) < kBy2)
-            {
+        if (triggerSwitchID < kSquare) {
+            if ((triggerSwitchID % k) < kBy2) {
                 // ToR switch
 
                 // add all ToR and Aggr switches in all the pods
-                for (int i = 0; i < kSquare; i++)
-                {
+                for (int i = 0; i < kSquare; i++) {
                     validSwitches.insert(i);
                 }
 
-                for (int i = kSquare; i < (kSquare +kBy2WholeSquare); i++)
-                {
+                for (int i = kSquare; i < (kSquare +kBy2WholeSquare); i++) {
                     validSwitches.insert(i);
                 }
 
                 return validSwitches;
-            }
-            else
-            {
+            } else {
                 // Aggr switch
                 switch_id_t podLocalAggregationSwitchID = (triggerSwitchID % k) - kBy2;
                 switch_id_t indexForStartingCoreSwitchID = kSquare + (podLocalAggregationSwitchID * kBy2);
 
                 // add all ToR switches
-                for (int i = 0; i < kSquare; i++)
-                {
-                    if (i % k < kBy2)
-                    {
+                for (int i = 0; i < kSquare; i++) {
+                    if (i % k < kBy2) {
                         validSwitches.insert(i);
                     }
                 }
 
                 // add connected Core switches
-                for (int i = 0; i < kBy2; i++)
-                {
+                for (int i = 0; i < kBy2; i++) {
                     validSwitches.insert(indexForStartingCoreSwitchID + i);
                 }
 
                 // add connected Aggr switches
-                for (int i = 0; i < k; i++)
-                {
+                for (int i = 0; i < k; i++) {
                     validSwitches.insert((k * i) + kBy2 + podLocalAggregationSwitchID);
                 }
 
                 return validSwitches;
             }
         }
-    }
-    else
-    {
+    } else {
         // Core switch
         switch_id_t localgroupCoreSwitchID = (triggerSwitchID - kSquare) / kBy2;
 
         // add all ToR and connected Aggr switches
-        for (int i = 0; i < kSquare; i++)
-        {
-            if (i % k < kBy2)
-            {
+        for (int i = 0; i < kSquare; i++) {
+            if (i % k < kBy2) {
                 validSwitches.insert(i);
             }
-            else if (i % kBy2 == localgroupCoreSwitchID)
-            {
+            else if (i % kBy2 == localgroupCoreSwitchID) {
                 validSwitches.insert(i);
             }
         }
@@ -172,7 +179,8 @@ std::unordered_set<switch_id_t> getValidSwitches(switch_id_t triggerSwitchID, ft
     return validSwitches;
 }
 
-int main(int argc, char *argv[]){
+
+int main(int argc, char *argv[]) {
 
     ndebug_print_yellow("Welcome to data analysis!");
 
@@ -184,7 +192,7 @@ int main(int argc, char *argv[]){
     ndebug_print("Processing triggers from {} to {}.", startTriggerID, endTriggerID);
 
     Config syndbConfig;
-    DataParser dataparser(PREFIX_FILE_PATH, PREFIX_STRING_FOR_DATA_FILES, syndbConfig.numSwitches, syndbConfig.numHosts);
+    DataParser dataparser(PREFIX_FILE_PATH, PREFIX_STRING_FOR_DATA_FILES, syndbConfig.numSwitches);
     dataparser.getTriggerInfo(syndbConfig.numSwitches);
 
     pkt_id_t windowSize = WINDOW_SIZE;
@@ -193,17 +201,12 @@ int main(int argc, char *argv[]){
     for (; iteratorForTrigger < dataparser.listOfTriggers.end(); iteratorForTrigger++) {
 
         switch_id_t triggerSwitchID = iteratorForTrigger->originSwitch;
-        // switch_id_t triggerSwitchID = 0;
         sim_time_t triggerTime = iteratorForTrigger->triggerTime;
-        // sim_time_t triggerTime = 10000;
 
         if (iteratorForTrigger->triggerId > endTriggerID || iteratorForTrigger->triggerId < startTriggerID) {
             continue;
         }
 
-        if (iteratorForTrigger->triggerId % 6 != 0) {
-            continue;
-        }
         ndebug_print_yellow("Trigger ID: {} Switch: {} Time: {}", iteratorForTrigger->triggerId, triggerSwitchID, triggerTime);
 
         // get p-record window for trigger switch
@@ -214,8 +217,7 @@ int main(int argc, char *argv[]){
         ndebug_print_yellow("-----------------------");
 
 #ifdef DEBUG
-        for (; iteratorForpRecordWindowForTriggerSwitch != pRecordWindowForTriggerSwitch.end(); iteratorForpRecordWindowForTriggerSwitch++)
-        {
+        for (; iteratorForpRecordWindowForTriggerSwitch != pRecordWindowForTriggerSwitch.end(); iteratorForpRecordWindowForTriggerSwitch++) {
             debug_print("{}\t{}\t{}\t{}", iteratorForpRecordWindowForTriggerSwitch->first,
                         iteratorForpRecordWindowForTriggerSwitch->second.switchIngressTime,
                         iteratorForpRecordWindowForTriggerSwitch->second.srcHost,
@@ -223,28 +225,24 @@ int main(int argc, char *argv[]){
         }
 #endif
 
-        for (int switchID = 0; switchID < syndbConfig.numSwitches; switchID++)
-        {
-            // for (int switchID = 21; switchID < 24; switchID++) {
+        for (int switchID = 0; switchID < syndbConfig.numSwitches; switchID++) {
+            
             std::string prefixFilePath = PREFIX_FILE_PATH;
             std::string prefixStringForFileName = PREFIX_STRING_FOR_DATA_FILES;
             std::string pathForDataFolder = prefixFilePath + "/" + prefixStringForFileName + "/" + prefixStringForFileName;
             std::string fileName = pathForDataFolder + "_switch_" + std::to_string(switchID) + ".txt";
 
             auto isValidSwitch = validSwitches.find(switchID);
-            if (isValidSwitch == validSwitches.end()) 
-            {
+            if (isValidSwitch == validSwitches.end()) {
                 continue;
             }
 
-            if (switchID == triggerSwitchID)
-            {
+            if (switchID == triggerSwitchID) {
                 continue;
             }
 
             // ----- Get precord window for switch when it receives the trigger packet -----
             sim_time_t timeForTriggerPacket = iteratorForTrigger->mapOfSwitchTriggerTime.find(switchID)->second;
-            // sim_time_t timeForTriggerPacket = triggerTime;
             ndebug_print("\tSwitch: {}\t Trigger Packet Time: {}", switchID, timeForTriggerPacket);
 
             std::map<pkt_id_t, PacketInfo> pRecordWindowForCurrentSwitch = dataparser.getWindowForSwitch(switchID, timeForTriggerPacket, windowSize, false);
@@ -252,8 +250,7 @@ int main(int argc, char *argv[]){
 #ifdef DEBUG
             auto iteratorForpRecordWindowForCurrentSwitch = pRecordWindowForCurrentSwitch.begin();
             debug_print("-----------------------");
-            for (; iteratorForpRecordWindowForCurrentSwitch != pRecordWindowForCurrentSwitch.end(); iteratorForpRecordWindowForCurrentSwitch++)
-            {
+            for (; iteratorForpRecordWindowForCurrentSwitch != pRecordWindowForCurrentSwitch.end(); iteratorForpRecordWindowForCurrentSwitch++) {
                 debug_print("{}\t{}", iteratorForpRecordWindowForCurrentSwitch->first,
                             iteratorForpRecordWindowForCurrentSwitch->second.switchIngressTime);
             }
@@ -264,25 +261,19 @@ int main(int argc, char *argv[]){
             auto iteratorForpRecordWindowForTriggerSwitch = pRecordWindowForTriggerSwitch.begin();
             auto iteratorForpRecordWindowForCurrentSwitch = pRecordWindowForCurrentSwitch.begin();
             sim_time_t timeOfMostRecentCommonpRecord = 0, timeOfLeastRecentCommonpRecord = 0;
-            // sim_time_t timeOfMostRecentExpectedpRecord = 0, timeOfLeastRecentExpectedpRecord = 0;
             pkt_id_t packetIDOfLeastRecentExpectedRecord, packetIDOfMostRecentCommonRecord;
 
-            for (; iteratorForpRecordWindowForTriggerSwitch != pRecordWindowForTriggerSwitch.end(); iteratorForpRecordWindowForTriggerSwitch++)
-            {
+            for (; iteratorForpRecordWindowForTriggerSwitch != pRecordWindowForTriggerSwitch.end(); iteratorForpRecordWindowForTriggerSwitch++) {
 
                 auto route = getRoute(iteratorForpRecordWindowForTriggerSwitch->second.srcHost,
                                       iteratorForpRecordWindowForTriggerSwitch->second.dstHost,
                                       syndbConfig.fatTreeTopoK);
 
                 int indexOfTriggerSwitch = -1, indexOfCurrentSwitch = -1;
-                for (int routeIteratorIndex = 0; routeIteratorIndex < route.size(); routeIteratorIndex++)
-                {
-                    if (route[routeIteratorIndex] == triggerSwitchID)
-                    {
+                for (int routeIteratorIndex = 0; routeIteratorIndex < route.size(); routeIteratorIndex++) {
+                    if (route[routeIteratorIndex] == triggerSwitchID) {
                         indexOfTriggerSwitch = routeIteratorIndex;
-                    }
-                    else if (route[routeIteratorIndex] == switchID)
-                    {
+                    } else if (route[routeIteratorIndex] == switchID) {
                         indexOfCurrentSwitch = routeIteratorIndex;
                     }
                 }
@@ -290,12 +281,6 @@ int main(int argc, char *argv[]){
                 if (indexOfCurrentSwitch != -1 && indexOfCurrentSwitch < indexOfTriggerSwitch)
                 {
                     numberOfExpectedPackets++;
-
-                    // if (iteratorForpRecordWindowForTriggerSwitch->second.switchIngressTime < timeOfLeastRecentExpectedpRecord || timeOfLeastRecentExpectedpRecord == 0)
-                    // {
-                    //     timeOfLeastRecentExpectedpRecord = iteratorForpRecordWindowForTriggerSwitch->second.switchIngressTime;
-                    //     packetIDOfLeastRecentExpectedRecord = iteratorForpRecordWindowForTriggerSwitch->first;
-                    // }
                     
                     if (iteratorForpRecordWindowForCurrentSwitch == pRecordWindowForCurrentSwitch.end()) {
                         continue;
@@ -309,18 +294,15 @@ int main(int argc, char *argv[]){
                             iteratorForpRecordWindowForCurrentSwitch != pRecordWindowForCurrentSwitch.end()) {
                         ++iteratorForpRecordWindowForCurrentSwitch;
                     }
-                    if (iteratorForpRecordWindowForTriggerSwitch->first == iteratorForpRecordWindowForCurrentSwitch->first)
-                    {
+                    if (iteratorForpRecordWindowForTriggerSwitch->first == iteratorForpRecordWindowForCurrentSwitch->first) {
                         numberOfCommonPackets++;
 
-                        if (iteratorForpRecordWindowForTriggerSwitch->second.switchIngressTime > timeOfMostRecentCommonpRecord)
-                        {
+                        if (iteratorForpRecordWindowForTriggerSwitch->second.switchIngressTime > timeOfMostRecentCommonpRecord) {
                             timeOfMostRecentCommonpRecord = iteratorForpRecordWindowForTriggerSwitch->second.switchIngressTime;
                             packetIDOfMostRecentCommonRecord = iteratorForpRecordWindowForTriggerSwitch->first;
                         }
 
-                        if (iteratorForpRecordWindowForTriggerSwitch->second.switchIngressTime < timeOfLeastRecentCommonpRecord || timeOfLeastRecentCommonpRecord == 0)
-                        {
+                        if (iteratorForpRecordWindowForTriggerSwitch->second.switchIngressTime < timeOfLeastRecentCommonpRecord || timeOfLeastRecentCommonpRecord == 0) {
                             timeOfLeastRecentCommonpRecord = iteratorForpRecordWindowForTriggerSwitch->second.switchIngressTime;
                         }
                     }
@@ -328,36 +310,7 @@ int main(int argc, char *argv[]){
             } // loop iterating over all packets in trigger switch window
 
             // ----- Calculate correlation and time lost statistics -----
-            if (numberOfExpectedPackets != 0)
-            {
-                /* uint64_t timeWhenPacketIDWasLastAvailable = timeForTriggerPacket;
-                if (numberOfCommonPackets < numberOfExpectedPackets)
-                {
-
-                    std::string getLineNumber = "cat " + fileName + "| cut -f 2 | grep -n -w " + std::to_string(packetIDOfLeastRecentExpectedRecord) + " | cut -d \":\" -f 1";
-                    uint64_t lineNumber = std::stoll(dataparser.executeShellCommand(getLineNumber.c_str()));
-
-                    if (lineNumber < WINDOW_SIZE)
-                    {
-                        lineNumber = -1;
-                    }
-                    else
-                    {
-                        lineNumber -= WINDOW_SIZE;
-                    }
-                    debug_print("{}", lineNumber);
-
-                    if (lineNumber < 100000000 && lineNumber > 0)
-                    {
-                        std::string getSimulationTime = "sed -n " + std::to_string(lineNumber) + "p " + fileName + " | cut -f 1";
-                        timeWhenPacketIDWasLastAvailable = std::stoll(dataparser.executeShellCommand(getSimulationTime.c_str()));
-                        debug_print("{}", timeWhenPacketIDWasLastAvailable);
-                        if (timeWhenPacketIDWasLastAvailable > timeForTriggerPacket)
-                        {
-                            timeWhenPacketIDWasLastAvailable = timeForTriggerPacket;
-                        }
-                    }
-                } */
+            if (numberOfExpectedPackets != 0) {
 
                 if (timeOfLeastRecentCommonpRecord > timeOfMostRecentCommonpRecord && numberOfCommonPackets == 0) {
                     timeOfLeastRecentCommonpRecord = timeOfMostRecentCommonpRecord;

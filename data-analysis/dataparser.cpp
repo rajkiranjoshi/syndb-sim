@@ -7,6 +7,9 @@
 #include "utils/logger.hpp"
 
 
+/**
+ * Execute a shell command passed to the function
+ */
 std::string DataParser::executeShellCommand(const char* command) {
     std::array<char, 512> buffer;
     std::string result;
@@ -20,8 +23,10 @@ std::string DataParser::executeShellCommand(const char* command) {
     return result;
 }
 
-
-DataParser::DataParser(std::string prefixFilePath, std::string prefixStringForFileName, switch_id_t numberOfSwitches, host_id_t numberOfHosts) {
+/**
+ * Create and open file pointers for all data files.
+ */
+DataParser::DataParser(std::string prefixFilePath, std::string prefixStringForFileName, switch_id_t numberOfSwitches) {
 
     std::string pathForDataFolder = prefixFilePath + "/" + prefixStringForFileName +"/" + prefixStringForFileName;
     ndebug_print_yellow("Reading files {}*.txt.", pathForDataFolder);
@@ -50,6 +55,16 @@ DataParser::~DataParser() {
 }
 
 
+/**
+ * Get the p-record window for a switch at a particular point of time.
+ *
+ * @param triggerTime   Time the switch received/generated the trigger packet
+ * @param windowSize    Size of the p-record window
+ * @param isTriggerSwitch   Boolean to denote if the switch is trigger switch.
+ *                          If the switch is trigger switch we get the host and destination
+ *                          for each packet in its trigger window.
+ *
+ */
 std::map<pkt_id_t, PacketInfo> DataParser::getWindowForSwitch(switch_id_t switchID, sim_time_t triggerTime, pkt_id_t windowSize, bool isTriggerSwitch) {
 
     std::map<pkt_id_t, PacketInfo> pRecordWindow;
@@ -67,9 +82,7 @@ std::map<pkt_id_t, PacketInfo> DataParser::getWindowForSwitch(switch_id_t switch
     while (triggerTime > 0) {
 
         std::string commandToGetLineNumber = prefixForCommandToGetLineNumber + std::to_string(triggerTime) + suffixForCommandToGetLineNumber;
-        debug_print("Executing command: {}", commandToGetLineNumber);
         std::string lineNumber = this->executeShellCommand(commandToGetLineNumber.c_str());
-        debug_print("Line number of time {} is {}", triggerTime, lineNumber);
 
         if (lineNumber.size() != 0) {
             startLineNumber = std::stoll(lineNumber);
@@ -78,8 +91,10 @@ std::map<pkt_id_t, PacketInfo> DataParser::getWindowForSwitch(switch_id_t switch
         triggerTime--;
     }
 
+#ifdef DEBUG
     debug_print("Starting line number is: {}", startLineNumber);
     debug_print("Starting trigger time is: {}", triggerTime);
+#endif
     std::string commandToGetTime = "sed -n " + std::to_string(startLineNumber+100000) + "p " + fileName + " | cut -f 1";
     sim_time_t end_time_100k = std::stoll(this->executeShellCommand(commandToGetTime.c_str()));
     sim_time_t end_time_5M = triggerTime;
@@ -121,14 +136,14 @@ std::map<pkt_id_t, PacketInfo> DataParser::getWindowForSwitch(switch_id_t switch
 
     debug_print("pRecord Window Size for Switch ID {} : {}", switchID, numberOfPacketsAddedTopRecordWindow);
 
-    #ifdef DEBUG
+#ifdef DEBUG
     auto it = pRecordWindow.begin();
     debug_print("--- pRecord window for switch {} ---", switchID);
     while (it != pRecordWindow.end()) {
         debug_print("{}\t{}", it->first, it->second.switchIngressTime);
         it++;
     }
-    #endif
+#endif
 
     debug_print("SUCCESS: Obtained pRecord Window for {}.", switchID);
 
@@ -146,13 +161,6 @@ std::map<pkt_id_t, PacketInfo> DataParser::getWindowForSwitch(switch_id_t switch
             historyRecordedInpRecordWindow = timeOfMostRecentpRecord - 1;
         }
         ndebug_print("Trigger Switch pRecord Window History {}ns", historyRecordedInpRecordWindow);
-    
-
-        // auto firstEntryInpRecordWindow = pRecordWindow.begin();
-        // auto lastEntryInpRecordWindow = pRecordWindow.end();
-        // lastEntryInpRecordWindow--;
-        // pkt_id_t smallestPktID = firstEntryInpRecordWindow->first;
-        // pkt_id_t largestPktID = lastEntryInpRecordWindow->first;
         ndebug_print("Smallest pkt ID: {}\t Largest pkt ID:{}", smallestPktID, largestPktID);
 
         // skip lines in sourceDestination file
@@ -168,20 +176,6 @@ std::map<pkt_id_t, PacketInfo> DataParser::getWindowForSwitch(switch_id_t switch
         startLineNumber = smallestPktID - 1; // pkt ID starts from 0
         this->sourceDestinationFilePointer.clear();
         this->sourceDestinationFilePointer.seekg(skipBytes);
-
-/*         while (true) {
-            pkt_id_t tempPacketID;
-            this->sourceDestinationFilePointer.seekg(skipBytes);
-            if (this->sourceDestinationFilePointer.ignore(std::numeric_limits<std::streamsize>::max(), this->sourceDestinationFilePointer.widen('\n'))){ 
-                // skip till the line before start of pRecord window
-            }
-            this->sourceDestinationFilePointer >> tempPacketID;
-            if (tempPacketID < smallestPktID) {
-                skipBytes += (smallestPktID - tempPacketID) * 8;
-            } else if (smallestPktID < tempPacketID) {
-                skipBytes -= (tempPacketID - smallestPktID) * 8;
-            }
-        } */
 
         pkt_id_t packetId = 0;
         host_id_t source, destination;
@@ -206,12 +200,12 @@ std::map<pkt_id_t, PacketInfo> DataParser::getWindowForSwitch(switch_id_t switch
                     // skip till the line before start of pRecord window
                 }
                 
-                #ifdef DEBUG
+#ifdef DEBUG
                 if (numberOfCompletedpRecords >= windowSize) {
                     break;
                     ndebug_print("Found source and destination for all packets in the precord window.");
                 }
-                #endif
+#endif
             } else if (pRecordIterator->first < packetId) {
                 skipBytes -= (packetId - pRecordIterator->first) * 21;
                 this->sourceDestinationFilePointer.seekg(skipBytes);
@@ -226,34 +220,9 @@ std::map<pkt_id_t, PacketInfo> DataParser::getWindowForSwitch(switch_id_t switch
 }
 
 
-
-/* float DataParser::getCorrelationBetweenPrecordWindows(std::map<pkt_id_t, PacketInfo> precordWindowForTriggerSwitch, std::map<pkt_id_t, PacketInfo> precordWindowForCurrentSwitch) {
-
-    pkt_id_t numberOfCommonPktIDs = 0, totalNumberOfExpectedPackets = 0;
-    std::map<pkt_id_t, PacketInfo>::iterator iteratorForprecordWindowForTriggerSwitch = precordWindowForTriggerSwitch.begin();
-    std::map<pkt_id_t, PacketInfo>::iterator iteratorForprecordWindowForCurrentSwitch;
-
-    while (iteratorForprecordWindowForTriggerSwitch != precordWindowForTriggerSwitch.end()) {
-
-        // get route for packet from src and dst 
-
-        // if switch in route then
-        totalNumberOfExpectedPackets++;
-
-            iteratorForprecordWindowForCurrentSwitch = precordWindowForCurrentSwitch.find(iteratorForprecordWindowForTriggerSwitch->first);
-
-            if (iteratorForprecordWindowForCurrentSwitch != precordWindowForCurrentSwitch.end()) {
-                // std::cout << "Commont Entry for packet ID [" << iteratorForprecordWindowForTriggerSwitch->first << "] : ";
-                // std::cout << "{" << iteratorForprecordWindowForTriggerSwitch->second << "}" << " {" << iteratorForprecordWindowForCurrentSwitch->second << "}" << std::endl;
-                numberOfCommonPktIDs++;
-            }
-            iteratorForprecordWindowForTriggerSwitch++;
-    }
-
-    std::cout<< "Common Pkts: " << numberOfCommonPktIDs << std::endl;
-    return (float)numberOfCommonPktIDs / (float)totalNumberOfExpectedPackets;
-} */
-
+/**
+ * Get information regarding triggers from the trigger dump file.
+ */
 void DataParser::getTriggerInfo(switch_id_t numberOfSwitches) {
     ndebug_print("Reading Trigger File.");
 
