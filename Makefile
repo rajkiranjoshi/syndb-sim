@@ -1,12 +1,12 @@
-ifndef $(CONFIG)
-	CONFIG := release
+ifndef $(BUILD)
+	BUILD := release
 endif
 
 UNAME_S := $(shell uname -s)
 
 CURR_DIR:=$(shell dirname $(realpath $(firstword $(MAKEFILE_LIST))))
 BASE_BUILDDIR:=$(CURR_DIR)/build
-BUILDDIR=$(BASE_BUILDDIR)/$(CONFIG)
+BUILDDIR=$(BASE_BUILDDIR)/$(BUILD)
 
 SOURCES = $(wildcard $(CURR_DIR)/*.cpp) \
 		  $(wildcard $(CURR_DIR)/traffic/*.cpp) \
@@ -39,25 +39,19 @@ LDLIBS = -lpthread \
 		 -lfmt \
 		 -lspdlog
 
-ifeq ($(CONFIG), release)
+ifeq ($(BUILD), release)
 CXXFLAGS += -O3
 OUTPUT_BINARY := $(RELEASE_BINARY)
 ANALYSIS_BINARY := $(ANALYSIS_RELEASE_BINARY)
 endif
 
-ifeq ($(CONFIG), debugnologging)
-CXXFLAGS += -O0 -g3
-OUTPUT_BINARY := $(DEBUG_BINARY)
-ANALYSIS_BINARY := $(ANALYSIS_DEBUG_BINARY)
-endif
-
-ifeq ($(CONFIG), debug)
+ifeq ($(BUILD), debug)
 CXXFLAGS += -O0 -g3 -DDEBUG
 OUTPUT_BINARY := $(DEBUG_BINARY)
 ANALYSIS_BINARY := $(ANALYSIS_DEBUG_BINARY)
 endif
 
-ifeq ($(CONFIG), profile)
+ifeq ($(BUILD), profile)
 CXXFLAGS += -O3 -pg -DPROFILING=1
 OUTPUT_BINARY := $(PROFILE_BINARY)
 ANALYSIS_BINARY := $(ANALYSIS_PROFILE_BINARY)
