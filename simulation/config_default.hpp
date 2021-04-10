@@ -14,22 +14,10 @@ typedef struct Config
 
     // IMPORTANT: update numHosts and numSwitches as per the topology
     
-    /* SimpleTopo Params */
-    // const TopologyType topoType = TopologyType::Simple;
-    // static const switch_id_t numSwitches = 3;
-    // static const uint numHosts = 4;
-    // const TrafficPatternType trafficPatternType = TrafficPatternType::SimpleTopo;
-    // const sim_time_t triggerInitialDelay = 1500000; // 1.5ms for Line topo 10G runs
-    // const link_speed_gbps_t torLinkSpeedGbps = 100;
-    // const link_speed_gbps_t networkLinkSpeedGbps = 100;
-
-    /* LineTopo 10ms Expt Params */
-    /* Do NOT comment out */ const pkt_size_t fixedPktSizeForSimpleTrafficGen = 101; //1500;  
-    
     /* FatTree Topo 100ms Expt Params */
-    /* Do NOT comment out */ static const ft_scale_t fatTreeTopoK = 4; // Fat Tree scale k
-    /* Do NOT comment out */ const uint8_t ftMixedPatternPercentIntraRack = 75;
-    /* Do NOT comment out */ const uint8_t targetBaseNetworkLoadPercent = 40;  /* 30 -> 25%, 40 -> 31%, 50 -> 36% */
+    static const ft_scale_t fatTreeTopoK = 4; // Fat Tree scale k
+    const uint8_t ftMixedPatternPercentIntraRack = 75;
+    const uint8_t targetBaseNetworkLoadPercent = 40;  /* 30 -> 25%, 40 -> 31%, 50 -> 36% */
     const float totalTimeMSecs = 1000;
     const TopologyType topoType = TopologyType::FatTree;
     static const host_id_t numHosts = (fatTreeTopoK * fatTreeTopoK * fatTreeTopoK)/4;
@@ -40,6 +28,7 @@ typedef struct Config
     static const uint numTriggersPerSwitchType = 100;
     const link_speed_gbps_t torLinkSpeedGbps = 100;
     const link_speed_gbps_t networkLinkSpeedGbps = 100;
+    static const int numCoreSwitches = (fatTreeTopoK/2) * (fatTreeTopoK/2);
 
 
     /* Incast Related Params */
@@ -55,14 +44,15 @@ typedef struct Config
 
     // SyNDB specific config options
     static const uint32_t ringBufferSize = 10; // large size for simulation "oracle"
-    static const pkt_size_t triggerPktSize = 60;
-
-    // Fat Tree specific config options
-    static const int numCoreSwitches = (fatTreeTopoK/2) * (fatTreeTopoK/2);
+    static const pkt_size_t triggerPktSize = 60;    
   
     const std::string packetSizeDistFile = "traffic-dist/fb_webserver_packetsizedist_cdf.csv";
-
     const std::string flowArrivalDistFile = "traffic-dist/fb_webserver_flowinterarrival_ns_cdf.csv";
+
+    /* Other params NOT used, but needed for compilation. */
+    // LineTopo 10ms Expt Params 
+    const pkt_size_t fixedPktSizeForSimpleTrafficGen = 101; //1500;
+
 } Config;
 
 extern Config syndbConfig;
