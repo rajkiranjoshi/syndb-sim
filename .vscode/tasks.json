@@ -18,10 +18,7 @@
             "type": "shell",
             "command": "make CONFIG=debugnologging -j $(($(nproc)-1)) analysis",
             "problemMatcher": [],
-            "group": {
-                "kind": "build",
-                "isDefault": true
-            }
+            "group": "build"
         }
     ]
 }
