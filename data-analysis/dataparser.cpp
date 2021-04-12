@@ -29,7 +29,7 @@ std::string DataParser::executeShellCommand(const char* command) {
 DataParser::DataParser(std::string prefixFilePath, std::string prefixStringForFileName, switch_id_t numberOfSwitches) {
 
     std::string pathForDataFolder = prefixFilePath + "/" + prefixStringForFileName +"/" + prefixStringForFileName;
-    ndebug_print_yellow("Reading files {}*.txt.", pathForDataFolder);
+    ndebug_print_yellow("Reading files {}*.txt", pathForDataFolder);
     // open all file pointers in write/output mode
     for (int i = 0; i < numberOfSwitches; i++) {
         std::string fileName = pathForDataFolder + "_switch_" + std::to_string(i) + ".txt";
@@ -95,16 +95,6 @@ std::map<pkt_id_t, PacketInfo> DataParser::getWindowForSwitch(switch_id_t switch
     debug_print("Starting line number is: {}", startLineNumber);
     debug_print("Starting trigger time is: {}", triggerTime);
 #endif
-    std::string commandToGetTime = "sed -n " + std::to_string(startLineNumber+100000) + "p " + fileName + " | cut -f 1";
-    sim_time_t end_time_100k = std::stoll(this->executeShellCommand(commandToGetTime.c_str()));
-    sim_time_t end_time_5M = triggerTime;
-    commandToGetTime = "sed -n " + std::to_string(startLineNumber+5000000) + "p " + fileName + " | cut -f 1";
-    std::string timeString = this->executeShellCommand(commandToGetTime.c_str());
-    if (timeString.size() != 0) {
-        end_time_5M = std::stoll(timeString);
-    }
-    ndebug_print("{}\t{}\t{}", switchID, triggerTime-end_time_100k, triggerTime-end_time_5M);
-    return pRecordWindow;
 
     this->switchFilePointers[switchID].clear();
     this->switchFilePointers[switchID].seekg(0);

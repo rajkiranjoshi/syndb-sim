@@ -184,7 +184,7 @@ int main(int argc, char *argv[]) {
 
     ndebug_print_yellow("Welcome to data analysis!");
 
-    int startTriggerID = 0, endTriggerID = 299;
+    int startTriggerID = 0, endTriggerID = 2;
     if (argc > 1) {
         startTriggerID = std::stoi(argv[1]);
         endTriggerID = std::stoi(argv[2]);
@@ -250,21 +250,21 @@ int main(int argc, char *argv[]) {
 
             std::map<pkt_id_t, PacketInfo> pRecordWindowForCurrentSwitch = dataparser.getWindowForSwitch(switchID, timeForTriggerPacket, syndbConfig.ringBufferSize, false);
 
-#ifdef DEBUG
-            auto iteratorForpRecordWindowForCurrentSwitch = pRecordWindowForCurrentSwitch.begin();
-            debug_print("-----------------------");
-            for (; iteratorForpRecordWindowForCurrentSwitch != pRecordWindowForCurrentSwitch.end(); iteratorForpRecordWindowForCurrentSwitch++) {
-                debug_print("{}\t{}", iteratorForpRecordWindowForCurrentSwitch->first,
-                            iteratorForpRecordWindowForCurrentSwitch->second.switchIngressTime);
-            }
-#endif
-
             // ----- For each packet in the trigger switch precord window find the packet in current switch ID -----
             double numberOfExpectedPackets = 0.0, numberOfCommonPackets = 0.0;
             auto iteratorForpRecordWindowForTriggerSwitch = pRecordWindowForTriggerSwitch.begin();
             auto iteratorForpRecordWindowForCurrentSwitch = pRecordWindowForCurrentSwitch.begin();
             sim_time_t timeOfMostRecentCommonpRecord = 0, timeOfLeastRecentCommonpRecord = 0;
             pkt_id_t packetIDOfLeastRecentExpectedRecord, packetIDOfMostRecentCommonRecord;
+
+#ifdef DEBUG
+            debug_print("-----------------------");
+            for (; iteratorForpRecordWindowForCurrentSwitch != pRecordWindowForCurrentSwitch.end(); iteratorForpRecordWindowForCurrentSwitch++) {
+                debug_print("{}\t{}", iteratorForpRecordWindowForCurrentSwitch->first,
+                            iteratorForpRecordWindowForCurrentSwitch->second.switchIngressTime);
+            }
+            iteratorForpRecordWindowForCurrentSwitch = pRecordWindowForCurrentSwitch.begin();
+#endif
 
             if (syndbConfig.topoType == TopologyType::FatTree) {
                 for (; iteratorForpRecordWindowForTriggerSwitch != pRecordWindowForTriggerSwitch.end(); iteratorForpRecordWindowForTriggerSwitch++) {
