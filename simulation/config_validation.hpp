@@ -6,7 +6,7 @@
 #define HOP_DELAY_NOISE 1
 #define RING_BUFFER 0
 #define TRIGGERS_ENABLED 1
-#define INCASTS_ENABLED 1
+#define INCASTS_ENABLED 0
 
 typedef struct Config 
 {
@@ -21,7 +21,7 @@ typedef struct Config
     static const switch_id_t numSwitches = 5;
     static const uint numHosts = 2;
     const TrafficPatternType trafficPatternType = TrafficPatternType::SimpleTopo;
-    const sim_time_t triggerInitialDelay = 1500000; // 1.5ms for Line topo 10ms run
+    const sim_time_t triggerInitialDelay = 1500000; // 1.5ms for Line topo 10ms run with 10k ring buffer
     static const uint numTriggersPerSwitchType = 100;
     const link_speed_gbps_t torLinkSpeedGbps = 10;
     const link_speed_gbps_t networkLinkSpeedGbps = 10;
@@ -34,12 +34,12 @@ typedef struct Config
 
     // const load_t hostTrafficGenLoadPercent = 100;
 
-    const sim_time_t switchHopDelayNs = 1000;
-    const sim_time_t minSwitchHopDelayNs = 950;
-    const sim_time_t maxSwitchHopDelayNs = 1050;
+    const sim_time_t switchHopDelayNs = 500;
+    const sim_time_t minSwitchHopDelayNs = 450;
+    const sim_time_t maxSwitchHopDelayNs = 550;
 
     // SyNDB specific config options
-    static const uint32_t ringBufferSize = 10; // large size for simulation "oracle"
+    static const pkt_id_t ringBufferSize = 10000; // 10K
     static const pkt_size_t triggerPktSize = 60;
 
     const std::string packetSizeDistFile = "traffic-dist/fb_webserver_packetsizedist_cdf.csv";
