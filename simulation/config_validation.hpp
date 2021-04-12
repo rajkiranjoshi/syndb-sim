@@ -2,7 +2,9 @@
 #include <cassert>
 #include "utils/types.hpp"
 
+#ifndef LOGGING
 #define LOGGING 1
+#endif
 #define HOP_DELAY_NOISE 1
 #define RING_BUFFER 0
 #define TRIGGERS_ENABLED 1
