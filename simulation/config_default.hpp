@@ -18,14 +18,14 @@ typedef struct Config
     static const ft_scale_t fatTreeTopoK = 4; // Fat Tree scale k
     const uint8_t ftMixedPatternPercentIntraRack = 75;
     const uint8_t targetBaseNetworkLoadPercent = 40;  /* 30 -> 25%, 40 -> 31%, 50 -> 36% */
-    const float totalTimeMSecs = 1000;
+    const float totalTimeMSecs = 10;
     const TopologyType topoType = TopologyType::FatTree;
     static const host_id_t numHosts = (fatTreeTopoK * fatTreeTopoK * fatTreeTopoK)/4;
     static const switch_id_t numSwitches = (fatTreeTopoK * fatTreeTopoK) + ((fatTreeTopoK * fatTreeTopoK)/4);   
     const TrafficPatternType trafficPatternType = TrafficPatternType::FtMixed;
     const TrafficGenType trafficGenType = TrafficGenType::Distribution;
-    const sim_time_t triggerInitialDelay = 15000000; // 15ms for k=24 fatTree topo 100ms run
-    static const uint numTriggersPerSwitchType = 100;
+    const sim_time_t triggerInitialDelay = 5000000; // 5ms for k=4 fatTree topo 10ms run and 50K ring buffer
+    static const uint numTriggersPerSwitchType = 1;
     const link_speed_gbps_t torLinkSpeedGbps = 100;
     const link_speed_gbps_t networkLinkSpeedGbps = 100;
     static const int numCoreSwitches = (fatTreeTopoK/2) * (fatTreeTopoK/2);
@@ -43,7 +43,7 @@ typedef struct Config
     const sim_time_t maxSwitchHopDelayNs = 1050;
 
     // SyNDB specific config options
-    static const uint32_t ringBufferSize = 10; // large size for simulation "oracle"
+    static const pkt_id_t ringBufferSize = 50000; // 50K
     static const pkt_size_t triggerPktSize = 60;    
   
     const std::string packetSizeDistFile = "traffic-dist/fb_webserver_packetsizedist_cdf.csv";

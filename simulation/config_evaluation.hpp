@@ -42,7 +42,7 @@ typedef struct Config
     const sim_time_t maxSwitchHopDelayNs = 1050;
 
     // SyNDB specific config options
-    static const uint32_t ringBufferSize = 10; 
+    static const pkt_id_t ringBufferSize = 1000000; // 1M
     static const pkt_size_t triggerPktSize = 60;
       
     const std::string packetSizeDistFile = "traffic-dist/fb_webserver_packetsizedist_cdf.csv";
