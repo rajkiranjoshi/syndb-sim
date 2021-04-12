@@ -8,6 +8,7 @@
 #include "simulation/simulation.hpp"
 
 
+
 template <typename... Args>
 void debug_print(const std::string &format, const Args&... args){
 #ifdef DEBUG

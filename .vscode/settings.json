@@ -63,6 +63,8 @@
         "typeinfo": "cpp",
         "variant": "cpp",
         "bit": "cpp",
-        "strstream": "cpp"
-    }
+        "strstream": "cpp",
+        "unordered_set": "cpp"
+    },
+    "python.pythonPath": "/usr/bin/python3"
 }
