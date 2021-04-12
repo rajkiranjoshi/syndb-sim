@@ -7,8 +7,6 @@
 #include <unordered_map>
 #include "utils/types.hpp"
 
-#define WINDOW_SIZE 1000 * 1000
-
 #define PREFIX_STRING_FOR_DATA_FILES "dump"
 #define PREFIX_FILE_PATH "/home/user/syndb"
 

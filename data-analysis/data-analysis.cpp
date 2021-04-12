@@ -195,8 +195,6 @@ int main(int argc, char *argv[]) {
     DataParser dataparser(PREFIX_FILE_PATH, PREFIX_STRING_FOR_DATA_FILES, syndbConfig.numSwitches);
     dataparser.getTriggerInfo(syndbConfig.numSwitches);
 
-    pkt_id_t windowSize = WINDOW_SIZE;
-
     auto iteratorForTrigger = dataparser.listOfTriggers.begin();
     for (; iteratorForTrigger < dataparser.listOfTriggers.end(); iteratorForTrigger++) {
 
@@ -210,7 +208,7 @@ int main(int argc, char *argv[]) {
         ndebug_print_yellow("Trigger ID: {} Switch: {} Time: {}", iteratorForTrigger->triggerId, triggerSwitchID, triggerTime);
 
         // get p-record window for trigger switch
-        std::map<pkt_id_t, PacketInfo> pRecordWindowForTriggerSwitch = dataparser.getWindowForSwitch(triggerSwitchID, triggerTime, windowSize, true);
+        std::map<pkt_id_t, PacketInfo> pRecordWindowForTriggerSwitch = dataparser.getWindowForSwitch(triggerSwitchID, triggerTime, syndbConfig.ringBufferSize, true);
         auto iteratorForpRecordWindowForTriggerSwitch = pRecordWindowForTriggerSwitch.begin();
 
         std::unordered_set<switch_id_t> validSwitches;
@@ -250,7 +248,7 @@ int main(int argc, char *argv[]) {
             sim_time_t timeForTriggerPacket = iteratorForTrigger->mapOfSwitchTriggerTime.find(switchID)->second;
             ndebug_print("\tSwitch: {}\t Trigger Packet Time: {}", switchID, timeForTriggerPacket);
 
-            std::map<pkt_id_t, PacketInfo> pRecordWindowForCurrentSwitch = dataparser.getWindowForSwitch(switchID, timeForTriggerPacket, windowSize, false);
+            std::map<pkt_id_t, PacketInfo> pRecordWindowForCurrentSwitch = dataparser.getWindowForSwitch(switchID, timeForTriggerPacket, syndbConfig.ringBufferSize, false);
 
 #ifdef DEBUG
             auto iteratorForpRecordWindowForCurrentSwitch = pRecordWindowForCurrentSwitch.begin();
@@ -343,7 +341,7 @@ int main(int argc, char *argv[]) {
                 } // loop iterating over all packets in trigger switch window
 
                     
-                float correlation = ((float)numberOfCommonPackets / (float)WINDOW_SIZE);
+                float correlation = ((float)numberOfCommonPackets / (float)syndbConfig.ringBufferSize);
                 ndebug_print("\tSwitch ID: {}\t Correlation: {}%\t ",
                                 switchID,
                                 correlation * 100);
